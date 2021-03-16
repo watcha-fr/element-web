@@ -2,7 +2,10 @@
 <html lang="en" style="height: 100%;">
   <head>
     <meta charset="utf-8">
+    <%/* watcha!
     <title>Riot</title>
+    !watcha */%>
+    <title>Watcha - Secure Digital Workplace</title> <%/* watcha+ */%>
     <link rel="apple-touch-icon" sizes="57x57" href="<%= require('../../res/vector-icons/apple-touch-icon-57x57.png') %>">
     <link rel="apple-touch-icon" sizes="60x60" href="<%= require('../../res/vector-icons/apple-touch-icon-60x60.png') %>">
     <link rel="apple-touch-icon" sizes="72x72" href="<%= require('../../res/vector-icons/apple-touch-icon-72x72.png') %>">
@@ -16,8 +19,12 @@
     <meta name="referrer" content="no-referrer">
     <link rel="shortcut icon" href="<%= require('../../res/vector-icons/favicon.ico') %>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <%/* watcha!
     <meta name="apple-mobile-web-app-title" content="Riot">
     <meta name="application-name" content="Riot">
+    !watcha */%>
+    <meta name="apple-mobile-web-app-title" content="Watcha"> <%/* watcha+ */%>
+    <meta name="application-name" content="Watcha"> <%/* watcha+ */%>
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="msapplication-TileImage" content="<%= require('../../res/vector-icons/mstile-144x144.png') %>">
     <meta name="msapplication-config" content="<%= require('../../res/vector-icons/browserconfig.xml') %>">
@@ -51,7 +58,10 @@
     } %>
   </head>
   <body style="height: 100%; margin: 0;" data-vector-indexeddb-worker-script="<%= htmlWebpackPlugin.files.chunks['indexeddb-worker'].entry %>">
+    <%/* watcha!
     <noscript>Sorry, Riot requires JavaScript to be enabled.</noscript> <!-- TODO: Translate this? -->
+    !watcha */%>
+    <noscript>Sorry, Watcha requires JavaScript to be enabled.</noscript> <%/* watcha+ */%>
     <section id="matrixchat" style="height: 100%; overflow: auto;" class="notranslate"></section>
     <script src="<%= htmlWebpackPlugin.files.chunks['bundle'].entry %>"></script>
 

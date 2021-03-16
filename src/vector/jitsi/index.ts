@@ -33,6 +33,7 @@ let conferenceId: string;
 let displayName: string;
 let avatarUrl: string;
 let userId: string;
+let roomName: string; // watcha+
 
 let widgetApi: WidgetApi;
 
@@ -69,6 +70,7 @@ let widgetApi: WidgetApi;
         displayName = qsParam('displayName', true);
         avatarUrl = qsParam('avatarUrl', true); // http not mxc
         userId = qsParam('userId');
+        roomName = qsParam('roomName', true); // watcha+
 
         if (widgetApi) {
             await widgetApi.waitReady();
@@ -117,6 +119,7 @@ function joinConference() { // event handler bound in HTML
     if (displayName) meetApi.executeCommand("displayName", displayName);
     if (avatarUrl) meetApi.executeCommand("avatarUrl", avatarUrl);
     if (userId) meetApi.executeCommand("email", userId);
+    if (roomName) meetApi.executeCommand("subject", roomName); // watcha+
 
     meetApi.on("readyToClose", () => {
         switchVisibleContainers();

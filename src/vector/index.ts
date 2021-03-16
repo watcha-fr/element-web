@@ -117,6 +117,7 @@ async function start() {
         // (https://github.com/vector-im/riot-web/issues/7378)
         const preventRedirect = fragparts.params.client_secret || fragparts.location.length > 0;
 
+        /* watcha!
         if (!preventRedirect) {
             const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             const isAndroid = /Android/.test(navigator.userAgent);
@@ -127,6 +128,7 @@ async function start() {
                 }
             }
         }
+        !watcha */
 
         const loadOlmPromise = loadOlm();
         // set the platform for react sdk
