@@ -46,6 +46,7 @@ let jitsiAuth: string;
 let roomId: string;
 let openIdToken: IOpenIDCredentials;
 let roomName: string;
+let isAudioOnly: string; // watcha+
 
 let widgetApi: WidgetApi;
 let meetApi: any; // JitsiMeetExternalAPI
@@ -106,6 +107,7 @@ let meetApi: any; // JitsiMeetExternalAPI
         jitsiAuth = qsParam('auth', true);
         roomId = qsParam('roomId', true);
         roomName = qsParam('roomName', true);
+        isAudioOnly = qsParam('isAudioOnly', true); // watcha+
 
         if (widgetApi) {
             await readyPromise;
@@ -129,6 +131,13 @@ let meetApi: any; // JitsiMeetExternalAPI
         }
 
         enableJoinButton(); // always enable the button
+        // watcha+
+        // HACK: failed to get "matrix-react-sdk/src/languageHandler" to work from Jitsi iframe
+        const mxLocalSettings = JSON.parse(localStorage.getItem('mx_local_settings'));
+        if (mxLocalSettings?.language === "fr" ) {
+            document.getElementById("joinButton").innerText = "Rejoindre la conférence";
+        }
+        // +watcha
     } catch (e) {
         console.error("Error setting up Jitsi widget", e);
         document.getElementById("widgetActionContainer").innerText = "Failed to load Jitsi widget";
@@ -223,6 +232,13 @@ function joinConference() { // event handler bound in HTML
         },
         jwt: jwt,
     };
+    // watcha+
+    if (isAudioOnly === "true") {
+        options["configOverwrite"] = {
+            startAudioOnly: true
+        }
+    }
+    // +watcha
 
     meetApi = new JitsiMeetExternalAPI(jitsiDomain, options);
     if (displayName) meetApi.executeCommand("displayName", displayName);
