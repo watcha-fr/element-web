@@ -1,0 +1,6 @@
+{
+    "Enable Nextcloud integration": "Activer l'intégration Nextcloud",
+    "Enable WebRTC for one-to-one calls": "Activer le WebRTC pour les appels individuels",
+    "Share a Nextcloud folder along its content with room members and use it as a common storage space": "Partager un dossier Nextcloud ainsi que son contenu avec les membres du salon et l'utiliser comme espace de stockage commun",
+    "Show E2EE related UI": "Afficher l'interface utilisateur liée au E2EE"
+}
