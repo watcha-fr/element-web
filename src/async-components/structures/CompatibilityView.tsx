@@ -32,7 +32,10 @@ const CompatibilityView: React.FC<IProps> = ({ onAccept }) => {
         <div className="mx_ErrorView_container">
             <div className="mx_HomePage_header">
                 <span className="mx_HomePage_logo">
+                    {/* watcha!
                     <img height="42" src="themes/element/img/logos/element-logo.svg" alt="Element" />
+                    !watcha */}
+                    <img height="42" src="themes/watcha/img/logos/watcha_logo.svg" alt="Watcha" /> {/* watcha+ */}
                 </span>
                 <h1>{ _t("Unsupported browser") }</h1>
             </div>
@@ -76,10 +79,16 @@ const CompatibilityView: React.FC<IProps> = ({ onAccept }) => {
             <div className="mx_HomePage_col">
                 <div className="mx_HomePage_row">
                     <div>
+                        {/* watcha!
                         <h2 id="step2_heading">Use Element on mobile</h2>
+                        !watcha */}
+                        <h2 id="step2_heading">{ _t("Use Watcha on mobile") }</h2> {/* watcha+ */}
                         <p><strong>iOS</strong> (iPhone or iPad)</p>
                         <a
+                            /* watcha!
                             href="https://apps.apple.com/app/vector/id1083446067"
+                            !watcha */
+                            href="https://apps.apple.com/fr/app/watcha/id1383732254" // watcha+
                             target="_blank"
                             className="mx_ClearDecoration"
                         >
@@ -87,12 +96,16 @@ const CompatibilityView: React.FC<IProps> = ({ onAccept }) => {
                         </a>
                         <p className="mx_Spacer"><strong>Android</strong></p>
                         <a
+                            /* watcha!
                             href="https://play.google.com/store/apps/details?id=im.vector.app"
+                            !watcha */
+                            href="https://play.google.com/store/apps/details?id=im.watcha.app" // watcha+
                             target="_blank"
                             className="mx_ClearDecoration"
                         >
                             <img height="48" src="themes/element/img/download/google.svg" alt="Google Play Store" />
                         </a>
+                        {/* watcha!
                         <a
                             href="https://f-droid.org/repository/browse/?fdid=im.vector.app"
                             target="_blank"
@@ -100,15 +113,18 @@ const CompatibilityView: React.FC<IProps> = ({ onAccept }) => {
                         >
                             <img height="48" src="themes/element/img/download/fdroid.svg" alt="F-Droid" />
                         </a>
+                        !watcha */}
                     </div>
                 </div>
             </div>
 
             <div className="mx_HomePage_row mx_Center mx_Spacer">
                 <p className="mx_Spacer">
+                    {/* watcha!
                     <a href="https://element.io" target="_blank" className="mx_FooterLink">
                         { _t("Go to element.io") }
                     </a>
+                    !watcha */}
                 </p>
             </div>
         </div>
