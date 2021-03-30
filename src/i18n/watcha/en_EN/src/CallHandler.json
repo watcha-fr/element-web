@@ -1,0 +1,4 @@
+{
+    "You cannot place a call with yourself.": "You are the only connected user in this room, so you cannot start a call.",
+    "You cannot place VoIP calls in this browser.": "Audio and video calls are not supported on this browser: use Mozilla Firefox ou Google Chrome instead."
+}
