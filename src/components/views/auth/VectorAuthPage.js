@@ -48,6 +48,12 @@ export default class VectorAuthPage extends React.PureComponent {
             background: `center/cover fixed url(${VectorAuthPage.getWelcomeBackgroundUrl()})`,
         };
 
+        // watcha+
+        if (SdkConfig.get().watcha_sso_auto_redirect) {
+            pageStyle["visibility"] = "hidden";
+        }
+        // +watcha
+
         const modalStyle = {
             position: 'relative',
             background: 'initial',
