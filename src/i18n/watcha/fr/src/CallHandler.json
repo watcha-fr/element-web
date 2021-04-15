@@ -1,0 +1,4 @@
+{
+    "You cannot place a call with yourself.": "Vous êtes le seul utilisateur connecté de ce salon, il n'est donc pas possible de passer un appel.",
+    "You cannot place VoIP calls in this browser.": "Ce navigateur ne supporte pas les appels audio et vidéo : utilisez Mozilla Firefox ou Google Chrome."
+}
