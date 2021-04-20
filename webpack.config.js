@@ -10,6 +10,12 @@ if (!og_image_url) og_image_url = 'https://app.element.io/themes/element/img/log
 
 const additionalPlugins = [
     // This is where you can put your customisation replacements.
+    // watcha+
+    new webpack.NormalModuleReplacementPlugin(
+        /src[\/\\]customisations[\/\\]Lifecycle\.ts/,
+        path.resolve(__dirname, 'src/customisations/watcha_Lifecycle.ts'),
+    ),
+    // +watcha
 ];
 
 module.exports = (env, argv) => {
