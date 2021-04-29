@@ -10,6 +10,12 @@ if (!ogImageUrl) ogImageUrl = 'https://app.element.io/themes/element/img/logos/o
 
 const additionalPlugins = [
     // This is where you can put your customisation replacements.
+    // watcha+
+    new webpack.NormalModuleReplacementPlugin(
+        /src[\/\\]customisations[\/\\]Lifecycle\.ts/,
+        path.resolve(__dirname, 'src/customisations/watcha_Lifecycle.ts'),
+    ),
+    // +watcha
 ];
 
 module.exports = (env, argv) => {
@@ -60,6 +66,7 @@ module.exports = (env, argv) => {
             "theme-dark": "./node_modules/matrix-react-sdk/res/themes/dark/css/dark.scss",
             "theme-light-custom": "./node_modules/matrix-react-sdk/res/themes/light-custom/css/light-custom.scss",
             "theme-dark-custom": "./node_modules/matrix-react-sdk/res/themes/dark-custom/css/dark-custom.scss",
+            "theme-watcha": "./node_modules/matrix-react-sdk/res/themes/watcha/css/watcha.scss", // watcha+
         },
 
         optimization: {
