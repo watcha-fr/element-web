@@ -19,7 +19,8 @@
     "This email address belongs to a room member": "This email address belongs to a room member",
     "This email address belongs to a user already invited in this room": "This email address belongs to a user already invited in this room",
     "This email address belongs to a user you have already added to the invitation list": "This email address belongs to a user you have already added to the invitation list",
-    "This email address is bound to your account": "This email address is bound to your account",
+    "This email address is already bound to your account": "This email address is already bound to your account",
+    "Users with an email address belonging to this domain <b></b> should not be invited as external partners": "Users with an email address belonging to this domain <b></b> should not be invited as external partners",
     "When you validate this form, an email will be sent to them, so that they can join the room.": "When you validate this form, an email will be sent to them, so that they can join the room.",
     "You have already added this email address to the invitation list": "You have already added this email address to the invitation list"
 }
