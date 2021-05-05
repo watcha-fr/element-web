@@ -2,7 +2,6 @@
     "Add an email address to the invitation list": "Add an email address to the invitation list",
     "Already invited": "Already invited",
     "Already room member": "Already room member",
-    "An invitation has already been sent to this email address": "An invitation has already been sent to this email address",
     "An invitation will be sent to this email address": "An invitation will be sent to this email address",
     "Click to add this user to the invitation list": "Click to add this user to the invitation list",
     "Click to remove this invitation": "Click to remove this invitation",
@@ -17,8 +16,10 @@
     "Please enter a valid email address": "Please enter a valid email address",
     "Select the person you want to invite from the <strong>Invite users</strong> list.": "Select the person you want to invite from the <strong>Invite users</strong> list.",
     "Start a private conversation": "Start a private conversation",
-    "This email address belongs to a user who is already a room member": "This email address belongs to a user who is already a room member",
+    "This email address belongs to a room member": "This email address belongs to a room member",
+    "This email address belongs to a user already invited in this room": "This email address belongs to a user already invited in this room",
     "This email address belongs to a user you have already added to the invitation list": "This email address belongs to a user you have already added to the invitation list",
+    "This email address is bound to your account": "This email address is bound to your account",
     "When you validate this form, an email will be sent to them, so that they can join the room.": "When you validate this form, an email will be sent to them, so that they can join the room.",
     "You have already added this email address to the invitation list": "You have already added this email address to the invitation list"
 }
