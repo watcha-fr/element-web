@@ -19,7 +19,8 @@
     "This email address belongs to a room member": "Cette adresse électronique appartient à un utilisateur déjà membre du salon",
     "This email address belongs to a user already invited in this room": "Cette adresse électronique appartient à un utilisateur déjà invité à rejoindre ce salon",
     "This email address belongs to a user you have already added to the invitation list": "Cette adresse électronique appartient à un utilisateur que vous avez déjà ajouté à la liste d'invitations",
-    "This email address is bound to your account": "Cette adresse électronique est liée à votre compte",
+    "This email address is already bound to your account": "Cette adresse électronique est déjà liée à votre compte",
+    "Users with an email address belonging to this domain <b></b> should not be invited as external partners": "Les utilisateurs ayant une adresse électronique appartenant au domaine <b></b> ne doivent pas être invités en tant que partenaires externes",
     "When you validate this form, an email will be sent to them, so that they can join the room.": "Lorsque vous validerez ce formulaire, un email lui sera envoyé, afin qu'elle puisse rejoindre le salon.",
     "You have already added this email address to the invitation list": "Vous avez déjà ajouté cette adresse électronique à la liste d'invitations"
 }
