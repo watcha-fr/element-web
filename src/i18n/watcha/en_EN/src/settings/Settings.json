@@ -2,6 +2,7 @@
     "Enable Nextcloud integration": "Enable Nextcloud integration",
     "Enable WebRTC for one-to-one calls": "Enable WebRTC for one-to-one calls",
     "Share a Nextcloud folder along its content with room members and use it as a common storage space": "Share a Nextcloud folder along its content with room members and use it as a common storage space",
+    "Show explore chat attachments button": "Show explore chat attachments button",
     "Show end-to-end encryption related UI": "Show end-to-end encryption related UI",
     "Show ignore user button": "Show ignore user button",
     "Show share room button": "Show share room button"
