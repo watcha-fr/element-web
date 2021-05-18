@@ -1,5 +1,8 @@
 <!doctype html>
+<%/* watcha!
 <html lang="en" style="height: 100%;">
+!watcha */%>
+<html lang="en" translate="no" style="height: 100%;"> <%/* watcha+ */%>
   <head>
     <meta charset="utf-8">
     <%/* watcha!
@@ -29,6 +32,7 @@
     <meta name="msapplication-TileImage" content="<%= require('../../res/vector-icons/mstile-150.png') %>">
     <meta name="msapplication-config" content="<%= require('../../res/vector-icons/browserconfig.xml') %>">
     <meta name="theme-color" content="#ffffff">
+    <meta name="google" content="notranslate"> <%/* watcha+ */%>
     <meta property="og:image" content="<%= htmlWebpackPlugin.options.vars.og_image_url %>" />
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'none';
