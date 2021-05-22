@@ -4,7 +4,7 @@ function onLoggedOutAndStorageCleared(): void {
     const config = SdkConfig.get();
     const sloUrl = config.watcha_slo_url;
     let nextcloudBaseUrl = config.watcha_nextcloud_base_url;
-    if (nextcloudBaseUrl && config.features?.feature_nextcloud) {
+    if (nextcloudBaseUrl) {
         const iframe = document.createElement("iframe");
         iframe.id = "nextcloudIframeLogout";
         iframe.style.display = "none";
