@@ -1,9 +1,9 @@
 {
     "Enable Nextcloud integration": "Activer l'intégration Nextcloud",
     "Enable WebRTC for one-to-one calls": "Activer le WebRTC pour les appels individuels",
-    "Share a Nextcloud folder along its content with room members and use it as a common storage space": "Partager un dossier Nextcloud ainsi que son contenu avec les membres du salon et l'utiliser comme espace de stockage commun",
-    "Show explore chat attachments button": "Afficher le bouton pour explorer les pièces jointes à la discussion",
+    "Share a Nextcloud folder with room members and use it as a common storage space.": "Partager un dossier Nextcloud avec les membres du salon et l'utiliser comme espace de stockage commun.",
     "Show end-to-end encryption related UI": "Afficher l'interface utilisateur liée au chiffrement de bout en bout",
+    "Show explore chat attachments button": "Afficher le bouton pour explorer les fichiers joints à la discussion",
     "Show ignore user button": "Afficher le bouton pour ignorer l'utilisateur",
     "Show share room button": "Afficher le bouton pour partager le salon"
 }

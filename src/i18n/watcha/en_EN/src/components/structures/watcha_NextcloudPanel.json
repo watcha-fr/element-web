@@ -1,4 +1,6 @@
 {
-    "No folder shared with this room": "No folder shared with this room",
-    "You can choose one from room <span>settings </span>": "You can choose one from room <span>settings </span>"
+    "No calendar shared with this room": "No calendar shared with this room",
+    "No documents shared with this room": "No documents shared with this room",
+    "No to-do lists shared with this room": "No to-do lists shared with this room",
+    "You can share a resource from room <span>settings </span>": "You can share a resource from room <span>settings </span>"
 }
