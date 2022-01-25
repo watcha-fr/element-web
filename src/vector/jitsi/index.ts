@@ -146,6 +146,13 @@ let meetApi: any; // JitsiMeetExternalAPI
         }
 
         enableJoinButton(); // always enable the button
+        // watcha+
+        // HACK: failed to get "matrix-react-sdk/src/languageHandler" to work from Jitsi iframe
+        const mxLocalSettings = JSON.parse(localStorage.getItem('mx_local_settings'));
+        if (mxLocalSettings?.language === "fr" ) {
+            document.getElementById("joinButton").innerText = "Rejoindre la conférence";
+        }
+        // +watcha
     } catch (e) {
         logger.error("Error setting up Jitsi widget", e);
         document.getElementById("widgetActionContainer").innerText = "Failed to load Jitsi widget";
