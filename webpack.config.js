@@ -561,6 +561,10 @@ module.exports = (env, argv) => {
                 /src[\/\\]customisations[\/\\]UserIdentifier\.ts/,
                 path.resolve(__dirname, 'src/customisations/watcha_UserIdentifier.ts'),
             ),
+            new webpack.NormalModuleReplacementPlugin(
+                /src[\/\\]customisations[\/\\]ComponentVisibility\.ts/,
+                path.resolve(__dirname, 'src/customisations/watcha_ComponentVisibility.ts'),
+            ),
             // +watcha
         ].filter(Boolean),
 
