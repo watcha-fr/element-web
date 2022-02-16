@@ -151,7 +151,7 @@ let meetApi: any; // JitsiMeetExternalAPI
         // watcha+
         // HACK: failed to get "matrix-react-sdk/src/languageHandler" to work from Jitsi iframe
         const mxLocalSettings = JSON.parse(localStorage.getItem('mx_local_settings'));
-        if (mxLocalSettings?.language === "fr" ) {
+        if (mxLocalSettings?.language === "fr") {
             document.getElementById("joinButton").innerText = "Rejoindre la conférence";
         }
         // +watcha

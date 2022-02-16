@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const loaderUtils = require("loader-utils");
-const path = require("path") // watcha+
+const path = require("path"); // watcha+
 
 // copies the resources into the webapp directory.
 //
@@ -77,7 +77,7 @@ function getWatchaLangFiles(dirPath, files = []) {
         }
     }
     return files;
-};
+}
 // +watcha
 
 // cpx includes globbed parts of the filename in the destination, but excludes
@@ -181,7 +181,7 @@ function next(i, err) {
 function genLangFile(lang, dest) {
     const reactSdkFile = 'node_modules/matrix-react-sdk/src/i18n/strings/' + lang + '.json';
     const riotWebFile = 'src/i18n/strings/' + lang + '.json';
-    const watchaFiles = getWatchaLangFiles('src/i18n/watcha/' + lang) // watcha+
+    const watchaFiles = getWatchaLangFiles('src/i18n/watcha/' + lang); // watcha+
 
     let translations = {};
     /* watcha!
@@ -192,7 +192,7 @@ function genLangFile(lang, dest) {
             try {
                 Object.assign(
                     translations,
-                    JSON.parse(fs.readFileSync(f).toString())
+                    JSON.parse(fs.readFileSync(f).toString()),
                 );
             } catch (e) {
                 console.error("Failed: " + f, e);
@@ -280,7 +280,7 @@ and regenerating languages.json with the new filename
 function watchLanguage(lang, dest, langFileMap) {
     const reactSdkFile = 'node_modules/matrix-react-sdk/src/i18n/strings/' + lang + '.json';
     const riotWebFile = 'src/i18n/strings/' + lang + '.json';
-    const watchaFiles = getWatchaLangFiles('src/i18n/watcha/' + lang) // watcha+
+    const watchaFiles = getWatchaLangFiles('src/i18n/watcha/' + lang); // watcha+
 
     // XXX: Use a debounce because for some reason if we read the language
     // file immediately after the FS event is received, the file contents

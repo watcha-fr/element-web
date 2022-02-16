@@ -29,15 +29,15 @@ interface IProps {
 }
 
 const ErrorView: React.FC<IProps> = ({ title, messages }) => {
-    const supportEmailAddress = getSupportEmailAddress() // watcha+
+    const supportEmailAddress = getSupportEmailAddress(); // watcha+
     return <div className="mx_ErrorView">
         <div className="mx_ErrorView_container">
             <div className="mx_HomePage_header">
                 <span className="mx_HomePage_logo">
-                    {/* watcha!
+                    { /* watcha!
                     <img height="42" src="themes/element/img/logos/element-logo.svg" alt="Element" />
-                    !watcha */}
-                    <img height="42" src="themes/watcha/img/logos/watcha_logo.svg" alt="Watcha" /> {/* watcha+ */}
+                    !watcha */ }
+                    <img height="42" src="themes/watcha/img/logos/watcha_logo.svg" alt="Watcha" /> { /* watcha+ */ }
                 </span>
                 <h1>{ _t("Failed to start") }</h1>
             </div>
@@ -53,24 +53,24 @@ const ErrorView: React.FC<IProps> = ({ title, messages }) => {
             </div>
             <div className="mx_HomePage_row mx_Center mx_Spacer">
                 <p className="mx_Spacer">
-                    {/* watcha!
+                    { /* watcha!
                     <a href="https://element.io" target="_blank" className="mx_FooterLink">
                         { _t("Go to element.io") }
                     </a>
-                    !watcha */}
-                    {/* watcha+ */}
-                    {_t(
+                    !watcha */ }
+                    { /* watcha+ */ }
+                    { _t(
                         "Contact us at <a></a>",
                         {},
                         {
                             a: () => (
                                 <a href={`mailto:${supportEmailAddress}`} className="mx_FooterLink">
-                                    {supportEmailAddress}
+                                    { supportEmailAddress }
                                 </a>
                             ),
-                        }
-                    )}
-                    {/* +watcha */}
+                        },
+                    ) }
+                    { /* +watcha */ }
                 </p>
             </div>
         </div>

@@ -20,7 +20,7 @@ limitations under the License.
  *
  * Set withDisplayName to true when user identifier will be displayed alongside user name
  */
- function getDisplayUserIdentifier(
+function getDisplayUserIdentifier(
     userId: string,
     { roomId, withDisplayName }: { roomId?: string, withDisplayName?: boolean },
 ): string | null {
