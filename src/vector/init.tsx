@@ -131,7 +131,7 @@ export async function loadSkin() {
         import(
             /* webpackChunkName: "matrix-react-sdk" */
             /* webpackPreload: true */
-            "matrix-react-sdk"),
+            "matrix-react-sdk/src"),
         import(
             /* webpackChunkName: "element-web-component-index" */
             /* webpackPreload: true */
