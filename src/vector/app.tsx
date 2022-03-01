@@ -166,6 +166,11 @@ export async function loadApp(fragParams: {}) {
     if (!autoRedirect && ssoRedirects.on_welcome_page && isWelcomeOrLanding) {
         autoRedirect = true;
     }
+    // watcha+
+    if (window.location.hash === '#/partner') {
+        autoRedirect = false;
+    }
+    // +watcha
     if (!hasPossibleToken && !isReturningFromSso && autoRedirect) {
         logger.log("Bypassing app load to redirect to SSO");
         const tempCli = createClient({
