@@ -108,7 +108,8 @@ body.theme-light .icon::before {
 
 // watcha+
 body.theme-watcha {
-    @extend body.theme-light;
+    background-color: $light-bg;
+    color: $light-fg;
     .icon::before {
         background-color: $light-fg;
     }
