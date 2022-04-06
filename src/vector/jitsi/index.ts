@@ -243,6 +243,7 @@ function joinConference() { // event handler bound in HTML
         },
         configOverwrite: {
             startAudioOnly,
+            prejoinConfig: { enabled: false }, // watcha+
         },
         jwt: jwt,
     };
