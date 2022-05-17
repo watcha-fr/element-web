@@ -167,7 +167,8 @@ export async function loadApp(fragParams: {}) {
         autoRedirect = true;
     }
     // watcha+
-    if (window.location.hash === '#/partner') {
+    // pattern may be followed by "startingFragmentQueryParams" (ex: defaultUsername)
+    if (window.location.hash.match('^#/partner(?=\\?|$)')) {
         autoRedirect = false;
     }
     // +watcha
