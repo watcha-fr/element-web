@@ -16,11 +16,14 @@ limitations under the License.
 
 import SdkConfig from "matrix-react-sdk/src/SdkConfig";
 
-function onLoggedOutAndStorageCleared(): void {
+function onLoggedOutAndStorageCleared(isPartner, capabilities): void {
     const config = SdkConfig.get();
     const sloUrl = config.watcha_slo_url;
-    if (sloUrl) {
+    const externalAuthenticationForPartners = capabilities.watcha?.external_authentication_for_partners?.enabled;
+    if (sloUrl && (!isPartner || externalAuthenticationForPartners)) {
         window.location.href = sloUrl;
+    } else if (isPartner && !externalAuthenticationForPartners) {
+        window.location.hash = "/partner";
     }
 }
 
