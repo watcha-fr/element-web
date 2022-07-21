@@ -29,6 +29,7 @@ const cssThemes = {
     "theme-dark": "./node_modules/matrix-react-sdk/res/themes/dark/css/dark.scss",
     "theme-light-custom": "./node_modules/matrix-react-sdk/res/themes/light-custom/css/light-custom.scss",
     "theme-dark-custom": "./node_modules/matrix-react-sdk/res/themes/dark-custom/css/dark-custom.scss",
+    "theme-watcha": "./node_modules/matrix-react-sdk/res/themes/watcha/css/watcha.scss", // watcha+
 };
 
 function getActiveThemes() {
@@ -635,6 +636,25 @@ module.exports = (env, argv) => {
                     include: "./webapp/bundles",
                 }),
             new webpack.EnvironmentPlugin(['VERSION']),
+
+            // watcha+
+            new webpack.NormalModuleReplacementPlugin(
+                /src[\/\\]customisations[\/\\]Lifecycle\.ts/,
+                path.resolve(__dirname, 'src/customisations/watcha_Lifecycle.ts'),
+            ),
+            new webpack.NormalModuleReplacementPlugin(
+                /src[\/\\]customisations[\/\\]Security\.ts/,
+                path.resolve(__dirname, 'src/customisations/watcha_Security.ts'),
+            ),
+            new webpack.NormalModuleReplacementPlugin(
+                /src[\/\\]customisations[\/\\]UserIdentifier\.ts/,
+                path.resolve(__dirname, 'src/customisations/watcha_UserIdentifier.ts'),
+            ),
+            new webpack.NormalModuleReplacementPlugin(
+                /src[\/\\]customisations[\/\\]ComponentVisibility\.ts/,
+                path.resolve(__dirname, 'src/customisations/watcha_ComponentVisibility.ts'),
+            ),
+            // +watcha
         ].filter(Boolean),
 
         output: {

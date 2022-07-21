@@ -119,6 +119,12 @@ export async function loadApp(fragParams: {}) {
     if (!autoRedirect && ssoRedirects.on_welcome_page && isWelcomeOrLanding) {
         autoRedirect = true;
     }
+    // watcha+
+    // pattern may be followed by "startingFragmentQueryParams" (ex: defaultUsername)
+    if (window.location.hash.match('^#/partner(?=\\?|$)')) {
+        autoRedirect = false;
+    }
+    // +watcha
     if (!hasPossibleToken && !isReturningFromSso && autoRedirect) {
         logger.log("Bypassing app load to redirect to SSO");
         const tempCli = createClient({

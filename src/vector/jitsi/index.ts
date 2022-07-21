@@ -250,6 +250,14 @@ const ack = (ev: CustomEvent<IWidgetApiRequest>) => widgetApi.transport.reply(ev
         } catch (e) {
             logger.error(e);
         }
+
+        // watcha+
+        // HACK: failed to get "matrix-react-sdk/src/languageHandler" to work from Jitsi iframe
+        const mxLocalSettings = JSON.parse(localStorage.getItem('mx_local_settings'));
+        if (mxLocalSettings?.language === "fr") {
+            document.getElementById("joinButton").innerText = "Rejoindre la conférence";
+        }
+        // +watcha
     } catch (e) {
         logger.error("Error setting up Jitsi widget", e);
         document.getElementById("widgetActionContainer").innerText = "Failed to load Jitsi widget";
@@ -398,6 +406,7 @@ function joinConference(audioDevice?: string | null, videoDevice?: string | null
             // back over the iframe API, and therefore end up crashing
             // https://github.com/jitsi/jitsi-meet/issues/11585
             apiLogLevels: ["warn", "error"],
+            prejoinConfig: { enabled: false }, // watcha+
         } as any,
         jwt: jwt,
     };
