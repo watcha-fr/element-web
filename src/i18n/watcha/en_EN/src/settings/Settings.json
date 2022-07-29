@@ -1,0 +1,13 @@
+{
+    "Also visible in contextual menus": "Also visible in contextual menus",
+    "Enable Nextcloud integration": "Enable Nextcloud integration",
+    "Enable WebRTC for one-to-one calls": "Enable WebRTC for one-to-one calls",
+    "Share a Nextcloud folder with room members and use it as a common storage space.": "Share a Nextcloud folder with room members and use it as a common storage space.",
+    "Show buttons to ignore users": "Show buttons to ignore users",
+    "Show end-to-end encryption related UI": "Show end-to-end encryption related UI",
+    "Show explore chat attachments button": "Show explore chat attachments button",
+    "Show share message button": "Show share message button",
+    "Show share room button": "Show share room button",
+    "Show view source button": "Show view source button",
+    "Visible on user profiles and incoming invitations": "Visible on user profiles and incoming invitations"
+}

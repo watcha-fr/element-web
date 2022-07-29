@@ -12,7 +12,10 @@ function onBackToElementClick(): void {
 function renderConfigError(message: string): void {
     const contactMsg = "If this is unexpected, please contact your system administrator " +
         "or technical support representative.";
+    /* watcha!
     message = `<h2>Error loading Element</h2><p>${message}</p><p>${contactMsg}</p>`;
+    !watcha */
+    message = `<h2>Error loading Watcha</h2><p>${message}</p><p>${contactMsg}</p>`; // watcha+
 
     const toHide = document.getElementsByClassName("mx_HomePage_container");
     const errorContainers = document.getElementsByClassName(
