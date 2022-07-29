@@ -109,3 +109,16 @@ body, html {
 body.theme-light .icon::before {
     background-color: $light-fg;
 }
+
+// watcha+
+body.theme-watcha {
+    background-color: $light-bg;
+    color: $light-fg;
+    .icon::before {
+        background-color: $light-fg;
+    }
+    #joinButton {
+        background-color: rgb(0, 180, 180);
+    }
+}
+// +watcha

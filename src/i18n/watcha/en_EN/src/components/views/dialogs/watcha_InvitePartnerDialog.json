@@ -1,0 +1,10 @@
+{
+    "Please enter a valid email address": "Please enter a valid email address",
+    "This email address belongs to a user already invited to this room": "This email address belongs to a user already invited to this room",
+    "This email address belongs to a user who is already a room member": "This email address belongs to a user who is already a room member",
+    "This email address belongs to a user you have already added to the invitation list": "This email address belongs to a user you have already added to the invitation list",
+    "This email address is already bound to your account": "This email address is already bound to your account",
+    "Users with an email address belonging to this domain <b></b> should not be invited as external partners": "Users with an email address belonging to this domain <b></b> should not be invited as external partners",
+    "You have already added this email address to the invitation list": "You have already added this email address to the invitation list",
+    "joe@example.com": "joe@example.com"
+}
