@@ -639,19 +639,19 @@ module.exports = (env, argv) => {
 
             // watcha+
             new webpack.NormalModuleReplacementPlugin(
-                /src[\/\\]customisations[\/\\]Lifecycle\.ts/,
+                /src[/\\]customisations[/\\]Lifecycle\.ts/,
                 path.resolve(__dirname, 'src/customisations/watcha_Lifecycle.ts'),
             ),
             new webpack.NormalModuleReplacementPlugin(
-                /src[\/\\]customisations[\/\\]Security\.ts/,
+                /src[/\\]customisations[/\\]Security\.ts/,
                 path.resolve(__dirname, 'src/customisations/watcha_Security.ts'),
             ),
             new webpack.NormalModuleReplacementPlugin(
-                /src[\/\\]customisations[\/\\]UserIdentifier\.ts/,
+                /src[/\\]customisations[/\\]UserIdentifier\.ts/,
                 path.resolve(__dirname, 'src/customisations/watcha_UserIdentifier.ts'),
             ),
             new webpack.NormalModuleReplacementPlugin(
-                /src[\/\\]customisations[\/\\]ComponentVisibility\.ts/,
+                /src[/\\]customisations[/\\]ComponentVisibility\.ts/,
                 path.resolve(__dirname, 'src/customisations/watcha_ComponentVisibility.ts'),
             ),
             // +watcha
