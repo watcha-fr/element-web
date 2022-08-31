@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const loaderUtils = require("loader-utils");
-const path = require("path"); // watcha+
 
 // copies the resources into the webapp directory.
 //
@@ -12,25 +11,20 @@ const path = require("path"); // watcha+
 // This could readily be automated, but it's nice to explicitly
 // control when new languages are available.
 const INCLUDE_LANGS = [
-    /* watcha!
     {'value': 'bg', 'label': 'Български'},
     {'value': 'ca', 'label': 'Català'},
     {'value': 'cs', 'label': 'čeština'},
     {'value': 'da', 'label': 'Dansk'},
     {'value': 'de_DE', 'label': 'Deutsch'},
     {'value': 'el', 'label': 'Ελληνικά'},
-    !watcha */
     {'value': 'en_EN', 'label': 'English'},
-    /* watcha!
     {'value': 'en_US', 'label': 'English (US)'},
     {'value': 'eo', 'label': 'Esperanto'},
     {'value': 'es', 'label': 'Español'},
     {'value': 'et', 'label': 'Eesti'},
     {'value': 'eu', 'label': 'Euskara'},
     {'value': 'fi', 'label': 'Suomi'},
-    !watcha */
     {'value': 'fr', 'label': 'Français'},
-    /* watcha!
     {'value': 'gl', 'label': 'Galego'},
     {'value': 'he', 'label': 'עברית'},
     {'value': 'hi', 'label': 'हिन्दी'},
@@ -63,22 +57,7 @@ const INCLUDE_LANGS = [
     {'value': 'vls', 'label': 'West-Vlaams'},
     {'value': 'zh_Hans', 'label': '简体中文'}, // simplified chinese
     {'value': 'zh_Hant', 'label': '繁體中文'}, // traditional chinese
-    !watcha */
 ];
-
-// watcha+
-function getWatchaLangFiles(dirPath, files = []) {
-    for (const item of fs.readdirSync(dirPath)) {
-        const itemPath = path.join(dirPath, item);
-        if (fs.statSync(itemPath).isDirectory()) {
-            getWatchaLangFiles(itemPath, files);
-        } else {
-            files.push(itemPath);
-        }
-    }
-    return files;
-}
-// +watcha
 
 // cpx includes globbed parts of the filename in the destination, but excludes
 // common parents. Hence, "res/{a,b}/**": the output will be "dest/a/..." and
@@ -181,13 +160,9 @@ function next(i, err) {
 function genLangFile(lang, dest) {
     const reactSdkFile = 'node_modules/matrix-react-sdk/src/i18n/strings/' + lang + '.json';
     const riotWebFile = 'src/i18n/strings/' + lang + '.json';
-    const watchaFiles = getWatchaLangFiles('src/i18n/watcha/' + lang); // watcha+
 
     let translations = {};
-    /* watcha!
     [reactSdkFile, riotWebFile].forEach(function(f) {
-    !watcha */
-    [reactSdkFile, riotWebFile, ...watchaFiles].forEach(function(f) { // watcha+
         if (fs.existsSync(f)) {
             try {
                 Object.assign(
@@ -286,7 +261,6 @@ and regenerating languages.json with the new filename
 function watchLanguage(lang, dest, langFileMap) {
     const reactSdkFile = 'node_modules/matrix-react-sdk/src/i18n/strings/' + lang + '.json';
     const riotWebFile = 'src/i18n/strings/' + lang + '.json';
-    const watchaFiles = getWatchaLangFiles('src/i18n/watcha/' + lang); // watcha+
 
     // XXX: Use a debounce because for some reason if we read the language
     // file immediately after the FS event is received, the file contents
@@ -303,10 +277,7 @@ function watchLanguage(lang, dest, langFileMap) {
         }, 500);
     };
 
-    /* watcha!
     [reactSdkFile, riotWebFile].forEach(function(f) {
-    !watcha */
-    [reactSdkFile, riotWebFile, ...watchaFiles].forEach(function(f) { // watcha+
         chokidar.watch(f)
             .on('add', makeLang)
             .on('change', makeLang)
