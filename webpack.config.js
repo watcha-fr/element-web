@@ -636,25 +636,6 @@ module.exports = (env, argv) => {
                     include: "./webapp/bundles",
                 }),
             new webpack.EnvironmentPlugin(['VERSION']),
-
-            // watcha+
-            new webpack.NormalModuleReplacementPlugin(
-                /src[/\\]customisations[/\\]Lifecycle\.ts/,
-                path.resolve(__dirname, 'src/customisations/watcha_Lifecycle.ts'),
-            ),
-            new webpack.NormalModuleReplacementPlugin(
-                /src[/\\]customisations[/\\]Security\.ts/,
-                path.resolve(__dirname, 'src/customisations/watcha_Security.ts'),
-            ),
-            new webpack.NormalModuleReplacementPlugin(
-                /src[/\\]customisations[/\\]UserIdentifier\.ts/,
-                path.resolve(__dirname, 'src/customisations/watcha_UserIdentifier.ts'),
-            ),
-            new webpack.NormalModuleReplacementPlugin(
-                /src[/\\]customisations[/\\]ComponentVisibility\.ts/,
-                path.resolve(__dirname, 'src/customisations/watcha_ComponentVisibility.ts'),
-            ),
-            // +watcha
         ].filter(Boolean),
 
         output: {
