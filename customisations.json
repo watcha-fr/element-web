@@ -1,6 +1,5 @@
 {
     "src/customisations/ComponentVisibility.ts": "src/customisations/watcha_ComponentVisibility.ts",
-    "src/customisations/Lifecycle.ts": "src/customisations/watcha_Lifecycle.ts",
     "src/customisations/Security.ts": "src/customisations/watcha_Security.ts",
     "src/customisations/UserIdentifier.ts": "src/customisations/watcha_UserIdentifier.ts"
 }
