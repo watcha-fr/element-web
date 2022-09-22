@@ -464,6 +464,7 @@ const onVideoConferenceJoined = () => {
     if (displayName) meetApi.executeCommand("displayName", displayName);
     // This doesn't have a userInfo equivalent, so has to be set via commands
     if (avatarUrl) meetApi.executeCommand("avatarUrl", avatarUrl);
+    if (!avatarUrl) meetApi.executeCommand("avatarUrl", ""); // watcha+ unset avatar
 
     if (widgetApi) {
         // ignored promise because we don't care if it works
