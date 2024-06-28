@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Fetches the js-sdk and matrix-react-sdk dependencies for development
 # or testing purposes
@@ -6,7 +6,7 @@
 # the branch the current checkout is on, use that branch. Otherwise,
 # use develop.
 
-set -ex
+set -x
 
 GIT_CLONE_ARGS=("$@")
 [ -z "$defbranch" ] && defbranch="develop"
@@ -77,7 +77,7 @@ dodep matrix-org matrix-js-sdk
 
 pushd matrix-js-sdk
 yarn link
-yarn install --pure-lockfile
+yarn install --frozen-lockfile
 popd
 
 yarn link matrix-js-sdk
@@ -91,7 +91,7 @@ dodep matrix-org matrix-react-sdk
 pushd matrix-react-sdk
 yarn link
 yarn link matrix-js-sdk
-yarn install --pure-lockfile
+yarn install --frozen-lockfile
 popd
 
 yarn link matrix-react-sdk

@@ -65,7 +65,7 @@ export function installer(config: BuildConfig): void {
         // else must be a module, we assume.
         const pkgJsonStr = fs.readFileSync("./package.json", "utf-8");
         const optionalDepNames = getOptionalDepNames(pkgJsonStr);
-        const installedModules = optionalDepNames.filter(d => !currentOptDeps.includes(d));
+        const installedModules = optionalDepNames.filter((d) => !currentOptDeps.includes(d));
 
         // Ensure all the modules are compatible. We check them all and report at the end to
         // try and save the user some time debugging this sort of failure.
@@ -80,7 +80,7 @@ export function installer(config: BuildConfig): void {
         if (incompatibleNames.length > 0) {
             console.error(
                 "The following modules are not compatible with this version of element-web. Please update the module " +
-                "references and try again.",
+                    "references and try again.",
                 JSON.stringify(incompatibleNames, null, 4), // stringify to get prettier/complete output
             );
             exitCode = 1;
@@ -123,39 +123,43 @@ function readCurrentPackageDetails(): RawDependencies {
     };
 }
 
-function writePackageDetails(deps: RawDependencies) {
+function writePackageDetails(deps: RawDependencies): void {
     fs.writeFileSync("./yarn.lock", deps.lockfile, "utf-8");
     fs.writeFileSync("./package.json", deps.packageJson, "utf-8");
 }
 
-function callYarnAdd(dep: string) {
+function callYarnAdd(dep: string): void {
     // Add the module to the optional dependencies section just in case something
     // goes wrong in restoring the original package details.
     childProcess.execSync(`yarn add -O ${dep}`, {
         env: process.env,
-        stdio: ['inherit', 'inherit', 'inherit'],
+        stdio: ["inherit", "inherit", "inherit"],
     });
 }
 
 function getOptionalDepNames(pkgJsonStr: string): string[] {
-    return Object.keys(JSON.parse(pkgJsonStr)?.['optionalDependencies'] ?? {});
+    return Object.keys(JSON.parse(pkgJsonStr)?.["optionalDependencies"] ?? {});
 }
 
 function findDepVersionInPackageJson(dep: string, pkgJsonStr: string): string {
     const pkgJson = JSON.parse(pkgJsonStr);
     const packages = {
-        ...(pkgJson['optionalDependencies'] ?? {}),
-        ...(pkgJson['devDependencies'] ?? {}),
-        ...(pkgJson['dependencies'] ?? {}),
+        ...(pkgJson["optionalDependencies"] ?? {}),
+        ...(pkgJson["devDependencies"] ?? {}),
+        ...(pkgJson["dependencies"] ?? {}),
     };
     return packages[dep];
 }
 
 function getTopLevelDependencyVersion(dep: string): string {
-    const dependencyTree = JSON.parse(childProcess.execSync(`npm list ${dep} --depth=0 --json`, {
-        env: process.env,
-        stdio: ['inherit', 'pipe', 'pipe'],
-    }).toString('utf-8'));
+    const dependencyTree = JSON.parse(
+        childProcess
+            .execSync(`npm list ${dep} --depth=0 --json`, {
+                env: process.env,
+                stdio: ["inherit", "pipe", "pipe"],
+            })
+            .toString("utf-8"),
+    );
 
     /*
         What a dependency tree looks like:
@@ -181,11 +185,22 @@ function getModuleApiVersionFor(moduleName: string): string {
     return findDepVersionInPackageJson(moduleApiDepName, pkgJsonStr);
 }
 
+// A list of Module API versions that are supported in addition to the currently installed one
+// defined in the package.json. This is necessary because semantic versioning is applied to both
+// the Module-side surface of the API and the Client-side surface of the API. So breaking changes
+// in the Client-side surface lead to a major bump even though the Module-side surface stays
+// compatible. We aim to not break the Module-side surface so we maintain a list of compatible
+// older versions.
+const backwardsCompatibleMajorVersions = ["1.0.0"];
+
 function isModuleVersionCompatible(ourApiVersion: string, moduleApiVersion: string): boolean {
     if (!moduleApiVersion) return false;
-    return semver.satisfies(ourApiVersion, moduleApiVersion);
+    return (
+        semver.satisfies(ourApiVersion, moduleApiVersion) ||
+        backwardsCompatibleMajorVersions.some((version) => semver.satisfies(version, moduleApiVersion))
+    );
 }
 
-function writeModulesTs(content: string) {
+function writeModulesTs(content: string): void {
     fs.writeFileSync("./src/modules.ts", content, "utf-8");
 }
