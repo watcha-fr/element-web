@@ -372,6 +372,76 @@ module.exports = (env, argv) => {
                     ],
                 },
                 {
+                    test: /\.scss$/,
+                    use: [
+                        /**
+                         * This code is hopeful that no .scss outside of our themes will be directly imported in any
+                         * of the JS/TS files.
+                         * Should be MUCH better with webpack 5, but we're stuck to this solution for now.
+                         */
+                        useHMR ? {
+                            loader: 'style-loader',
+                            /**
+                             * If we refactor the `theme.js` in `matrix-react-sdk` a little bit,
+                             * we could try using `lazyStyleTag` here to add and remove styles on demand,
+                             * that would nicely resolve issues of race conditions for themes,
+                             * at least for development purposes.
+                             */
+                            options: {
+
+                                insert: function insertBeforeAt(element) {
+                                    const parent = document.querySelector('head');
+                                    // We're in iframe
+                                    if (!window.MX_DEV_ACTIVE_THEMES) {
+                                        parent.appendChild(element);
+                                        return;
+                                    }
+                                    // Properly disable all other instances of themes
+                                    element.disabled = true;
+                                    element.onload = () => {
+                                        element.disabled = true;
+                                    };
+                                    const theme = window.MX_DEV_ACTIVE_THEMES[window.MX_insertedThemeStylesCounter];
+                                    element.setAttribute('data-mx-theme', theme);
+                                    window.MX_insertedThemeStylesCounter++;
+                                    parent.appendChild(element);
+                                },
+                            },
+                        } : MiniCssExtractPlugin.loader,
+                        {
+                            loader: 'css-loader',
+                            options: {
+                                importLoaders: 1,
+                                sourceMap: true,
+                            },
+                        },
+                        {
+                            loader: 'postcss-loader',
+                            ident: 'postcss',
+                            options: {
+                                sourceMap: true,
+                                plugins: () => [
+                                    // Note that we use slightly different plugins for SCSS.
+
+                                    require('postcss-import')(),
+                                    require("postcss-mixins")(),
+                                    require("postcss-simple-vars")(),
+                                    require("postcss-nested")(),
+                                    require("postcss-easings")(),
+                                    require("postcss-strip-inline-comments")(),
+                                    require("postcss-hexrgba")(),
+
+                                    // It's important that this plugin is last otherwise we end
+                                    // up with broken CSS.
+                                    require('postcss-preset-env')({ stage: 3, browsers: 'last 2 versions' }),
+                                ],
+                                parser: "postcss-scss",
+                                "local-plugins": true,
+                            },
+                        },
+                    ],
+                },
+                {
                     test: /\.pcss$/,
                     use: [
                         /**
