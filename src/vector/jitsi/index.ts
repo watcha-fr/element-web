@@ -347,8 +347,11 @@ async function notifyHangup(errorMessage?: string): Promise<void> {
     if (widgetApi) {
         // We send the hangup event before setAlwaysOnScreen, because the latter
         // can cause the receiving side to instantly stop listening.
+        // watcha+ : on prévient le React-SDK quand l'émetteur est (a priori) le dernier participant,
+        // pour qu'il puisse retirer automatiquement le widget Jitsi épinglé du salon.
+        const isLastParticipant = watchaParticipantCount <= 1;
         try {
-            await widgetApi.transport.send(ElementWidgetActions.HangupCall, { errorMessage });
+            await widgetApi.transport.send(ElementWidgetActions.HangupCall, { errorMessage, isLastParticipant }); // watcha (ajout isLastParticipant)
         } finally {
             await widgetApi.setAlwaysOnScreen(false);
         }
@@ -552,9 +555,16 @@ const onVideoMuteStatusChanged = ({ muted }: VideoMuteStatusChangedEvent): void 
     }
 };
 
+// watcha+ : dernier décompte de participants connu (local inclus), entretenu par updateParticipants.
+// Sert à indiquer au React-SDK, au moment du hangup, si l'émetteur était le dernier dans la conférence.
+let watchaParticipantCount = 0;
+// watcha+ end
+
 const updateParticipants = (): void => {
+    const participants = meetApi?.getParticipantsInfo();
+    watchaParticipantCount = participants?.length ?? 0; // watcha+
     widgetApi?.transport.send(ElementWidgetActions.CallParticipants, {
-        participants: meetApi?.getParticipantsInfo(),
+        participants,
     });
 };
 
