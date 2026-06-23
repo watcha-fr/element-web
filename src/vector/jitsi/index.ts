@@ -352,6 +352,15 @@ async function notifyHangup(errorMessage?: string): Promise<void> {
         // pour qu'il puisse retirer automatiquement le widget Jitsi épinglé du salon.
         // watchaParticipantCount reflète le dernier décompte connu (local inclus) avant le départ.
         const isLastParticipant = watchaParticipantCount <= 1;
+        // [WATCHA DEBUG] à retirer après diagnostic
+        console.info(
+            "[watcha jitsi] notifyHangup → count =",
+            watchaParticipantCount,
+            "isLastParticipant =",
+            isLastParticipant,
+            "getParticipantsInfo() =",
+            meetApi?.getParticipantsInfo(),
+        );
         try {
             await widgetApi.transport.send(ElementWidgetActions.HangupCall, { errorMessage, isLastParticipant }); // watcha (ajout isLastParticipant)
         } finally {
@@ -574,6 +583,8 @@ let watchaParticipantPollTimer: number | undefined;
 const updateParticipants = (): void => {
     const participants = meetApi?.getParticipantsInfo();
     watchaParticipantCount = participants?.length ?? 0;
+    // [WATCHA DEBUG] à retirer après diagnostic
+    console.info("[watcha jitsi] updateParticipants → count =", watchaParticipantCount, participants);
     // io.element.participants n'est consommé par aucun handler côté React-SDK → l'envoi est rejeté
     // ("Unknown or unsupported action"). On avale le rejet pour éviter le bruit console (l'action
     // restait de toute façon sans effet).
