@@ -344,11 +344,13 @@ function createJWTToken(openIdToken: IOpenIDCredentials): string {
 }
 
 async function notifyHangup(errorMessage?: string): Promise<void> {
+    watchaStopParticipantPoll(); // watcha+ : la conférence se termine, on arrête le rafraîchissement
     if (widgetApi) {
         // We send the hangup event before setAlwaysOnScreen, because the latter
         // can cause the receiving side to instantly stop listening.
         // watcha+ : on prévient le React-SDK quand l'émetteur est (a priori) le dernier participant,
         // pour qu'il puisse retirer automatiquement le widget Jitsi épinglé du salon.
+        // watchaParticipantCount reflète le dernier décompte connu (local inclus) avant le départ.
         const isLastParticipant = watchaParticipantCount <= 1;
         try {
             await widgetApi.transport.send(ElementWidgetActions.HangupCall, { errorMessage, isLastParticipant }); // watcha (ajout isLastParticipant)
@@ -519,6 +521,10 @@ const onVideoConferenceJoined = (): void => {
 
     // Video rooms should start in tile mode
     if (isVideoChannel) meetApi?.executeCommand("setTileView", true);
+
+    // watcha+ : maintenir un décompte de participants fiable pour la fermeture auto du widget épinglé.
+    // Inutile pour les video rooms (l'appel y persiste, la fermeture auto les exclut côté React-SDK).
+    if (!isVideoChannel) watchaStartParticipantPoll();
 };
 
 const onVideoConferenceLeft = (): void => {
@@ -555,18 +561,38 @@ const onVideoMuteStatusChanged = ({ muted }: VideoMuteStatusChangedEvent): void 
     }
 };
 
-// watcha+ : dernier décompte de participants connu (local inclus), entretenu par updateParticipants.
-// Sert à indiquer au React-SDK, au moment du hangup, si l'émetteur était le dernier dans la conférence.
+// watcha+ : dernier décompte de participants connu (local inclus), entretenu par updateParticipants
+// (sur les events Jitsi) ET par un rafraîchissement périodique. Sert à indiquer au React-SDK, au
+// moment du hangup, si l'émetteur était le dernier dans la conférence.
+// Le rafraîchissement périodique est indispensable : Jitsi n'émet PAS "participantJoined" pour les
+// participants déjà présents quand on rejoint, et getParticipantsInfo() n'est pas encore peuplé au
+// moment de "videoConferenceJoined". Sans cela, un participant qui rejoint en dernier resterait
+// bloqué à un compte de 1 et fermerait le widget à tort en partant alors que d'autres sont encore là.
 let watchaParticipantCount = 0;
-// watcha+ end
+let watchaParticipantPollTimer: number | undefined;
 
 const updateParticipants = (): void => {
     const participants = meetApi?.getParticipantsInfo();
-    watchaParticipantCount = participants?.length ?? 0; // watcha+
-    widgetApi?.transport.send(ElementWidgetActions.CallParticipants, {
-        participants,
-    });
+    watchaParticipantCount = participants?.length ?? 0;
+    // io.element.participants n'est consommé par aucun handler côté React-SDK → l'envoi est rejeté
+    // ("Unknown or unsupported action"). On avale le rejet pour éviter le bruit console (l'action
+    // restait de toute façon sans effet).
+    widgetApi?.transport.send(ElementWidgetActions.CallParticipants, { participants }).catch(() => {});
 };
+
+const watchaStartParticipantPoll = (): void => {
+    if (watchaParticipantPollTimer !== undefined) return;
+    updateParticipants();
+    watchaParticipantPollTimer = window.setInterval(updateParticipants, 3000);
+};
+
+const watchaStopParticipantPoll = (): void => {
+    if (watchaParticipantPollTimer !== undefined) {
+        clearInterval(watchaParticipantPollTimer);
+        watchaParticipantPollTimer = undefined;
+    }
+};
+// watcha+ end
 
 const onLog = ({ logLevel, args }: LogEvent): void =>
     (parent as unknown as typeof global).mx_rage_logger?.log(logLevel, ...args);
