@@ -20,8 +20,11 @@ limitations under the License.
     }
 }
 
-/* watcha+ Style du stub EntityTile (cf. EntityTile.tsx)
-   Layout : avatar à gauche, nom + sous-texte tronqués ellipsis à droite. */
+/* watcha+ Style du stub EntityTile (cf. EntityTile.tsx).
+   Layout avatar | nom + sous-texte tronqués ellipsis. Valeurs littérales
+   (pas de `$var` SCSS — toutes les variables `$primary-bg-color` etc. ne
+   sont définies que dans legacy-light/legacy-dark, et postcss-simple-vars
+   dropperait le bloc entier sur le thème watcha). */
 .mx_EntityTile {
     display: flex;
     align-items: center;
@@ -30,10 +33,10 @@ limitations under the License.
     border-radius: 6px;
     cursor: pointer;
     user-select: none;
+}
 
-    &:hover {
-        background-color: var(--cpd-color-bg-subtle-secondary, $primary-bg-color);
-    }
+.mx_EntityTile:hover {
+    background-color: var(--cpd-color-bg-subtle-secondary);
 }
 
 .mx_EntityTile_avatar {
