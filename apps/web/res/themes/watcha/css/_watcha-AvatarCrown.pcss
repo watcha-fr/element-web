@@ -50,28 +50,33 @@
     box-shadow: inset 0 0 0 2px #e61919;
 }
 
-/* === Cas 2 : avatar standard (sidebar no presence + memberlist + timeline) ===
+/* === Cas 2 : avatar standard (sidebar no presence + memberlist + timeline + invite dialog) ===
    box-shadow externe → anneau visible autour quelque soit le contenu (image, initiale).
    `:not(.mx_RoomAvatarView_RoomAvatar_presence)` évite le double-rendu sur sidebar
    masqué (où le cas 1 s'applique déjà). */
 .mx_RoomAvatarView_crown_watchatest_watcha_fr .mx_BaseAvatar:not(.mx_RoomAvatarView_RoomAvatar_presence),
-.mx_EventTile_avatar_crown_watchatest_watcha_fr .mx_BaseAvatar {
+.mx_EventTile_avatar_crown_watchatest_watcha_fr .mx_BaseAvatar,
+.mx_EntityTile_avatar_crown_watchatest_watcha_fr .mx_BaseAvatar {
     box-shadow: 0 0 0 2px #00b4b4;
 }
 .mx_RoomAvatarView_crown_teamnetdev_watcha_fr .mx_BaseAvatar:not(.mx_RoomAvatarView_RoomAvatar_presence),
-.mx_EventTile_avatar_crown_teamnetdev_watcha_fr .mx_BaseAvatar {
+.mx_EventTile_avatar_crown_teamnetdev_watcha_fr .mx_BaseAvatar,
+.mx_EntityTile_avatar_crown_teamnetdev_watcha_fr .mx_BaseAvatar {
     box-shadow: 0 0 0 2px #b400b4;
 }
 .mx_RoomAvatarView_crown_discuter_sitiv_fr .mx_BaseAvatar:not(.mx_RoomAvatarView_RoomAvatar_presence),
-.mx_EventTile_avatar_crown_discuter_sitiv_fr .mx_BaseAvatar {
+.mx_EventTile_avatar_crown_discuter_sitiv_fr .mx_BaseAvatar,
+.mx_EntityTile_avatar_crown_discuter_sitiv_fr .mx_BaseAvatar {
     box-shadow: 0 0 0 2px #0d730d;
 }
 .mx_RoomAvatarView_crown_discuter-vdl_territoirenumeriqueouvert_org .mx_BaseAvatar:not(.mx_RoomAvatarView_RoomAvatar_presence),
-.mx_EventTile_avatar_crown_discuter-vdl_territoirenumeriqueouvert_org .mx_BaseAvatar {
+.mx_EventTile_avatar_crown_discuter-vdl_territoirenumeriqueouvert_org .mx_BaseAvatar,
+.mx_EntityTile_avatar_crown_discuter-vdl_territoirenumeriqueouvert_org .mx_BaseAvatar {
     box-shadow: 0 0 0 2px #1919e6;
 }
 .mx_RoomAvatarView_crown_discuter-mdl_territoirenumeriqueouvert_org .mx_BaseAvatar:not(.mx_RoomAvatarView_RoomAvatar_presence),
-.mx_EventTile_avatar_crown_discuter-mdl_territoirenumeriqueouvert_org .mx_BaseAvatar {
+.mx_EventTile_avatar_crown_discuter-mdl_territoirenumeriqueouvert_org .mx_BaseAvatar,
+.mx_EntityTile_avatar_crown_discuter-mdl_territoirenumeriqueouvert_org .mx_BaseAvatar {
     box-shadow: 0 0 0 2px #e61919;
 }
 

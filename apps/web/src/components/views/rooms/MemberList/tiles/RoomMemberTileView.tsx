@@ -20,7 +20,6 @@ import { type MemberWithSeparator } from "../../../../viewmodels/memberlist/Memb
 import { DisambiguatedProfileViewModel } from "../../../../../viewmodels/room/timeline/event-tile/DisambiguatedProfileViewModel";
 // watcha+
 import { getWatchaAvatarCrownClass } from "../../../../../utils/watcha_AvatarCrown";
-import classNames from "classnames";
 // +watcha
 
 interface IProps {

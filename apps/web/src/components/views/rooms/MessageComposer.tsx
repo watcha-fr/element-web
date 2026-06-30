@@ -51,7 +51,6 @@ import { isLocalRoom } from "../../../utils/localRoom/isLocalRoom";
 import { type VoiceMessageRecording } from "../../../audio/VoiceMessageRecording";
 import { SendWysiwygComposer, sendMessage, getConversionFunctions } from "./wysiwyg_composer/";
 import { type MatrixClientProps, withMatrixClientHOC } from "../../../contexts/MatrixClientContext";
-// @ts-expect-error kept next to the disabled inline showLocationButton compute — watcha+
 import { UIFeature } from "../../../settings/UIFeature";
 import { formatTimeLeft } from "../../../DateUtils";
 import RoomReplacedSvg from "../../../../res/img/room_replaced.svg";
