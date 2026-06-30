@@ -34,6 +34,7 @@ import { type OpenAddExistingToSpaceDialogPayload } from "../dispatcher/payloads
 import { SdkContextClass } from "../contexts/SDKContext";
 
 export const shouldShowSpaceSettings = (space: Room): boolean => {
+    if (space.client.isPartner()) return false; // watcha+
     const userId = space.client.getUserId()!;
     return (
         space.getMyMembership() === KnownMembership.Join &&

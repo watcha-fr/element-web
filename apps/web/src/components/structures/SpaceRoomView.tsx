@@ -34,6 +34,7 @@ import { useFeatureEnabled } from "../../hooks/useSettings";
 import { useStateArray } from "../../hooks/useStateArray";
 import { _t } from "../../languageHandler";
 import PosthogTrackers from "../../PosthogTrackers";
+// @ts-expect-error kept next to the disabled SpaceSetupPrivateInvite block — watcha+
 import { showRoomInviteDialog } from "../../RoomInvite";
 import { UIComponent } from "../../settings/UIFeature";
 import { UPDATE_EVENT } from "../../stores/AsyncStore";
@@ -214,6 +215,7 @@ const SpaceLandingAddButton: React.FC<{ space: Room }> = ({ space }) => {
 const SpaceLanding: React.FC<{ space: Room }> = ({ space }) => {
     const cli = useContext(MatrixClientContext);
     const myMembership = useMyRoomMembership(space);
+    // @ts-expect-error kept next to the disabled maySendStateEvent(userId) site — watcha+
     const userId = cli.getSafeUserId();
     const name = useRoomName(space);
 
@@ -242,7 +244,11 @@ const SpaceLanding: React.FC<{ space: Room }> = ({ space }) => {
     }
 
     const hasAddRoomPermissions =
-        myMembership === KnownMembership.Join && space.currentState.maySendStateEvent(EventType.SpaceChild, userId);
+        myMembership === KnownMembership.Join &&
+        /* watcha!
+        space.currentState.maySendStateEvent(EventType.SpaceChild, userId);
+        !watcha */
+        space.currentState.mayClientSendStateEvent(EventType.SpaceChild, cli); // watcha+
 
     let addRoomButton;
     if (hasAddRoomPermissions) {
@@ -307,7 +313,10 @@ const SpaceSetupFirstRooms: React.FC<{
     const [error, setError] = useState("");
     const numFields = 3;
     const placeholders = [_t("common|general"), _t("common|random"), _t("common|support")];
+    /* watcha!
     const [roomNames, setRoomName] = useStateArray(numFields, [_t("common|general"), _t("common|random"), ""]);
+    !watcha */
+    const [roomNames, setRoomName] = useStateArray(numFields, ""); // watcha+
     const fields = new Array(numFields).fill(0).map((x, i) => {
         const name = "roomName" + i;
         return (
@@ -319,7 +328,10 @@ const SpaceSetupFirstRooms: React.FC<{
                 placeholder={placeholders[i]}
                 value={roomNames[i]}
                 onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setRoomName(i, ev.target.value)}
+                /* watcha!
                 autoFocus={i === 2}
+                !watcha */
+                autoFocus={i === 0} // watcha+
                 disabled={busy}
                 autoComplete="off"
             />
@@ -410,7 +422,10 @@ const SpaceAddExistingRooms: React.FC<{
                         {_t("create_space|skip_action")}
                     </AccessibleButton>
                 }
+                /* watcha!
                 filterPlaceholder={_t("space|room_filter_placeholder")}
+                !watcha */
+                filterPlaceholder={_t("forward|filter_placeholder")} // watcha+
                 onFinished={onFinished}
                 roomsRenderer={defaultRoomsRenderer}
                 dmsRenderer={defaultDmsRenderer}
@@ -498,10 +513,12 @@ const SpaceSetupPrivateInvite: React.FC<{
     onFinished(this: void): void;
 }> = ({ space, onFinished }) => {
     const [busy, setBusy] = useState(false);
+    // @ts-expect-error kept next to the disabled invite form block below — watcha+
     const [error, setError] = useState("");
     const numFields = 3;
     const fieldRefs = [useRef<Field>(null), useRef<Field>(null), useRef<Field>(null)];
     const [emailAddresses, setEmailAddress] = useStateArray(numFields, "");
+    // @ts-expect-error kept next to the disabled invite form block below — watcha+
     const fields = new Array(numFields).fill(0).map((x, i) => {
         const name = "emailAddress" + i;
         return (
@@ -560,10 +577,12 @@ const SpaceSetupPrivateInvite: React.FC<{
         setBusy(false);
     };
 
+    // @ts-expect-error kept next to the disabled invite form block below — watcha+
     let onClick = (ev: ButtonEvent): void => {
         ev.preventDefault();
         onFinished();
     };
+    // @ts-expect-error kept next to the disabled invite form block below — watcha+
     let buttonLabel = _t("create_space|skip_action");
     if (emailAddresses.some((name) => name.trim())) {
         onClick = onNextClick;
@@ -575,6 +594,7 @@ const SpaceSetupPrivateInvite: React.FC<{
             <h1>{_t("create_space|invite_teammates_heading")}</h1>
             <div className="mx_SpaceRoomView_description">{_t("create_space|invite_teammates_description")}</div>
 
+            {/* watcha!
             {error && <div className="mx_SpaceRoomView_errorText">{error}</div>}
             <form onSubmit={onClick} id="mx_SpaceSetupPrivateInvite">
                 {fields}
@@ -598,6 +618,17 @@ const SpaceSetupPrivateInvite: React.FC<{
                     value={buttonLabel}
                 />
             </div>
+            !watcha */}
+
+            {/* watcha+ */}
+            <SpacePublicShare space={space} isPrivate={true} />
+
+            <div className="mx_SpaceRoomView_buttons">
+                <AccessibleButton kind="primary" onClick={onFinished}>
+                    {_t("create_space|done_action")}
+                </AccessibleButton>
+            </div>
+            {/* +watcha */}
         </div>
     );
 };

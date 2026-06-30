@@ -18,6 +18,7 @@ import { IgnoreToggleButton } from "./UserInfoIgnoreButtonView";
 import Spinner from "../../elements/Spinner";
 import { UserInfoAdminToolsContainer } from "./UserInfoAdminToolsContainer";
 import { UserInfoBasicOptionsView } from "./UserInfoBasicOptionsView";
+import { useSettingValue } from "../../../../hooks/useSettings"; // watcha+
 
 /**
  * There are two types of components that can be displayed in the right panel concerning userinfo
@@ -28,12 +29,14 @@ export const UserInfoBasicView: React.FC<{
     member: User | RoomMember;
 }> = ({ room, member }) => {
     const vm = useUserInfoBasicViewModel(room, member);
+    const showDeactivateButton = useSettingValue("showDeactivateUserButton"); // watcha+
+    const showIgnoreButton = useSettingValue("showIgnoreUserButton"); // watcha+
     let synapseDeactivateButton;
     let spinner;
     let memberDetails;
     let adminToolsContainer;
 
-    if (vm.showDeactivateButton) {
+    if (vm.showDeactivateButton && showDeactivateButton /* watcha+ */) {
         synapseDeactivateButton = (
             <MenuItem
                 role="button"
@@ -82,7 +85,7 @@ export const UserInfoBasicView: React.FC<{
                 {memberDetails}
             </UserInfoBasicOptionsView>
             {adminToolsContainer}
-            {!vm.isMe && (
+            {!vm.isMe && showIgnoreButton /* watcha+ */ && (
                 <Container>
                     <IgnoreToggleButton member={member} />
                 </Container>

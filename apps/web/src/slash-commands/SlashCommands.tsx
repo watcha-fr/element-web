@@ -145,6 +145,7 @@ export const Commands = [
         command: "nick",
         args: "<display_name>",
         description: _td("slash_command|nick"),
+        isEnabled: () => !SettingsStore.getValue(UIFeature.watcha_SitivFieldDisabled), // watcha+
         runFn: function (cli, roomId, threadId, args) {
             if (args) {
                 return success(cli.setDisplayName(args));
@@ -159,7 +160,7 @@ export const Commands = [
         aliases: ["roomnick"],
         args: "<display_name>",
         description: _td("slash_command|myroomnick"),
-        isEnabled: (cli) => !isCurrentLocalRoom(cli),
+        isEnabled: (cli) => !isCurrentLocalRoom(cli) && !SettingsStore.getValue(UIFeature.watcha_SitivFieldDisabled), // watcha+
         runFn: function (cli, roomId, threadId, args) {
             if (args) {
                 const ev = cli.getRoom(roomId)?.currentState.getStateEvents(EventType.RoomMember, cli.getSafeUserId());

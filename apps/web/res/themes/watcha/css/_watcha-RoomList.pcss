@@ -1,0 +1,10 @@
+/*
+   watcha! Contenu legacy (`.mx_RoomList_iconPlus`, `.mx_RoomList_iconNewRoom`,
+   etc. avec `mask-image: url("$(res)/img/element-icons/roomlist/...")`) ciblait
+   les anciens icon buttons CSS-class de la sidebar (`Explorer`, `Démarrer une
+   discussion`, etc.) déclenchés sur `.mx_RoomList`. En v1.12.21 la nouvelle
+   RoomList shared-components rend ces actions via Compound icons React natifs
+   au sein de `.mx_RoomListPanel`. Les sélecteurs `.mx_RoomList_icon*` ne
+   matchent plus rien (vérifié Playwright). On vide pour clarifier.
+   !watcha
+*/

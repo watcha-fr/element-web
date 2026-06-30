@@ -94,6 +94,7 @@ export enum AudioID {
     Ringback = "ringbackAudio",
     CallEnd = "callendAudio",
     Busy = "busyAudio",
+    JitsiStart = "jitsiStartAudio", // watcha+ : son joué au lancement d'un widget Jitsi
 }
 
 /* istanbul ignore next */
@@ -386,6 +387,7 @@ export default class LegacyCallHandler extends TypedEventEmitter<LegacyCallHandl
             [AudioID.Ringback]: [`./media/ringback`, true],
             [AudioID.CallEnd]: [`./media/callend`, false],
             [AudioID.Busy]: [`./media/busy`, false],
+            [AudioID.JitsiStart]: [`./media/ringback`, false], // watcha+ TODO: dédier un asset audio
         };
 
         const [urlPrefix, loop] = audioInfo[audioId];
@@ -842,7 +844,10 @@ export default class LegacyCallHandler extends TypedEventEmitter<LegacyCallHandl
             Modal.createDialog(ErrorDialog, {
                 description: _t("voip|cannot_call_yourself_description"),
             });
+        /* watcha!
         } else if (members.length === 2 && !Jitsi.getInstance().useFor1To1Calls) {
+        !watcha */
+        } else if (members.length === 2 && !Jitsi.getInstance().useFor1To1Calls && SettingsStore.getValue("feature_watcha_webrtc")) { // watcha+
             logger.info(`Place ${type} call in ${roomId}`);
 
             await this.placeMatrixCall(roomId, type, transferee);

@@ -15,6 +15,8 @@ import withValidation, { type IFieldState, type IValidationResult } from "../ele
 import { _t, _td } from "../../../languageHandler";
 import Field, { type IInputProps } from "../elements/Field";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
+import SettingsStore from "../../../settings/SettingsStore"; // watcha+
+import { UIFeature } from "../../../settings/UIFeature"; // watcha+
 
 interface IProps extends Omit<IInputProps, "onValidate" | "element"> {
     autoFocus?: boolean;
@@ -102,6 +104,7 @@ class PassphraseField extends PureComponent<IProps> {
     public render(): React.ReactNode {
         return (
             <Field
+                disabled={SettingsStore.getValue(UIFeature.watcha_SitivFieldDisabled)} // watcha++
                 id={this.props.id}
                 autoFocus={this.props.autoFocus}
                 className={classNames("mx_PassphraseField", this.props.className)}

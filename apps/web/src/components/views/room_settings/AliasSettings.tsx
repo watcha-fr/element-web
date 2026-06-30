@@ -29,6 +29,8 @@ import RoomPublishSetting from "./RoomPublishSetting";
 import RoomAliasField from "../elements/RoomAliasField";
 import MatrixClientContext from "../../../contexts/MatrixClientContext";
 import SettingsFieldset from "../settings/SettingsFieldset";
+import { UIFeature } from "../../../settings/UIFeature"; // watcha+
+import SettingsStore from "../../../settings/SettingsStore"; // watcha+
 
 interface IEditableAliasesListProps {
     roomId?: string;
@@ -397,9 +399,13 @@ export default class AliasSettings extends React.Component<IProps, IState> {
                     legend={_t("room_settings|general|published_aliases_section")}
                     description={
                         <>
-                            {isSpaceRoom
-                                ? _t("room_settings|general|published_aliases_explainer_space")
-                                : _t("room_settings|general|published_aliases_explainer_room")}
+                            {SettingsStore.getValue(UIFeature.watcha_Federation) && ( /* watcha+ */
+                                <>
+                                    {isSpaceRoom
+                                        ? _t("room_settings|general|published_aliases_explainer_space")
+                                        : _t("room_settings|general|published_aliases_explainer_room")}
+                                </>
+                            ) /* +watcha */}
                             &nbsp;
                             {_t("room_settings|general|published_aliases_description")}
                         </>
@@ -417,21 +423,23 @@ export default class AliasSettings extends React.Component<IProps, IState> {
                             return <option value={alias} key={alias} />;
                         })}
                     </datalist>
-                    <EditableAliasesList
-                        id="roomAltAliases"
-                        items={this.state.altAliases}
-                        newItem={this.state.newAltAlias}
-                        onNewItemChanged={this.onNewAltAliasChanged}
-                        canRemove={this.props.canSetCanonicalAlias}
-                        canEdit={this.props.canSetCanonicalAlias}
-                        onItemAdded={this.onAltAliasAdded}
-                        onItemRemoved={this.onAltAliasDeleted}
-                        suggestionsListId="mx_AliasSettings_altRecommendations"
-                        itemsLabel={_t("room_settings|general|aliases_items_label")}
-                        noItemsLabel={_t("room_settings|general|aliases_no_items_label")}
-                        placeholder={_t("room_settings|general|new_alias_placeholder")}
-                        roomId={this.props.roomId}
-                    />
+                    {SettingsStore.getValue(UIFeature.watcha_Federation) && ( /* watcha+ */
+                        <EditableAliasesList
+                            id="roomAltAliases"
+                            items={this.state.altAliases}
+                            newItem={this.state.newAltAlias}
+                            onNewItemChanged={this.onNewAltAliasChanged}
+                            canRemove={this.props.canSetCanonicalAlias}
+                            canEdit={this.props.canSetCanonicalAlias}
+                            onItemAdded={this.onAltAliasAdded}
+                            onItemRemoved={this.onAltAliasDeleted}
+                            suggestionsListId="mx_AliasSettings_altRecommendations"
+                            itemsLabel={_t("room_settings|general|aliases_items_label")}
+                            noItemsLabel={_t("room_settings|general|aliases_no_items_label")}
+                            placeholder={_t("room_settings|general|new_alias_placeholder")}
+                            roomId={this.props.roomId}
+                        />
+                    ) /* +watcha */}
                 </SettingsFieldset>
                 <SettingsFieldset
                     data-testid="local-address-fieldset"

@@ -1,0 +1,12 @@
+/*
+   watcha! Tout le contenu legacy (`.mx_RoomTile`, `mask-image` `$(res)/img/...`,
+   `$dark-panel-actions`, etc.) ciblait l'ancien RoomTile pré-v1.12.21. En
+   v1.12.21 la nouvelle RoomList (`.mx_RoomListPanel`) utilise des composants
+   shared-components à classes CSS-modules hashées (`_roomListItem_1tdpv_8`, etc.)
+   et des icons Compound React natifs. Les anciennes règles ne matchent plus rien
+   dans la cascade (`.mx_RoomTile` absent du DOM v1.12.21, vérifié Playwright),
+   donc inoffensives mais inutiles : on vide pour éviter le bruit et clarifier
+   l'audit. Si LegacyRoomList est ré-activé un jour (feature flag), restaurer
+   depuis git history.
+   !watcha
+*/

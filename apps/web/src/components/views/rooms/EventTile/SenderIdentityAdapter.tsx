@@ -11,6 +11,9 @@ import { EventType, type MatrixEvent } from "matrix-js-sdk/src/matrix";
 import MemberAvatar from "../../avatars/MemberAvatar";
 import SenderProfile from "../../messages/SenderProfile";
 import { type EventTileSenderSnapshot } from "../../../../viewmodels/room/timeline/event-tile/EventTileViewModel";
+// watcha+
+import { getWatchaAvatarCrownClass } from "../../../../utils/watcha_AvatarCrown";
+// +watcha
 
 /**
  * Props for the {@link EventTileAvatarAdapter} component.
@@ -35,8 +38,13 @@ export function EventTileAvatarAdapter({
         return null;
     }
 
+    /* watcha! couronne colorée autour de l'avatar timeline selon le domaine du
+       sender. Classe posée directement sur le wrapper `.mx_EventTile_avatar` ;
+       le CSS applique un `box-shadow: 0 0 0 2px <color>` autour du wrapper. */
+    const crownClass = getWatchaAvatarCrownClass(mxEvent.getSender(), "mx_EventTile_avatar_crown_");
+
     return (
-        <div className="mx_EventTile_avatar">
+        <div className={`mx_EventTile_avatar ${crownClass}`}>
             <MemberAvatar
                 member={senderSnapshot.avatarMember}
                 size={avatarSize}
@@ -45,6 +53,7 @@ export function EventTileAvatarAdapter({
             />
         </div>
     );
+    /* !watcha */
 }
 
 /**

@@ -20,12 +20,14 @@ import {
 import {
     CallDeclinedTileView,
     CallStartedTileView,
+    EncryptionEventState, // watcha+ pour gater les bandeaux UNSUPPORTED / DISABLE_ATTEMPT
     EncryptionEventView,
     HiddenBodyView,
     MJitsiWidgetEventView,
     MKeyVerificationRequestView,
     RoomAvatarEventView,
     TextualEventView,
+    useViewModel, // watcha+
     ViewSourceEventView,
     useCreateAutoDisposedViewModel,
 } from "@element-hq/web-shared-components";
@@ -97,6 +99,21 @@ export const TextualEventFactory: Factory = (ref, props) => {
 function EncryptionEventWrappedView({ mxEvent, ref }: IBodyProps): JSX.Element {
     const cli = useMatrixClientContext();
     const vm = useCreateAutoDisposedViewModel(() => new EncryptionEventViewModel({ mxEvent, cli }));
+    /* watcha! Synapse Watcha utilise `force_disable_encryption` qui pose un
+       `m.room.encryption` avec un algorithme non standard ; côté js-sdk cela
+       se traduit en `UNSUPPORTED`. De même `DISABLE_ATTEMPT` correspond aux
+       tentatives de désactivation refusées par le serveur — sans utilité pour
+       l'utilisateur dans le contexte Watcha où l'E2EE est désactivée par
+       défaut. On masque ces deux états pour éviter le bandeau "Chiffrement
+       désactivé / non pris en charge" qui apparaît sur tout nouveau salon. */
+    const snapshot = useViewModel(vm);
+    if (
+        snapshot.state === EncryptionEventState.UNSUPPORTED ||
+        snapshot.state === EncryptionEventState.DISABLE_ATTEMPT
+    ) {
+        return <></>;
+    }
+    /* !watcha */
 
     return <EncryptionEventView vm={vm} ref={ref} className="mx_EventTileBubble mx_cryptoEvent" />;
 }

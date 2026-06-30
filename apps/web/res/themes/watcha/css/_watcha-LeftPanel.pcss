@@ -1,0 +1,154 @@
+/*
+Copyright 2020 The Matrix.org Foundation C.I.C.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+/*
+   watcha! Le contenu legacy ciblait l'ancienne LeftPanel (`.mx_LeftPanel_filterContainer`,
+   `.mx_LeftPanel_dialPadButton`, `.mx_LeftPanel_exploreButton`, etc.) qui n'existe plus
+   en v1.12.21 (refactorée en RoomListPanel shared-components). Les règles obsolètes
+   ajoutaient des `mask-image` sur des sélecteurs sans correspondance → noise CSS
+   inoffensive mais source de doublons quand un sélecteur partiellement match.
+   Remplacé par un override minimal centré sur les NOUVEAUX sélecteurs v1.12.21,
+   en réutilisant les vraies valeurs du thème dark Compound (audit Playwright) pour
+   garantir un rendu cohérent avec le thème "Dark" upstream.
+   !watcha
+*/
+
+.mx_MatrixChat--with-avatar {
+    .mx_LeftPanel,
+    .mx_LeftPanel .mx_LeftPanel_roomListContainer {
+        background-color: transparent;
+    }
+}
+
+/* Fond foncé du LeftPanel + RoomListPanel : valeur exacte dark Compound. */
+.mx_LeftPanel.mx_LeftPanel_newRoomList,
+.mx_LeftPanel_wrapper.mx_LeftPanel_newRoomList,
+.mx_LeftPanel.mx_LeftPanel_newRoomList .mx_LeftPanel_roomListContainer,
+.mx_LeftPanel.mx_LeftPanel_newRoomList .mx_RoomListPanel,
+.mx_RoomListPanel,
+.mx_SpacePanel.newUi {
+    background-color: #101317; /* --cpd-color-bg-canvas-default (dark) */
+
+    /* Override les tokens Compound localement pour basculer toute la cascade
+       en variantes dark sans toucher au reste de l'app. Valeurs alignées sur
+       le thème "Dark" upstream Element (capture Playwright). */
+    --cpd-color-bg-canvas-default: #101317;
+    --cpd-color-bg-canvas-default-level-1: #1d1f24;
+    --cpd-color-bg-subtle-primary: #26282d;
+    --cpd-color-bg-subtle-secondary: #1d1f24;
+    --cpd-color-bg-action-secondary-rest: transparent;
+    --cpd-color-bg-action-secondary-hovered: #1d1f24;
+    --cpd-color-bg-action-secondary-pressed: #26282d;
+    --cpd-color-bg-action-tertiary-rest: transparent;
+    --cpd-color-bg-action-tertiary-hovered: #1d1f24;
+    --cpd-color-bg-action-tertiary-pressed: #26282d;
+    --cpd-color-bg-action-tertiary-selected: #26282d;
+    --cpd-color-text-primary: #ebeef2;
+    --cpd-color-text-secondary: #c4c9d1; /* + clair que #808994 dark natif pour lisibilité sur fond watcha plus sombre */
+    --cpd-color-text-on-solid-primary: #ffffff;
+    --cpd-color-icon-primary: #ebeef2;
+    --cpd-color-icon-secondary: #808994;
+    --cpd-color-icon-tertiary: #656c76;
+    --cpd-color-icon-quaternary: #4f555e;
+    --cpd-color-border-interactive-secondary: #26282d;
+}
+
+/* Demande user : SpacePanel un cran plus sombre que la liste des salons,
+   pour différencier visuellement les deux zones (mode dark a les deux à
+   la même teinte ; Watcha les distingue). */
+.mx_SpacePanel.newUi {
+    background-color: #0a0c0f;
+}
+
+/* Force la couleur des labels du SpacePanel : noms d'espaces, nom user
+   ("dodo"), label "Paramètres", "Fils de discussion", etc. Certains
+   composants shared-components utilisent text-secondary par défaut qui
+   donne un gris peu contrasté sur fond watcha très sombre. */
+.mx_SpacePanel.newUi .mx_SpaceButton_name,
+.mx_SpacePanel.newUi .mx_UserMenu_name,
+.mx_SpacePanel.newUi .mx_QuickSettingsButton_label,
+.mx_SpacePanel.newUi .mx_ThreadsActivityCentreButton_label,
+.mx_SpacePanel.newUi [class*="_typography_"],
+.mx_SpacePanel.newUi button {
+    color: #ebeef2;
+}
+
+/* Scrollbar dans la liste des salons : plus visible sur fond foncé.
+   webkit/blink only (Brave/Chrome/Edge). Firefox utilise scrollbar-color. */
+.mx_RoomListPanel ::-webkit-scrollbar,
+.mx_SpacePanel.newUi ::-webkit-scrollbar {
+    width: 10px;
+}
+.mx_RoomListPanel ::-webkit-scrollbar-track,
+.mx_SpacePanel.newUi ::-webkit-scrollbar-track {
+    background: transparent;
+}
+.mx_RoomListPanel ::-webkit-scrollbar-thumb,
+.mx_SpacePanel.newUi ::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.22);
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+.mx_RoomListPanel ::-webkit-scrollbar-thumb:hover,
+.mx_SpacePanel.newUi ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.38);
+}
+.mx_RoomListPanel,
+.mx_SpacePanel.newUi {
+    scrollbar-color: rgba(255, 255, 255, 0.22) transparent; /* Firefox */
+    scrollbar-width: thin;
+}
+
+/* Bouton déplier/replier SpacePanel : upstream le colore avec
+   $tertiary-content (bg) + $background (chevron). Dans notre scope on
+   override `--cpd-color-bg-canvas-default` en #101317 → le chevron `$background`
+   devient sombre sur fond sombre → invisible. On force des valeurs lisibles. */
+.mx_SpacePanel .mx_SpacePanel_toggleCollapse,
+.mx_SpacePanel.newUi .mx_SpacePanel_toggleCollapse {
+    background-color: #c4c9d1; /* fond clair pour repérer la pastille */
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.mx_SpacePanel .mx_SpacePanel_toggleCollapse svg,
+.mx_SpacePanel.newUi .mx_SpacePanel_toggleCollapse svg {
+    color: #101317; /* chevron sombre, contraste max sur la pastille claire */
+}
+.mx_SpacePanel:hover .mx_SpacePanel_toggleCollapse,
+.mx_SpacePanel.newUi:hover .mx_SpacePanel_toggleCollapse,
+.mx_SpacePanel .mx_SpacePanel_toggleCollapse:focus-visible,
+.mx_SpacePanel.newUi .mx_SpacePanel_toggleCollapse:focus-visible {
+    background-color: #ebeef2; /* +clair au hover/focus */
+}
+
+/* Chips de filtre RoomList ("Non-lus", "Personnes", "Salons", "Favoris", "Mentions",
+   "Invitations", "Priorité basse") : upstream le state "selected" garde un bg
+   gris très sombre (#1b1d22) quasi-identique à la page (#101317) → chip
+   sélectionné peu distinguable du non-sélectionné. On force une pill blanche
+   pleine sur le state actif pour rendre le filtre courant très visible.
+   Le sélecteur CSS-modules `_chat-filter_*` est ciblé par contains pour rester
+   robuste aux changements de hash entre builds. */
+.mx_RoomListPanel button[class*="_chat-filter"][aria-selected="true"],
+.mx_LeftPanel button[class*="_chat-filter"][aria-selected="true"] {
+    background-color: #ffffff;
+    color: #101317;
+    border-color: #ffffff;
+    font-weight: 600;
+}
+.mx_RoomListPanel button[class*="_chat-filter"][aria-selected="true"]:hover,
+.mx_LeftPanel button[class*="_chat-filter"][aria-selected="true"]:hover {
+    background-color: #ebeef2;
+    border-color: #ebeef2;
+}

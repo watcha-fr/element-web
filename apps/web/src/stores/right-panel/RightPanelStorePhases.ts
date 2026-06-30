@@ -24,6 +24,11 @@ export enum RightPanelPhases {
     PinnedMessages = "PinnedMessages",
     Timeline = "Timeline",
     Extensions = "Extensions",
+    // watcha+
+    NextcloudDocumentPanel = "NextcloudDocumentPanel",
+    NextcloudCalendarPanel = "NextcloudCalendarPanel",
+    NextcloudTaskPanel = "NextcloudTaskPanel",
+    // +watcha
 
     // Thread stuff
     ThreadView = "ThreadView",

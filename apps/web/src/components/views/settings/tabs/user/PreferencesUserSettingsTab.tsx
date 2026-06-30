@@ -121,6 +121,18 @@ const SpellCheckSection: React.FC = () => {
 };
 
 export default class PreferencesUserSettingsTab extends React.Component<IProps, IState> {
+    // watcha+
+    private static ROOM_INFO_SETTINGS: BooleanSettingKey[] = [
+        "showExploreChatAttachmentsButton",
+        "showShareRoomButton",
+    ];
+
+    private static USER_PROFILE_SETTINGS: BooleanSettingKey[] = [
+        "showIgnoreUserButton",
+        "showDeactivateUserButton",
+    ];
+    // +watcha
+
     private static ROOM_LIST_SETTINGS: BooleanSettingKey[] = ["breadcrumbs"];
 
     private static SPACES_SETTINGS: BooleanSettingKey[] = ["Spaces.allRoomsInHome"];
@@ -150,6 +162,8 @@ export default class PreferencesUserSettingsTab extends React.Component<IProps, 
     private static IMAGES_AND_VIDEOS_SETTINGS: BooleanSettingKey[] = ["autoplayGifs", "autoplayVideo"];
 
     private static TIMELINE_SETTINGS: BooleanSettingKey[] = [
+        "showShareMessageButton", // watcha+
+        "showViewSourceButton", // watcha+
         "showTypingNotifications",
         "showRedactions",
         "showReadReceipts",
@@ -166,6 +180,7 @@ export default class PreferencesUserSettingsTab extends React.Component<IProps, 
     private static ROOM_DIRECTORY_SETTINGS: BooleanSettingKey[] = ["SpotlightSearch.showNsfwPublicRooms"];
 
     private static GENERAL_SETTINGS: BooleanSettingKey[] = [
+        "showE2EEUI", // watcha+
         "promptBeforeInviteUnknownUsers",
         // Start automatically after startup (electron-only)
         // Autocomplete delay (niche text box)
@@ -289,6 +304,16 @@ export default class PreferencesUserSettingsTab extends React.Component<IProps, 
                     <SettingsSubsection heading={_t("common|spaces")} formWrap>
                         {this.renderGroup(PreferencesUserSettingsTab.SPACES_SETTINGS, SettingLevel.ACCOUNT)}
                     </SettingsSubsection>
+
+                    {/* watcha+ */}
+                    <SettingsSubsection heading={_t("right_panel|room_summary_card|title")} formWrap>
+                        {this.renderGroup(PreferencesUserSettingsTab.ROOM_INFO_SETTINGS)}
+                    </SettingsSubsection>
+
+                    <SettingsSubsection heading={_t("watcha|user_profile")} formWrap>
+                        {this.renderGroup(PreferencesUserSettingsTab.USER_PROFILE_SETTINGS)}
+                    </SettingsSubsection>
+                    {/* +watcha */}
 
                     <SettingsSubsection
                         heading={_t("settings|preferences|keyboard_heading")}

@@ -87,6 +87,19 @@ export default class ThemeWatcher extends TypedEventEmitter<ThemeWatcherEvent, T
     public getEffectiveTheme(): string {
         // Dev note: Much of this logic is replicated in the AppearanceUserSettingsTab
 
+        // watcha+
+        // Force the Watcha-branded theme on the login/welcome page, before the user has
+        // had a chance to express any theme preference. ThemeController.isLogin no longer
+        // exists upstream → fall back to URL hash detection (matches vector/app.tsx logic).
+        // Note: "watcha" is a built-in theme (BUILTIN_THEMES in theme.ts + webpack entry
+        // theme-watcha) — must NOT use the "custom-" prefix or setTheme() would route to
+        // getCustomTheme() and throw "Can't find custom theme 'watcha'".
+        const hash = window.location.hash;
+        if (hash === "" || hash === "#/login" || hash === "#/welcome" || hash.startsWith("#/forgot_password")) {
+            return "watcha";
+        }
+        // +watcha
+
         // If the user has specifically enabled the system matching option (excluding default),
         // then use that over anything else. We pick the lowest possible level for the setting
         // to ensure the ordering otherwise works.

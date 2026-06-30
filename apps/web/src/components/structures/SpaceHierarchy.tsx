@@ -521,7 +521,10 @@ export const HierarchyLevel: React.FC<IHierarchyLevelProps> = ({
 }) => {
     const cli = useContext(MatrixClientContext);
     const space = cli.getRoom(root.room_id);
+    /* watcha!
     const hasPermissions = space?.currentState.maySendStateEvent(EventType.SpaceChild, cli.getSafeUserId());
+    !watcha */
+    const hasPermissions = space?.currentState.mayClientSendStateEvent(EventType.SpaceChild, cli); // watcha+
 
     const sortedChildren = filterBoolean(
         sortBy(root.children_state, (ev) => {
@@ -857,7 +860,10 @@ const SpaceHierarchy: React.FC<IProps> = ({ space, initialText = "", showRoom, a
                 } else {
                     const hasPermissions =
                         space?.getMyMembership() === KnownMembership.Join &&
+                        /* watcha!
                         space.currentState.maySendStateEvent(EventType.SpaceChild, cli.getSafeUserId());
+                        !watcha */
+                        space.currentState.mayClientSendStateEvent(EventType.SpaceChild, cli); // watcha+
 
                     const root = hierarchy.roomMap.get(space.roomId);
                     let results: JSX.Element | undefined;

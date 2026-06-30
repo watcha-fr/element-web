@@ -1,0 +1,9 @@
+/*
+   watcha! Contenu legacy ciblait `.mx_RoomSearch` (la barre de recherche
+   "spotlight" trigger en haut de la sidebar) avec un bg `$dark-panel-actions`,
+   mask-image search.svg + hover state. En v1.12.21 la nouvelle RoomList intègre
+   son propre input de recherche en shared-components (classes hashées CSS-modules
+   sous `.mx_RoomListPanel`). Les sélecteurs `.mx_RoomSearch*` ne matchent plus
+   rien (vérifié Playwright). On vide.
+   !watcha
+*/

@@ -34,6 +34,13 @@ import { Action } from "../../dispatcher/actions";
 import { type XOR } from "../../@types/common";
 import ExtensionsCard from "../views/right_panel/ExtensionsCard";
 import MemberListView from "../views/rooms/MemberList/MemberListView";
+// watcha+
+import { _t } from "../../languageHandler";
+import { RoomSettingsTab } from "../views/dialogs/RoomSettingsDialog";
+import { AppNames, StateKeys } from "../../utils/watcha_nextcloudUtils";
+import CalendarPanel from "./watcha_CalendarPanel";
+import DocumentPanel from "./watcha_DocumentPanel";
+// +watcha
 
 interface BaseProps {
     overwriteCard?: IRightPanelCard; // used to display a custom card and ignoring the RightPanelStore (used for UserView)
@@ -277,6 +284,51 @@ export default class RightPanel extends React.Component<Props, IState> {
                     card = <WidgetCard room={this.props.room} widgetId={cardState.widgetId} onClose={this.onClose} />;
                 }
                 break;
+
+            // watcha+
+            case RightPanelPhases.NextcloudDocumentPanel:
+                if (!roomId) break;
+                card = (
+                    <DocumentPanel
+                        roomId={roomId}
+                        initialTabId={RoomSettingsTab.Documents}
+                        empty={_t("watcha|empty_documents")}
+                        emptyClass="watcha_DocumentPanel_empty"
+                        onClose={this.onClose}
+                    />
+                );
+                break;
+
+            case RightPanelPhases.NextcloudCalendarPanel:
+                if (!roomId) break;
+                card = (
+                    <CalendarPanel
+                        roomId={roomId}
+                        appName={AppNames.Calendar}
+                        stateKey={StateKeys.VEVENT}
+                        initialTabId={RoomSettingsTab.Calendar}
+                        empty={_t("watcha|empty_calendar")}
+                        emptyClass="watcha_CalendarPanel_empty"
+                        onClose={this.onClose}
+                    />
+                );
+                break;
+
+            case RightPanelPhases.NextcloudTaskPanel:
+                if (!roomId) break;
+                card = (
+                    <CalendarPanel
+                        roomId={roomId}
+                        appName={AppNames.Tasks}
+                        stateKey={StateKeys.VTODO}
+                        initialTabId={RoomSettingsTab.Calendar}
+                        empty={_t("watcha|empty_task")}
+                        emptyClass="watcha_TaskPanel_empty"
+                        onClose={this.onClose}
+                    />
+                );
+                break;
+            // +watcha
         }
 
         return (

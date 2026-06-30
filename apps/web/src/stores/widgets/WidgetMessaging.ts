@@ -49,6 +49,12 @@ import ActiveWidgetStore from "../ActiveWidgetStore";
 import defaultDispatcher from "../../dispatcher/dispatcher";
 import { Action } from "../../dispatcher/actions";
 import { ElementWidgetActions, type IHangupCallApiRequest, type IViewRoomApiRequest } from "./ElementWidgetActions";
+// watcha+
+import {
+    watchaJitsiPresenceOnJoin,
+    watchaJitsiPresenceOnHangup,
+} from "../../watcha_JitsiPinnedWidgetPresence";
+// watcha+ end
 import { ModalWidgetStore } from "../ModalWidgetStore";
 import { isAppWidget } from "../WidgetStore";
 import ThemeWatcher, { ThemeWatcherEvent } from "../../settings/watchers/ThemeWatcher";
@@ -116,6 +122,7 @@ export class ElementWidget extends Widget {
         // accounts for legacy-light/legacy-dark themes too
         if (theme.includes("light")) {
             theme = "light";
+        } else if (theme === "watcha") { // watcha+
         } else {
             theme = "dark";
         }
@@ -445,6 +452,15 @@ export class WidgetMessaging extends TypedEventEmitter<WidgetMessagingEvent, Wid
         }
 
         if (WidgetType.JITSI.matches(this.widget.type)) {
+            // watcha+ : suivi de présence pour la fermeture automatique du widget Jitsi épinglé.
+            // À la connexion on inscrit notre présence dans l'état du salon ; au raccrochage on la retire
+            // et, si plus personne n'est connecté, on retire le widget. Voir watcha_JitsiPinnedWidgetPresence.
+            this.widgetApi.on(`action:${ElementWidgetActions.JoinCall}`, () => {
+                if (this.roomId) {
+                    watchaJitsiPresenceOnJoin(this.client, this.roomId, this.widget.id);
+                }
+            });
+            // watcha+ end
             this.widgetApi.on(`action:${ElementWidgetActions.HangupCall}`, (ev: CustomEvent<IHangupCallApiRequest>) => {
                 ev.preventDefault();
                 if (ev.detail.data?.errorMessage) {
@@ -456,6 +472,11 @@ export class WidgetMessaging extends TypedEventEmitter<WidgetMessagingEvent, Wid
                     });
                 }
                 this.widgetApi?.transport.reply(ev.detail, <IWidgetApiRequestEmptyData>{});
+                // watcha+ : retrait de notre présence + fermeture du widget si l'on était le dernier
+                if (this.roomId) {
+                    watchaJitsiPresenceOnHangup(this.client, this.roomId, this.widget.id);
+                }
+                // watcha+ end
             });
         }
 

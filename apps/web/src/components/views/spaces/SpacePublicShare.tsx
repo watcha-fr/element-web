@@ -23,30 +23,33 @@ import SpacePillButton from "../../structures/SpacePillButton.tsx";
 interface IProps {
     space: Room;
     onFinished?(this: void): void;
+    isPrivate?: boolean; // watcha+
 }
 
-const SpacePublicShare: React.FC<IProps> = ({ space, onFinished }) => {
+const SpacePublicShare: React.FC<IProps> = ({ space, onFinished, isPrivate }) => { // watcha! ({ space, onFinished }) !watcha
     const [copiedText, setCopiedText] = useState(_t("action|click_to_copy"));
 
     return (
         <div className="mx_SpacePublicShare">
-            <SpacePillButton
-                icon={<LinkIcon />}
-                title={_t("space|invite_link")}
-                description={copiedText}
-                onClick={async (): Promise<void> => {
-                    const permalinkCreator = new RoomPermalinkCreator(space);
-                    permalinkCreator.load();
-                    const success = await copyPlaintext(permalinkCreator.forShareableRoom());
-                    const text = success ? _t("common|copied") : _t("error|failed_copy");
-                    setCopiedText(text);
-                    await sleep(5000);
-                    if (copiedText === text) {
-                        // if the text hasn't changed by another click then clear it after some time
-                        setCopiedText(_t("action|click_to_copy"));
-                    }
-                }}
-            />
+            {!isPrivate && ( /* watcha+ */
+                <SpacePillButton
+                    icon={<LinkIcon />}
+                    title={_t("space|invite_link")}
+                    description={copiedText}
+                    onClick={async (): Promise<void> => {
+                        const permalinkCreator = new RoomPermalinkCreator(space);
+                        permalinkCreator.load();
+                        const success = await copyPlaintext(permalinkCreator.forShareableRoom());
+                        const text = success ? _t("common|copied") : _t("error|failed_copy");
+                        setCopiedText(text);
+                        await sleep(5000);
+                        if (copiedText === text) {
+                            // if the text hasn't changed by another click then clear it after some time
+                            setCopiedText(_t("action|click_to_copy"));
+                        }
+                    }}
+                />
+            ) /* +watcha */}
             {space.canInvite(MatrixClientPeg.safeGet().getSafeUserId()) &&
             shouldShowComponent(UIComponent.InviteUsers) ? (
                 <SpacePillButton

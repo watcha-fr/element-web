@@ -50,6 +50,27 @@ import { topicToHtml } from "../../../HtmlUtils.tsx";
 import { useRoomSummaryCardViewModel } from "../../viewmodels/right_panel/RoomSummaryCardViewModel.tsx";
 import { useRoomTopicViewModel } from "../../viewmodels/right_panel/RoomSummaryCardTopicViewModel.tsx";
 import { useRoomName } from "../../../hooks/useRoomName.ts";
+// watcha+
+import { Icon as DocumentsIcon } from "../../../../res/img/watcha/watcha_documents.svg";
+import { Icon as CalendarIcon } from "../../../../res/img/watcha/watcha_calendar.svg";
+import { Icon as TaskIcon } from "../../../../res/img/watcha/watcha_tasks.svg";
+import { useSettingValue } from "../../../hooks/useSettings.ts";
+import { useMatrixClientContext } from "../../../contexts/MatrixClientContext.tsx";
+import SettingsStore from "../../../settings/SettingsStore.ts";
+import { UIFeature } from "../../../settings/UIFeature.ts";
+import RightPanelStore from "../../../stores/right-panel/RightPanelStore.ts";
+import { RightPanelPhases } from "../../../stores/right-panel/RightPanelStorePhases.ts";
+
+const onRoomDocumentsClick = (): void => {
+    RightPanelStore.instance.showOrHidePhase(RightPanelPhases.NextcloudDocumentPanel);
+};
+const onRoomCalendarClick = (): void => {
+    RightPanelStore.instance.showOrHidePhase(RightPanelPhases.NextcloudCalendarPanel);
+};
+const onRoomTasksClick = (): void => {
+    RightPanelStore.instance.showOrHidePhase(RightPanelPhases.NextcloudTaskPanel);
+};
+// +watcha
 
 interface IProps {
     room: Room;
@@ -134,6 +155,28 @@ const RoomSummaryCardView: React.FC<IProps> = ({
     // XXX: this name should be part of the view model
     const name = useRoomName(room);
 
+    // watcha+
+    const cli = useMatrixClientContext();
+    const showAttachmentsButton = useSettingValue("showExploreChatAttachmentsButton");
+    const showShareRoomButton = useSettingValue("showShareRoomButton");
+    const showE2EEUI = useSettingValue(UIFeature.watcha_E2EEUISetting);
+    const [showNextcloudButtons, setShowNextcloudButtons] = useState(false);
+    useEffect(() => {
+        let cancelled = false;
+        cli.getCapabilities().then((capabilities) => {
+            if (cancelled) return;
+            setShowNextcloudButtons(
+                SettingsStore.getValue(UIFeature.watcha_Nextcloud) &&
+                    (!cli.isPartner() ||
+                        Boolean(capabilities.watcha?.external_authentication_for_partners?.enabled)),
+            );
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [cli]);
+    // +watcha
+
     // The search field is controlled and onSearchChange is debounced in RoomView,
     // so we need to set the value of the input right away
     const [searchValue, setSearchValue] = useState(searchTerm);
@@ -168,7 +211,9 @@ const RoomSummaryCardView: React.FC<IProps> = ({
                 justify="center"
                 gap="var(--cpd-space-2x)"
                 wrap="wrap"
-                className="mx_RoomSummaryCard_badges"
+                className={classNames("mx_RoomSummaryCard_badges", {
+                    watcha_RoomSummaryCard_e2ee_hidden: !showE2EEUI, // watcha+
+                })}
             >
                 {!vm.isDirectMessage && vm.roomJoinRule === JoinRule.Public && (
                     <Badge kind="blue">
@@ -177,28 +222,41 @@ const RoomSummaryCardView: React.FC<IProps> = ({
                     </Badge>
                 )}
 
-                {vm.isRoomEncrypted && vm.e2eStatus !== E2EStatus.Warning && (
-                    <Badge kind="green">
-                        <LockIcon width="1rem" height="1rem" />
-                        {_t("common|encrypted")}
-                    </Badge>
-                )}
+                {/* watcha+ wrap E2EE badges + HistoryVisibilityBadge derrière le toggle
+                    `UIFeature.watcha_E2EEUISetting` — quand le client a désactivé la
+                    surface E2EE, on masque les pastilles « Non chiffré / Chiffré / Non vérifié »
+                    et le bandeau d'historique (qui ne fait sens que dans le contexte E2EE). */}
+                {showE2EEUI && (
+                    <>
+                        {vm.isRoomEncrypted && vm.e2eStatus !== E2EStatus.Warning && (
+                            <Badge kind="green">
+                                <LockIcon width="1rem" height="1rem" />
+                                {_t("common|encrypted")}
+                            </Badge>
+                        )}
 
-                {!vm.isRoomEncrypted && (
-                    <Badge kind="blue">
-                        <LockOffIcon width="1rem" height="1rem" color="var(--cpd-color-icon-info-primary)" />
-                        {_t("common|unencrypted")}
-                    </Badge>
-                )}
+                        {!vm.isRoomEncrypted && (
+                            <Badge kind="blue">
+                                <LockOffIcon
+                                    width="1rem"
+                                    height="1rem"
+                                    color="var(--cpd-color-icon-info-primary)"
+                                />
+                                {_t("common|unencrypted")}
+                            </Badge>
+                        )}
 
-                {vm.e2eStatus === E2EStatus.Warning && (
-                    <Badge kind="red">
-                        <ErrorSolidIcon width="1rem" height="1rem" />
-                        {_t("common|not_trusted")}
-                    </Badge>
-                )}
+                        {vm.e2eStatus === E2EStatus.Warning && (
+                            <Badge kind="red">
+                                <ErrorSolidIcon width="1rem" height="1rem" />
+                                {_t("common|not_trusted")}
+                            </Badge>
+                        )}
 
-                <HistoryVisibilityBadge historyVisibility={vm.historyVisibility} />
+                        <HistoryVisibilityBadge historyVisibility={vm.historyVisibility} />
+                    </>
+                )}
+                {/* +watcha */}
             </Flex>
 
             <RoomTopic room={room} />
@@ -264,11 +322,13 @@ const RoomSummaryCardView: React.FC<IProps> = ({
                                 {vm.pinCount}
                             </Text>
                         </MenuItem>
-                        <MenuItem
-                            Icon={FilesIcon}
-                            label={_t("right_panel|files_button")}
-                            onSelect={vm.onRoomFilesClick}
-                        />
+                        {showAttachmentsButton /* watcha+ */ && (
+                            <MenuItem
+                                Icon={FilesIcon}
+                                label={_t("right_panel|files_button")}
+                                onSelect={vm.onRoomFilesClick}
+                            />
+                        )}
                         <MenuItem
                             Icon={ExtensionsIcon}
                             label={_t("right_panel|extensions_button")}
@@ -279,7 +339,9 @@ const RoomSummaryCardView: React.FC<IProps> = ({
 
                 <Separator />
 
-                <MenuItem Icon={LinkIcon} label={_t("action|copy_link")} onSelect={vm.onShareRoomClick} />
+                {showShareRoomButton /* watcha+ */ && (
+                    <MenuItem Icon={LinkIcon} label={_t("action|copy_link")} onSelect={vm.onShareRoomClick} />
+                )}
 
                 {!vm.isVideoRoom && (
                     <>
@@ -293,6 +355,25 @@ const RoomSummaryCardView: React.FC<IProps> = ({
                             label={_t("export_chat|title")}
                             onSelect={vm.onRoomExportClick}
                         />
+                        {showNextcloudButtons /* watcha+ */ && (
+                            <>
+                                <MenuItem
+                                    Icon={DocumentsIcon}
+                                    label={_t("watcha|show_documents")}
+                                    onSelect={onRoomDocumentsClick}
+                                />
+                                <MenuItem
+                                    Icon={CalendarIcon}
+                                    label={_t("watcha|show_calendar")}
+                                    onSelect={onRoomCalendarClick}
+                                />
+                                <MenuItem
+                                    Icon={TaskIcon}
+                                    label={_t("watcha|show_task")}
+                                    onSelect={onRoomTasksClick}
+                                />
+                            </>
+                        )}
                     </>
                 )}
 

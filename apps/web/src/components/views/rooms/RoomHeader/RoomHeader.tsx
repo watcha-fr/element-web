@@ -22,7 +22,11 @@ import { HistoryVisibility, JoinRule, type Room } from "matrix-js-sdk/src/matrix
 import { type ViewRoomOpts } from "@matrix-org/react-sdk-module-api/lib/lifecycles/RoomViewLifecycle";
 import { Flex, Box } from "@element-hq/web-shared-components";
 import { CallType } from "matrix-js-sdk/src/webrtc/call";
-import { HistoryIcon, UserProfileSolidIcon } from "@vector-im/compound-design-tokens/assets/web/icons";
+// watcha+ DocumentIcon Compound remplace l'ancien SVG watcha_documents.svg pour
+// que l'icône d'accès aux documents Nextcloud s'aligne stylistiquement avec
+// les autres icônes du header (caméra, téléphone, threads, info…).
+import { HistoryIcon, UserProfileSolidIcon, DocumentIcon } from "@vector-im/compound-design-tokens/assets/web/icons";
+// +watcha
 
 import { useRoomName } from "../../../../hooks/useRoomName.ts";
 import { RightPanelPhases } from "../../../../stores/right-panel/RightPanelStorePhases.ts";
@@ -345,6 +349,19 @@ function RoomHeaderButtons({
                     <ToggleableIcon Icon={ThreadsIcon} phase={RightPanelPhases.ThreadPanel} />
                 </IconButton>
             </Tooltip>
+            {/* watcha+ */}
+            <Tooltip label={_t("watcha|show_documents")}>
+                <IconButton
+                    onClick={(evt) => {
+                        evt.stopPropagation();
+                        RightPanelStore.instance.showOrHidePhase(RightPanelPhases.NextcloudDocumentPanel);
+                    }}
+                    aria-label={_t("watcha|show_documents")}
+                >
+                    <DocumentIcon />
+                </IconButton>
+            </Tooltip>
+            {/* +watcha */}
             {notificationsEnabled && (
                 <Tooltip label={_t("notifications|enable_prompt_toast_title")}>
                     <IconButton

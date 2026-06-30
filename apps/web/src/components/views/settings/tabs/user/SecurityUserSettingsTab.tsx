@@ -41,6 +41,12 @@ interface IIgnoredUserProps {
     inProgress: boolean;
 }
 
+// watcha+
+interface IIgnoredUserState {
+    displayname?: string | null;
+}
+// +watcha
+
 const SecureBackup: React.FC = () => {
     const { dehydratedDeviceId } = useOwnDevices();
     if (!dehydratedDeviceId) return null;
@@ -57,7 +63,25 @@ const SecureBackup: React.FC = () => {
     );
 };
 
+/* watcha!
 export class IgnoredUser extends React.Component<IIgnoredUserProps> {
+!watcha */
+// watcha+
+export class IgnoredUser extends React.Component<IIgnoredUserProps, IIgnoredUserState> {
+    public constructor(props: IIgnoredUserProps) {
+        super(props);
+        this.state = { displayname: null };
+        const client = MatrixClientPeg.get();
+        client?.getProfileInfo(props.userId, "displayname")
+            .then(({ displayname }) => {
+                this.setState({ displayname });
+            })
+            .catch((err) => {
+                logger.error(`Could not retrieve profile displayname for ${props.userId}:`, err);
+            });
+    }
+    // +watcha
+
     private onUnignoreClicked = (): void => {
         this.props.onUnignored(this.props.userId);
     };
@@ -74,7 +98,12 @@ export class IgnoredUser extends React.Component<IIgnoredUserProps> {
                 >
                     {_t("action|unignore")}
                 </AccessibleButton>
+                {/* watcha!
                 <span id={id}>{this.props.userId}</span>
+                !watcha */}
+                <span id={id} title={this.state.displayname ?? this.props.userId}>
+                    {this.state.displayname || this.props.userId}
+                </span>{/* watcha+ */}
             </li>
         );
     }
@@ -295,6 +324,7 @@ export default class SecurityUserSettingsTab extends React.Component<IProps, ISt
     }
 
     public render(): React.ReactNode {
+        const showE2EEUI = SettingsStore.getValue(UIFeature.watcha_E2EEUISetting); // watcha+
         const secureBackup = <SecureBackup />;
 
         const eventIndex = (
@@ -379,12 +409,14 @@ export default class SecurityUserSettingsTab extends React.Component<IProps, ISt
 
         return (
             <SettingsTab>
-                {warning}
+                {showE2EEUI && warning /* watcha+ */}
                 <SetIntegrationManager />
-                <SettingsSection heading={_t("settings|security|encryption_section")}>
-                    {secureBackup}
-                    {eventIndex}
-                </SettingsSection>
+                {showE2EEUI /* watcha+ */ && (
+                    <SettingsSection heading={_t("settings|security|encryption_section")}>
+                        {secureBackup}
+                        {eventIndex}
+                    </SettingsSection>
+                )}
                 {privacySection}
                 {advancedSection}
             </SettingsTab>

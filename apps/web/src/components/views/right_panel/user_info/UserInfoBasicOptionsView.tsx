@@ -109,10 +109,18 @@ export const UserInfoBasicOptionsView: React.FC<{
         />
     );
 
+    /* watcha!
     const directMessageButton =
         vm.isMe || !shouldShowComponent(UIComponent.CreateRooms) ? null : (
             <MessageButton member={member} openDMForUser={vm.onOpenDmForUser} />
         );
+    !watcha */
+    // watcha+
+    const directMessageButton =
+        vm.isMe || !shouldShowComponent(UIComponent.CreateRooms) || !shouldShowComponent(UIComponent.InviteUsers) ? null : (
+            <MessageButton member={member} openDMForUser={vm.onOpenDmForUser} />
+        );
+    // +watcha
 
     return (
         <Container>

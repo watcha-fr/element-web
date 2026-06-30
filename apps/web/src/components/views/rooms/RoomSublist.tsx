@@ -49,6 +49,9 @@ import AccessibleButton, { type ButtonEvent } from "../../views/elements/Accessi
 import type ExtraTile from "./ExtraTile";
 import NotificationBadge from "./NotificationBadge";
 import RoomTile from "./RoomTile";
+import SettingsStore from "../../../settings/SettingsStore"; // watcha+
+import { UIFeature } from "../../../settings/UIFeature"; // watcha+
+import { MatrixClientPeg } from "../../../MatrixClientPeg"; // watcha+
 
 const SHOW_N_BUTTON_HEIGHT = 28; // As defined by CSS
 const RESIZE_HANDLE_HEIGHT = 4; // As defined by CSS
@@ -160,7 +163,13 @@ export default class RoomSublist extends React.Component<IProps, IState> {
     }
 
     private static calcNumTiles(rooms: Room[], extraTiles?: any[] | null): number {
-        return (rooms || []).length + (extraTiles || []).length;
+        let calcNumTilesNumber = (rooms || []).length;
+        // watcha+
+        if (SettingsStore.getValue(UIFeature.watcha_SitivFieldDisabled)) {
+            calcNumTilesNumber = (rooms || []).filter((room) => room.name !== "Salutations").length;
+        }
+        // +watcha
+        return calcNumTilesNumber + (extraTiles || []).length;
     }
 
     private get numVisibleTiles(): number {
@@ -505,7 +514,9 @@ export default class RoomSublist extends React.Component<IProps, IState> {
         const tiles: React.ReactElement[] = [];
 
         if (this.state.rooms) {
-            let visibleRooms = this.state.rooms;
+            let visibleRooms = this.state.rooms.filter(
+                (room: Room) => !(SettingsStore.getValue(UIFeature.watcha_SitivFieldDisabled) && room.name === "Salutations"),
+            ); // watcha+
             if (!this.props.forceExpanded) {
                 visibleRooms = visibleRooms.slice(0, this.numVisibleTiles);
             }
@@ -645,10 +656,12 @@ export default class RoomSublist extends React.Component<IProps, IState> {
                     );
 
                     let addRoomButton: JSX.Element | undefined;
-                    if (this.props.AuxButtonComponent) {
-                        const AuxButtonComponent = this.props.AuxButtonComponent;
-                        addRoomButton = <AuxButtonComponent tabIndex={tabIndex} />;
-                    }
+                    if (!MatrixClientPeg.get()?.isPartner()) { // watcha+
+                        if (this.props.AuxButtonComponent) {
+                            const AuxButtonComponent = this.props.AuxButtonComponent;
+                            addRoomButton = <AuxButtonComponent tabIndex={tabIndex} />;
+                        }
+                    } // watcha+
 
                     const collapsed = !this.state.isExpanded && !this.props.forceExpanded;
                     const classes = classNames({

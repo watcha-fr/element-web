@@ -9,11 +9,14 @@ Please see LICENSE files in the repository root for full details.
 import { type IClientWellKnown, type MatrixClient } from "matrix-js-sdk/src/matrix";
 import { UnstableValue } from "matrix-js-sdk/src/NamespacedValue";
 
+import { MatrixClientPeg } from "../MatrixClientPeg"; // watcha+
+
 const CALL_BEHAVIOUR_WK_KEY = "io.element.call_behaviour";
 const E2EE_WK_KEY = "io.element.e2ee";
 const E2EE_WK_KEY_DEPRECATED = "im.vector.riot.e2ee";
 export const TILE_SERVER_WK_KEY = new UnstableValue("m.tile_server", "org.matrix.msc3488.tile_server");
 const EMBEDDED_PAGES_WK_PROPERTY = "io.element.embedded_pages";
+const NEXTCLOUD_WK_KEY = "watcha.nextcloud"; // watcha+
 
 /* eslint-disable camelcase */
 export interface ICallBehaviourWellKnown {
@@ -39,6 +42,12 @@ export interface ITileServerWellKnown {
 export interface IEmbeddedPagesWellKnown {
     home_url?: string;
 }
+
+// watcha+
+export interface INextcloudWellKnown {
+    base_url?: string;
+}
+// +watcha
 /* eslint-enable camelcase */
 
 export function getCallBehaviourWellKnown(matrixClient: MatrixClient): ICallBehaviourWellKnown {
@@ -72,3 +81,10 @@ export function getEmbeddedPagesWellKnown(matrixClient: MatrixClient | undefined
 export function embeddedPagesFromWellKnown(clientWellKnown?: IClientWellKnown): IEmbeddedPagesWellKnown {
     return clientWellKnown?.[EMBEDDED_PAGES_WK_PROPERTY];
 }
+
+// watcha+
+export function getNextcloudWellKnown(): INextcloudWellKnown | undefined {
+    const clientWellKnown = MatrixClientPeg.get()?.getClientWellKnown();
+    return clientWellKnown?.[NEXTCLOUD_WK_KEY];
+}
+// +watcha

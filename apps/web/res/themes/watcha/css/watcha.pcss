@@ -1,0 +1,32 @@
+/* watcha+ structure layered mimétique de light.pcss v1.12.21
+   (déclaration des layers + imports en `layer(app-web)` + _compound.pcss).
+   Sans cette structure, les overrides Watcha tombent dans le layer anonyme
+   (priorité max), écrasent les styles upstream et cassent tout le layout.
+   _paths.pcss legacy supprimé en v1.12.21 — `$res` legacy remplacé par
+   `$(res)` postcss-simple-vars (résolu en absolu via webpack config). */
+@layer compound-tokens, compound-web, shared-components, app-web;
+
+@import "../../../../res/css/_font-sizes.pcss" layer(app-web);
+@import "../../light/css/_fonts.pcss" layer(app-web);
+@import "../../light/css/_light.pcss" layer(app-web);
+@import "_watcha.pcss" layer(app-web);
+@import "_watcha-dark.pcss" layer(app-web);
+@import "../../light/css/_mods.pcss" layer(app-web);
+@import "../../../../res/css/_components.pcss" layer(app-web);
+@import "../../../../res/css/_compound.pcss";
+@import url("highlight.js/styles/atom-one-light.min.css") layer(app-web);
+@import url("github-markdown-css/github-markdown-light.css") layer(app-web);
+
+@import "_watcha-AvatarCrown.pcss" layer(app-web);
+@import "_watcha-DecoratedRoomAvatar.pcss" layer(app-web);
+@import "_watcha-LeftPanel.pcss" layer(app-web);
+@import "_watcha-NotificationBadge.pcss" layer(app-web);
+@import "_watcha-QuickSettingsButton.pcss" layer(app-web);
+@import "_watcha-RoomList.pcss" layer(app-web);
+@import "_watcha-RoomListHeader.pcss" layer(app-web);
+@import "_watcha-RoomSearch.pcss" layer(app-web);
+@import "_watcha-RoomSublist.pcss" layer(app-web);
+@import "_watcha-RoomTile.pcss" layer(app-web);
+@import "_watcha-SpacePanel.pcss" layer(app-web);
+/*@import "_watcha-VideoRoomSummary.pcss" layer(app-web);*/
+/* +watcha */

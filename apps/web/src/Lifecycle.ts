@@ -25,6 +25,7 @@ import { ModuleRunner } from "./modules/ModuleRunner";
 import EventIndexPeg from "./indexing/EventIndexPeg";
 import createMatrixClient from "./utils/createMatrixClient";
 import Notifier from "./Notifier";
+import WatchaJitsiWidgetSound from "./watcha_JitsiWidgetSound"; // watcha+
 import UserActivity from "./UserActivity";
 import Presence from "./Presence";
 import dis from "./dispatcher/dispatcher";
@@ -32,7 +33,7 @@ import DMRoomMap from "./utils/DMRoomMap";
 import Modal from "./Modal";
 import ActiveWidgetStore from "./stores/ActiveWidgetStore";
 import PlatformPeg from "./PlatformPeg";
-import { sendLoginRequest } from "./Login";
+import { sendLoginRequest, SSO_LANGUAGE_KEY } from "./Login"; // watcha+ : SSO_LANGUAGE_KEY
 import * as StorageManager from "./utils/StorageManager";
 import * as StorageAccess from "./utils/StorageAccess";
 import SettingsStore from "./settings/SettingsStore";
@@ -392,6 +393,10 @@ export function attemptTokenLogin(
     })
         .then(async function (creds) {
             logger.log("Logged in with token");
+            // watcha+ : re-persist SSO language hint across the token swap
+            const language = localStorage.getItem(SSO_LANGUAGE_KEY);
+            if (language) localStorage.setItem(SSO_LANGUAGE_KEY, language);
+            // +watcha
             await onSuccessfulDelegatedAuthLogin(creds);
             return true;
         })
@@ -531,6 +536,7 @@ export interface IStoredSession {
     userId: string;
     deviceId: string;
     isGuest: boolean;
+    isPartner: boolean; // watcha+
 }
 
 /**
@@ -588,7 +594,11 @@ export async function getStoredSessionVars(): Promise<Partial<IStoredSession>> {
         isGuest = localStorage.getItem("matrix-is-guest") === "true";
     }
 
+    const isPartner = localStorage.getItem("watcha_is_partner") === "true"; // watcha+
+    /* watcha!
     return { hsUrl, isUrl, hasAccessToken, accessToken, refreshToken, hasRefreshToken, userId, deviceId, isGuest };
+    !watcha */
+    return { hsUrl, isUrl, hasAccessToken, accessToken, refreshToken, hasRefreshToken, userId, deviceId, isGuest, isPartner }; // watcha+
 }
 
 async function abortLogin(): Promise<void> {
@@ -623,8 +633,14 @@ export async function restoreSessionFromStorage(opts?: { ignoreGuest?: boolean }
         return false;
     }
 
+    /* watcha!
     const { hsUrl, isUrl, hasAccessToken, accessToken, refreshToken, userId, deviceId, isGuest } =
         await getStoredSessionVars();
+    !watcha */
+    // watcha+
+    const { hsUrl, isUrl, hasAccessToken, accessToken, refreshToken, userId, deviceId, isGuest, isPartner } =
+        await getStoredSessionVars();
+    // +watcha
 
     if (hasAccessToken && !accessToken) {
         logger.warn(
@@ -664,6 +680,7 @@ export async function restoreSessionFromStorage(opts?: { ignoreGuest?: boolean }
                 guest: isGuest,
                 pickleKey: pickleKey ?? undefined,
                 freshLogin: freshLogin,
+                partner: isPartner, // watcha+
             },
             false,
             freshLogin,
@@ -950,6 +967,10 @@ async function persistCredentials(credentials: IMatrixClientCreds): Promise<void
 
     ModuleRunner.instance.extensions.cryptoSetup?.persistCredentials(credentials);
 
+    // watcha+ : persister le flag is_partner dans localStorage pour le lire au boot
+    localStorage.setItem("watcha_is_partner", JSON.stringify(credentials.partner));
+    // +watcha
+
     logger.log(`Session persisted for ${credentials.userId}`);
 }
 
@@ -1069,6 +1090,7 @@ async function startMatrixClient(
 
     DialogOpener.instance.prepare(client);
     Notifier.start();
+    WatchaJitsiWidgetSound.start(); // watcha+
     UserActivity.sharedInstance().start();
     DMRoomMap.makeShared(client).start();
     IntegrationManagers.sharedInstance().startWatching();
@@ -1119,6 +1141,11 @@ async function startMatrixClient(
  * storage. Used after a session has been logged out.
  */
 export async function onLoggedOut(): Promise<void> {
+    // watcha+ : capture partner state before client teardown for redirect choice
+    const client = MatrixClientPeg.get();
+    const isPartner = !!client?.isPartner();
+    const externalAuthenticationForPartners = SettingsStore.getValue("feature_watcha_external_account");
+    // +watcha
     // Ensure that we dispatch a view change **before** stopping the client,
     // that React components unmount first. This avoids React soft crashes
     // that can occur when components try to use a null client.
@@ -1135,6 +1162,12 @@ export async function onLoggedOut(): Promise<void> {
         logger.log("Redirecting to external provider to finish logout");
         // XXX: Defer this so that it doesn't race with MatrixChat unmounting the world by going to /#/welcome
         window.setTimeout(() => {
+            // watcha+ : partners without external auth land on /partner instead
+            if (isPartner && !externalAuthenticationForPartners) {
+                window.location.hash = "/partner";
+                return;
+            }
+            // +watcha
             window.location.href = SdkConfig.get().logout_redirect_url!;
         }, 100);
     }
@@ -1200,6 +1233,7 @@ export async function clearStorage(opts?: { deleteEverything?: boolean }): Promi
  */
 export function stopMatrixClient(unsetClient = true): void {
     Notifier.stop();
+    WatchaJitsiWidgetSound.stop(); // watcha+
     LegacyCallHandler.instance.stop();
     UserActivity.sharedInstance().stop();
     SdkContextClass.instance.typingStore.reset();

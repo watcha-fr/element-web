@@ -26,8 +26,11 @@ import { showSpaceInvite } from "../../../utils/space";
 import { RoomSettingsTab } from "../dialogs/RoomSettingsDialog";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
 import { shouldShowComponent } from "../../../customisations/helpers/UIComponents";
-import { UIComponent } from "../../../settings/UIFeature";
+import { UIComponent, UIFeature } from "../../../settings/UIFeature";
 import { privateShouldBeEncrypted } from "../../../utils/rooms";
+// watcha+
+import SettingsStore from "../../../settings/SettingsStore";
+// +watcha
 import { LocalRoom } from "../../../models/LocalRoom";
 import { shouldEncryptRoomWithSingle3rdPartyInvite } from "../../../utils/room/shouldEncryptRoomWithSingle3rdPartyInvite";
 import { useScopedRoomContext } from "../../../contexts/ScopedRoomContext.tsx";
@@ -298,7 +301,12 @@ const NewRoomIntro: React.FC = () => {
 
     return (
         <li className="mx_NewRoomIntro">
-            {!hasExpectedEncryptionSettings(cli, room) && (
+            {/* watcha! n'affiche le bandeau "salon non chiffré" que si l'UI E2EE
+                est activée — cohérent avec le wrap E2EE multi-sites (piège 13).
+                Sans ce gating, le bandeau reste visible côté admin1 (ou en HMR
+                dev mode où le well-known `io.element.e2ee.default=false` peut ne
+                pas être chargé) et contredit la stratégie « pas d'UI E2EE ». */}
+            {!hasExpectedEncryptionSettings(cli, room) && SettingsStore.getValue(UIFeature.watcha_E2EEUISetting) && (
                 <EventTileBubble
                     icon={<ErrorSolidIcon color="var(--cpd-color-icon-critical-primary)" />}
                     className="mx_EventTileBubble mx_cryptoEvent"
@@ -306,6 +314,7 @@ const NewRoomIntro: React.FC = () => {
                     subtitle={subtitle}
                 />
             )}
+            {/* !watcha */}
 
             {body}
         </li>

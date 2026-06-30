@@ -31,7 +31,12 @@ import MatrixActionCreators from "./actions/MatrixActionCreators";
 import Modal from "./Modal";
 import MatrixClientBackedSettingsHandler from "./settings/handlers/MatrixClientBackedSettingsHandler";
 import * as StorageManager from "./utils/StorageManager";
-import IdentityAuthClient from "./IdentityAuthClient";
+/* watcha! IdentityAuthClient import retiré — il créait un cycle d'imports direct
+   (MatrixClientPeg → IdentityAuthClient → MatrixClientPeg) provoquant une TDZ
+   ReferenceError au top-level de WidgetMessagingStore/WidgetLayoutStore/WidgetStore
+   (qui appellent `start()` dans leur static initializer et touchent MatrixClientPeg).
+   L'import était résiduel : l'usage `identityServer: new IdentityAuthClient()` a été
+   supprimé en même temps. !watcha */
 import { crossSigningCallbacks } from "./SecurityManager";
 import { SlidingSyncManager } from "./SlidingSyncManager";
 import { _t, UserFriendlyError } from "./languageHandler";
@@ -40,6 +45,7 @@ import ErrorDialog from "./components/views/dialogs/ErrorDialog";
 import PlatformPeg from "./PlatformPeg";
 import { formatList } from "./utils/FormattingUtils";
 import SdkConfig from "./SdkConfig";
+import { UIFeature } from "./settings/UIFeature"; // watcha+
 import { setDeviceIsolationMode } from "./settings/controllers/DeviceIsolationModeController.ts";
 import { initialiseDehydrationIfEnabled } from "./utils/device/dehydration";
 
@@ -53,6 +59,7 @@ export interface IMatrixClientCreds {
     guest?: boolean;
     pickleKey?: string;
     freshLogin?: boolean;
+    partner?: boolean; // watcha+
 }
 
 export interface MatrixClientPegAssignOpts {
@@ -287,7 +294,7 @@ class MatrixClientPegClass implements IMatrixClientPeg {
         this.matrixClient.store.on?.("closed", this.onUnexpectedStoreClose);
 
         // try to initialise e2e on the new client
-        if (!SettingsStore.getValue("lowBandwidth")) {
+        if (!SettingsStore.getValue("lowBandwidth") && SettingsStore.getValue(UIFeature.watcha_E2EEUISetting) /* watcha+ */) {
             await this.initClientCrypto(assignOpts.rustCryptoStoreKey, assignOpts.rustCryptoStorePassword);
         }
 
@@ -436,7 +443,9 @@ class MatrixClientPegClass implements IMatrixClientPeg {
                 VerificationMethod.ShowQrCode,
                 VerificationMethod.Reciprocate,
             ],
+            /* watcha! until we have an IS
             identityServer: new IdentityAuthClient(),
+            !watcha */
             // These are always installed regardless of the labs flag so that cross-signing features
             // can toggle on without reloading and also be accessed immediately after login.
             cryptoCallbacks: { ...crossSigningCallbacks },
@@ -466,6 +475,7 @@ class MatrixClientPegClass implements IMatrixClientPeg {
 
         this.matrixClient = createMatrixClient(opts);
         this.matrixClient.setGuest(Boolean(creds.guest));
+        this.matrixClient.setPartner(Boolean(creds.partner)); // watcha+
 
         const notifTimelineSet = new EventTimelineSet(undefined, {
             timelineSupport: true,

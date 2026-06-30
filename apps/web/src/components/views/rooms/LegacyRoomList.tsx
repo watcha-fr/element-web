@@ -135,11 +135,15 @@ const DmAuxButton: React.FC<IAuxButtonProps> = ({ tabIndex, dispatcher = default
     const activeSpace = useEventEmitterState(SpaceStore.instance, UPDATE_SELECTED_SPACE, () => {
         return SpaceStore.instance.activeSpaceRoom;
     });
+    const cli = React.useContext(MatrixClientContext); // watcha+
 
     const showCreateRooms = shouldShowComponent(UIComponent.CreateRooms);
     const showInviteUsers = shouldShowComponent(UIComponent.InviteUsers);
 
+    /* watcha+
     if (activeSpace && (showCreateRooms || showInviteUsers)) {
+    +watcha */
+    if (activeSpace && (showCreateRooms || showInviteUsers) && !cli.isPartner()) { // watcha+
         let contextMenu: JSX.Element | undefined;
         if (menuDisplayed && handle.current) {
             const canInvite = shouldShowSpaceInvite(activeSpace);
@@ -199,7 +203,10 @@ const DmAuxButton: React.FC<IAuxButtonProps> = ({ tabIndex, dispatcher = default
                 {contextMenu}
             </>
         );
+    /* watcha+
     } else if (!activeSpace && showCreateRooms) {
+    +watcha */
+    } else if (!activeSpace && showCreateRooms && !cli.isPartner()) {
         return (
             <AccessibleButton
                 tabIndex={tabIndex}
@@ -224,6 +231,7 @@ const UntaggedAuxButton: React.FC<IAuxButtonProps> = ({ tabIndex }) => {
     const activeSpace = useEventEmitterState<Room | null>(SpaceStore.instance, UPDATE_SELECTED_SPACE, () => {
         return SpaceStore.instance.activeSpaceRoom;
     });
+    const cli = React.useContext(MatrixClientContext); // watcha+
 
     const showCreateRoom = shouldShowComponent(UIComponent.CreateRooms);
     const showExploreRooms = shouldShowComponent(UIComponent.ExploreRooms);
@@ -368,7 +376,10 @@ const UntaggedAuxButton: React.FC<IAuxButtonProps> = ({ tabIndex }) => {
         );
     }
 
+    /* watcha+
     if (showCreateRoom || showExploreRooms) {
+    +watcha */
+    if ((showCreateRoom || showExploreRooms) && !cli.isPartner()) { // watcha+
         return (
             <>
                 <ContextMenuTooltipButton

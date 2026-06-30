@@ -116,20 +116,22 @@ const HomePage: React.FC<IProps> = ({ justRegistered = false }) => {
         <AutoHideScrollbar className="mx_HomePage mx_HomePage_default" element="main">
             <div className="mx_HomePage_default_wrapper">
                 {introSection}
-                <div className="mx_HomePage_default_buttons">
-                    <AccessibleButton onClick={onClickSendDm} className="mx_HomePage_button_sendDm">
-                        <ChatSolidIcon />
-                        {_tDom("onboarding|send_dm")}
-                    </AccessibleButton>
-                    <AccessibleButton onClick={onClickExplore} className="mx_HomePage_button_explore">
-                        <ExploreIcon />
-                        {_tDom("onboarding|explore_rooms")}
-                    </AccessibleButton>
-                    <AccessibleButton onClick={onClickNewRoom} className="mx_HomePage_button_createGroup">
-                        <GroupIcon />
-                        {_tDom("onboarding|create_room")}
-                    </AccessibleButton>
-                </div>
+                {!cli.isPartner() && ( /* watcha+ */
+                    <div className="mx_HomePage_default_buttons">
+                        <AccessibleButton onClick={onClickSendDm} className="mx_HomePage_button_sendDm">
+                            <ChatSolidIcon />
+                            {_tDom("onboarding|send_dm")}
+                        </AccessibleButton>
+                        <AccessibleButton onClick={onClickExplore} className="mx_HomePage_button_explore">
+                            <ExploreIcon />
+                            {_tDom("onboarding|explore_rooms")}
+                        </AccessibleButton>
+                        <AccessibleButton onClick={onClickNewRoom} className="mx_HomePage_button_createGroup">
+                            <GroupIcon />
+                            {_tDom("onboarding|create_room")}
+                        </AccessibleButton>
+                    </div>
+                ) /* +watcha */}
             </div>
         </AutoHideScrollbar>
     );

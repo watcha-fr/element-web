@@ -1,0 +1,10 @@
+/*
+   watcha! Contenu legacy (~430 lignes) ciblait `.mx_RoomSublist` (les sous-listes
+   "Salons", "Personnes", "Discussions" avec leur header sticky, badges, boutons
+   d'action, resizer, skeleton UI). En v1.12.21 ces sous-listes sont remplacées
+   par le shared-component `RoomListView` (classes CSS-modules `_roomListItem_*`,
+   etc. sous `.mx_RoomListPanel`). Les sélecteurs `.mx_RoomSublist*` ne matchent
+   plus rien (vérifié Playwright). On vide. Si LegacyRoomList est ré-activé un
+   jour (feature flag), restaurer depuis git history.
+   !watcha
+*/

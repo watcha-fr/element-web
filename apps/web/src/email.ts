@@ -7,6 +7,11 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
+// watcha+
+import { MatrixClientPeg } from "./MatrixClientPeg";
+import SdkConfig from "./SdkConfig";
+// +watcha
+
 // Regexp based on Simpler Version from https://gist.github.com/gregseth/5582254 - matches RFC2822
 const EMAIL_ADDRESS_REGEX = new RegExp(
     "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*" + // localpart
@@ -20,3 +25,16 @@ export function looksValid(email: string): boolean {
 
     return EMAIL_ADDRESS_REGEX.test(email);
 }
+
+// watcha+
+export async function isMine(email: string): Promise<boolean> {
+    const { threepids } = await MatrixClientPeg.get()!.getThreePids();
+    return threepids.some((threepid) => threepid.medium === "email" && threepid.address === email);
+}
+
+export function hasForbiddenDomainForPartner(email: string): boolean {
+    const domain = email.split("@")[1];
+    const forbiddenDomains = SdkConfig.get().watcha_forbidden_partner_domains;
+    return !!forbiddenDomains?.includes(domain);
+}
+// +watcha

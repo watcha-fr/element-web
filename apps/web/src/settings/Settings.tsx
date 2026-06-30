@@ -369,6 +369,19 @@ export interface Settings {
     "Developer.elementCallUrl": IBaseSetting<string>;
     "RoomList.CustomSectionData": IBaseSetting<CustomSectionsData>;
     "RoomList.OrderedCustomSections": IBaseSetting<OrderedCustomSections>;
+
+    // watcha+
+    "nextcloudShare": IBaseSetting<string | null>;
+    "feature_watcha_webrtc": IFeature;
+    "feature_watcha_external_account": IFeature;
+    "showExploreChatAttachmentsButton": IBaseSetting<boolean>;
+    "showShareMessageButton": IBaseSetting<boolean>;
+    "showViewSourceButton": IBaseSetting<boolean>;
+    "showShareRoomButton": IBaseSetting<boolean>;
+    "showIgnoreUserButton": IBaseSetting<boolean>;
+    "showDeactivateUserButton": IBaseSetting<boolean>;
+    "showE2EEUI": IBaseSetting<boolean>;
+    // +watcha
 }
 
 export type SettingKey = keyof Settings;
@@ -1498,4 +1511,110 @@ export const SETTINGS: Settings = {
         displayName: _td("devtools|settings|elementCallUrl"),
         default: "",
     },
+
+    // watcha+
+    "nextcloudShare": {
+        supportedLevels: [SettingLevel.ROOM],
+        displayName: _td("watcha|nextcloud_share"),
+        default: null,
+    },
+    [UIFeature.watcha_Administration]: {
+        supportedLevels: LEVELS_UI_FEATURE,
+        default: true,
+    },
+    [UIFeature.watcha_E2EEUISetting]: {
+        supportedLevels: LEVELS_UI_FEATURE,
+        default: true,
+    },
+    [UIFeature.watcha_Federation]: {
+        supportedLevels: LEVELS_UI_FEATURE,
+        default: true,
+    },
+    [UIFeature.watcha_Nextcloud]: {
+        supportedLevels: LEVELS_UI_FEATURE,
+        default: true,
+    },
+    [UIFeature.watcha_Partner]: {
+        supportedLevels: LEVELS_UI_FEATURE,
+        default: true,
+    },
+    [UIFeature.watcha_ReportEvent]: {
+        supportedLevels: LEVELS_UI_FEATURE,
+        default: true,
+    },
+    [UIFeature.watcha_SSOProfile]: {
+        supportedLevels: LEVELS_UI_FEATURE,
+        default: true,
+    },
+    [UIFeature.watcha_StickersSetting]: {
+        supportedLevels: LEVELS_UI_FEATURE,
+        default: true,
+    },
+    [UIFeature.watcha_SitivFieldDisabled]: {
+        supportedLevels: LEVELS_UI_FEATURE,
+        default: true,
+    },
+    [UIFeature.watcha_Mail]: {
+        supportedLevels: LEVELS_UI_FEATURE,
+        default: false,
+    },
+    [UIFeature.watcha_ComUE]: {
+        supportedLevels: LEVELS_UI_FEATURE,
+        default: false,
+    },
+    "feature_watcha_webrtc": {
+        isFeature: true,
+        labsGroup: LabGroup.Experimental,
+        supportedLevels: LEVELS_UI_FEATURE,
+        displayName: _td("watcha|enable_webrtc"),
+        default: false,
+        controller: new ReloadOnChangeController(),
+    },
+    "feature_watcha_external_account": {
+        isFeature: true,
+        labsGroup: LabGroup.Experimental,
+        supportedLevels: LEVELS_UI_FEATURE,
+        displayName: _td("watcha|enable_external_account"),
+        default: false,
+        controller: new ReloadOnChangeController(),
+    },
+    "showExploreChatAttachmentsButton": {
+        supportedLevels: LEVELS_ACCOUNT_SETTINGS,
+        displayName: _td("watcha|attachment_button"),
+        default: false,
+    },
+    "showShareMessageButton": {
+        supportedLevels: LEVELS_ACCOUNT_SETTINGS,
+        displayName: _td("watcha|share_message_button"),
+        default: false,
+    },
+    "showViewSourceButton": {
+        supportedLevels: LEVELS_ACCOUNT_SETTINGS,
+        displayName: _td("watcha|view_source_button"),
+        default: false,
+    },
+    "showShareRoomButton": {
+        supportedLevels: LEVELS_ACCOUNT_SETTINGS,
+        displayName: _td("watcha|share_room_button"),
+        description: _td("watcha|share_room_button_description"),
+        default: false,
+    },
+    "showIgnoreUserButton": {
+        supportedLevels: LEVELS_ACCOUNT_SETTINGS,
+        displayName: _td("watcha|ignore_user_button"),
+        description: _td("watcha|ignore_user_button_description"),
+        default: false,
+    },
+    "showDeactivateUserButton": {
+        supportedLevels: LEVELS_ACCOUNT_SETTINGS,
+        displayName: _td("watcha|deactivate_user_button"),
+        default: false,
+    },
+    "showE2EEUI": {
+        supportedLevels: LEVELS_ACCOUNT_SETTINGS,
+        displayName: _td("watcha|E2EEUI"),
+        default: false,
+        controller: new UIFeatureController(UIFeature.watcha_E2EEUISetting),
+    },
+    // +watcha
 };

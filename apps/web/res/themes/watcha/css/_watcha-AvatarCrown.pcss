@@ -1,0 +1,95 @@
+/*
+   watcha! Couronne colorée autour de l'avatar selon le serveur d'origine du
+   userId (sidebar via RoomAvatarView + memberlist via RoomMemberTileView +
+   timeline via EventTile + couleur du sender name). Source historique :
+   matrix-react-sdk-watcha, mise à jour 2026-06-25.
+
+   Stratégie technique différenciée selon la nature de l'avatar :
+
+   1) Sidebar « presence path » (`.mx_RoomAvatarView_RoomAvatar_presence`) :
+      l'avatar est rendu avec un `mask-image` SVG qui découpe une encoche pour
+      la pastille présence. → `box-shadow: inset` qui est clippé par mask-image
+      → l'anneau respecte l'encoche présence (cohérent visuellement).
+
+   2) Memberlist + Timeline + sidebar « no presence » : avatar carré standard
+      pouvant contenir une `<img>` (avatar personnalisé). L'inset ne marcherait
+      pas (l'image est peinte par-dessus l'inset shadow et le cache).
+      → `box-shadow` externe sur l'avatar carré → anneau visible autour, image
+      et initiale traitées pareillement.
+
+   La classe est posée par les composants View sur le wrapper de l'avatar
+   (`.mx_RoomAvatarView`, `<span>` memberlist, `.mx_EventTile_avatar`). On descend
+   ensuite avec un sélecteur descendant `.mx_BaseAvatar` pour atteindre l'avatar
+   carré (le wrapper peut être non-carré, p.ex. `.mx_EventTile_avatar` qui mesure
+   ~30×36 → box-shadow + border-radius:50% sur le wrapper donnerait une ellipse).
+
+   5 instances Watcha + leur couleur identitaire :
+   - watchatest.watcha.fr                       → turquoise #00b4b4
+   - teamnetdev.watcha.fr                       → magenta   #b400b4
+   - discuter.sitiv.fr                          → vert      #0d730d
+   - discuter-vdl.territoirenumeriqueouvert.org → bleu      #1919e6
+   - discuter-mdl.territoirenumeriqueouvert.org → rouge     #e61919
+   !watcha
+*/
+
+/* === Cas 1 : avatar masqué SVG (sidebar avec pastille présence) ===
+   box-shadow inset → clippé par mask-image → anneau coupé autour de la pastille. */
+.mx_RoomAvatarView_crown_watchatest_watcha_fr .mx_RoomAvatarView_RoomAvatar_presence {
+    box-shadow: inset 0 0 0 2px #00b4b4;
+}
+.mx_RoomAvatarView_crown_teamnetdev_watcha_fr .mx_RoomAvatarView_RoomAvatar_presence {
+    box-shadow: inset 0 0 0 2px #b400b4;
+}
+.mx_RoomAvatarView_crown_discuter_sitiv_fr .mx_RoomAvatarView_RoomAvatar_presence {
+    box-shadow: inset 0 0 0 2px #0d730d;
+}
+.mx_RoomAvatarView_crown_discuter-vdl_territoirenumeriqueouvert_org .mx_RoomAvatarView_RoomAvatar_presence {
+    box-shadow: inset 0 0 0 2px #1919e6;
+}
+.mx_RoomAvatarView_crown_discuter-mdl_territoirenumeriqueouvert_org .mx_RoomAvatarView_RoomAvatar_presence {
+    box-shadow: inset 0 0 0 2px #e61919;
+}
+
+/* === Cas 2 : avatar standard (sidebar no presence + memberlist + timeline) ===
+   box-shadow externe → anneau visible autour quelque soit le contenu (image, initiale).
+   `:not(.mx_RoomAvatarView_RoomAvatar_presence)` évite le double-rendu sur sidebar
+   masqué (où le cas 1 s'applique déjà). */
+.mx_RoomAvatarView_crown_watchatest_watcha_fr .mx_BaseAvatar:not(.mx_RoomAvatarView_RoomAvatar_presence),
+.mx_EventTile_avatar_crown_watchatest_watcha_fr .mx_BaseAvatar {
+    box-shadow: 0 0 0 2px #00b4b4;
+}
+.mx_RoomAvatarView_crown_teamnetdev_watcha_fr .mx_BaseAvatar:not(.mx_RoomAvatarView_RoomAvatar_presence),
+.mx_EventTile_avatar_crown_teamnetdev_watcha_fr .mx_BaseAvatar {
+    box-shadow: 0 0 0 2px #b400b4;
+}
+.mx_RoomAvatarView_crown_discuter_sitiv_fr .mx_BaseAvatar:not(.mx_RoomAvatarView_RoomAvatar_presence),
+.mx_EventTile_avatar_crown_discuter_sitiv_fr .mx_BaseAvatar {
+    box-shadow: 0 0 0 2px #0d730d;
+}
+.mx_RoomAvatarView_crown_discuter-vdl_territoirenumeriqueouvert_org .mx_BaseAvatar:not(.mx_RoomAvatarView_RoomAvatar_presence),
+.mx_EventTile_avatar_crown_discuter-vdl_territoirenumeriqueouvert_org .mx_BaseAvatar {
+    box-shadow: 0 0 0 2px #1919e6;
+}
+.mx_RoomAvatarView_crown_discuter-mdl_territoirenumeriqueouvert_org .mx_BaseAvatar:not(.mx_RoomAvatarView_RoomAvatar_presence),
+.mx_EventTile_avatar_crown_discuter-mdl_territoirenumeriqueouvert_org .mx_BaseAvatar {
+    box-shadow: 0 0 0 2px #e61919;
+}
+
+/* Couleur du nom d'utilisateur dans le sender display name (timeline +
+   reactions + pills). Source : matrix-react-sdk-watcha, _common.pcss
+   .mx_Username_color_<instance>. Mêmes teintes que les couronnes. */
+.mx_Username_color_watchatest_watcha_fr {
+    color: #00b4b4;
+}
+.mx_Username_color_teamnetdev_watcha_fr {
+    color: #b400b4;
+}
+.mx_Username_color_discuter_sitiv_fr {
+    color: #0d730d;
+}
+.mx_Username_color_discuter-vdl_territoirenumeriqueouvert_org {
+    color: #1919e6;
+}
+.mx_Username_color_discuter-mdl_territoirenumeriqueouvert_org {
+    color: #e61919;
+}

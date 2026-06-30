@@ -26,6 +26,22 @@ export const enum UIFeature {
     TimelineEnableRelativeDates = "UIFeature.timelineEnableRelativeDates",
     AllowCreatingPublicRooms = "UIFeature.allowCreatingPublicRooms",
     AllowCreatingPublicSpaces = "UIFeature.allowCreatingPublicSpaces",
+
+    // watcha+
+    /* eslint-disable camelcase */
+    watcha_Administration = "UIFeature.watcha_administration",
+    watcha_E2EEUISetting = "UIFeature.watcha_e2eeUiSetting",
+    watcha_Federation = "UIFeature.watcha_federation",
+    watcha_Nextcloud = "UIFeature.watcha_nextcloud",
+    watcha_Partner = "UIFeature.watcha_partner",
+    watcha_SSOProfile = "UIFeature.watcha_ssoProfile",
+    watcha_StickersSetting = "UIFeature.watcha_stickersSetting",
+    watcha_ReportEvent = "UIFeature.watcha_reportEvent",
+    watcha_SitivFieldDisabled = "UIFeature.watcha_sitivFieldDisabled",
+    watcha_Mail = "UIFeature.watcha_mail",
+    watcha_ComUE = "UIFeature.watcha_comue",
+    /* eslint-enable camelcase */
+    // +watcha
 }
 
 export { UIComponent } from "@element-hq/element-web-module-api";

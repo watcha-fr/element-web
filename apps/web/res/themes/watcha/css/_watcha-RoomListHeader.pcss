@@ -1,0 +1,11 @@
+/*
+   watcha! Contenu legacy ciblait `.mx_RoomListHeader` (titre+boutons+menu
+   "Démarrer une conversation"/"Créer un salon"/"Explorer") avec `mask-image`
+   sur des `::before` ciblant `.mx_RoomListHeader_iconInvite`, `_iconStartChat`,
+   `_iconNewRoom`, `_iconNewVideoRoom`, `_iconExplore`, `_iconPlus`. En v1.12.21
+   ce header est remplacé par le shared-component `RoomListHeaderView` (rendu
+   sous `.mx_RoomListPanel`) qui utilise Compound icons React natifs. Les
+   sélecteurs `.mx_RoomListHeader*` ne matchent plus rien (vérifié Playwright).
+   On vide.
+   !watcha
+*/

@@ -20,6 +20,7 @@ import SdkConfig from "../SdkConfig";
 import PlatformPeg from "../PlatformPeg";
 import { recordClientInformation, removeClientInformation } from "../utils/device/clientInformation";
 import SettingsStore, { type CallbackFn } from "../settings/SettingsStore";
+import { UIFeature } from "../settings/UIFeature"; // watcha+
 import {
     DeviceListenerOtherDevices,
     DeviceListenerCurrentDevice,
@@ -241,6 +242,7 @@ export class DeviceListener {
     }
 
     private async doRecheck(): Promise<void> {
+        if (!SettingsStore.getValue(UIFeature.watcha_E2EEUISetting)) return; // watcha+
         if (!this.running || !this.client) return; // we have been stopped
         const logSpan = new LogSpan(logger, "check_" + secureRandomString(4));
         logSpan.debug("starting recheck...");

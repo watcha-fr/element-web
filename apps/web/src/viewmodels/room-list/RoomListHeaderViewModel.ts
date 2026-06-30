@@ -294,11 +294,21 @@ function computeHeaderSpaceState(
 
     const canCreateRoom = hasCreateRoomRights(matrixClient, activeSpace);
     const canCreateVideoRoom = getCanCreateVideoRoom(canCreateRoom);
+    /* watcha!
     const displayComposeMenu = canCreateRoom;
+    !watcha */
+    const displayComposeMenu = canCreateRoom && !matrixClient.isPartner(); // watcha+
     const displaySpaceMenu = Boolean(activeSpace);
+    /* watcha!
     const canInviteInSpace = Boolean(
         activeSpace?.getJoinRule() === JoinRule.Public || activeSpace?.canInvite(matrixClient.getSafeUserId()),
     );
+    !watcha */
+    // watcha+
+    const canInviteInSpace =
+        !matrixClient.isPartner() &&
+        Boolean(activeSpace?.getJoinRule() === JoinRule.Public || activeSpace?.canInvite(matrixClient.getSafeUserId()));
+    // +watcha
     const canAccessSpaceSettings = Boolean(activeSpace && shouldShowSpaceSettings(activeSpace));
 
     const isSectionFeatureEnabled = SettingsStore.getValue("feature_room_list_sections");

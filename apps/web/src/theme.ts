@@ -88,6 +88,9 @@ export function isHighContrastTheme(theme: string): boolean {
 
 export function enumerateThemes(): { [key: string]: string } {
     const BUILTIN_THEMES = {
+        // watcha+ register the Watcha theme as a built-in (bundled via webpack entry "theme-watcha")
+        "watcha": "Watcha",
+        // +watcha
         "light": _t("common|light"),
         "light-high-contrast": _t("theme|light_high_contrast"),
         "dark": _t("common|dark"),
@@ -364,7 +367,12 @@ export async function setTheme(theme?: string): Promise<void> {
      */
     document.body.classList.remove("cpd-theme-light", "cpd-theme-dark", "cpd-theme-light-hc", "cpd-theme-dark-hc");
 
-    let compoundThemeClassName = `cpd-theme-` + (stylesheetName.includes("light") ? "light" : "dark");
+    // watcha+ treat the Watcha-branded theme as light for Compound tokens
+    // (upstream detects light/dark via the substring "light" in the stylesheet name,
+    // but our built-in theme is just "watcha" and is light by design).
+    const isLightCompound = stylesheetName.includes("light") || stylesheetName === "watcha";
+    let compoundThemeClassName = `cpd-theme-` + (isLightCompound ? "light" : "dark");
+    // +watcha
     // Always respect user OS preference!
     if (isHighContrastTheme(theme) || window.matchMedia("(prefers-contrast: more)").matches) {
         compoundThemeClassName += "-hc";

@@ -142,11 +142,13 @@ import { isOnlyAdmin } from "../../utils/membership";
 import { ModuleApi } from "../../modules/Api.ts";
 import { type IScreen } from "../../vector/routing.ts";
 import { type URLParams } from "../../vector/url_utils.ts";
+import { SSO_LANGUAGE_KEY } from "../../Login"; // watcha+
 
 // legacy export
 export { default as Views } from "../../Views";
 
 const AUTH_SCREENS = ["register", "mobile_register", "login", "forgot_password", "start_sso", "start_cas", "welcome"];
+AUTH_SCREENS.push("partner"); // watcha+
 
 // Actions that are redirected through the onboarding process prior to being
 // re-dispatched. NOTE: some actions are non-trivial and would require
@@ -358,6 +360,15 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             this.props.onTokenLoginCompleted(this.props.urlParams, this.getFragmentAfterLogin());
         }
 
+        // watcha+ : on SSO completion, restore + clear the language hint stashed during login
+        const language = localStorage.getItem(SSO_LANGUAGE_KEY);
+        if (language) {
+            localStorage.removeItem(SSO_LANGUAGE_KEY);
+            SettingsStore.setValue("language", null, SettingLevel.DEVICE, language);
+            PlatformPeg.get()?.reload();
+        }
+        // +watcha
+
         if (delegatedAuthSucceeded) {
             // token auth/OIDC worked! Time to fire up the client.
             this.tokenLogin = true;
@@ -453,6 +464,8 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             const cryptoExtension = ModuleRunner.instance.extensions.cryptoSetup;
             if (cryptoExtension.SHOW_ENCRYPTION_SETUP_UI == false) {
                 this.onShowPostLoginScreen();
+            } else if (!SettingsStore.getValue(UIFeature.watcha_E2EEUISetting)) { // watcha+
+                this.onShowPostLoginScreen(); // watcha+
             } else {
                 this.setStateForNewView({ view: Views.COMPLETE_SECURITY });
             }
@@ -1556,6 +1569,15 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
      * Called when the session is logged out
      */
     private onLoggedOut(): void {
+        // watcha+ : honour sso_redirect_options so we stay on a loading screen instead of bouncing back to welcome
+        const ssoRedirects = SdkConfig.get().sso_redirect_options || {};
+        const immediate = ssoRedirects.immediate === true;
+        const onWelcomePage = ssoRedirects.on_welcome_page === true;
+        if (immediate || onWelcomePage) {
+            this.setStateForNewView({ view: Views.LOADING });
+            return;
+        }
+        // +watcha
         this.viewWelcome({
             ready: false,
             collapseLhs: false,
@@ -2002,6 +2024,12 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                 userId: userId,
                 subAction: params?.action,
             });
+        // watcha+ : partner-only landing screen redirects straight to login
+        } else if (screen === "partner") {
+            dis.dispatch({
+                action: "start_login",
+            });
+        // +watcha
         } else if (ModuleApi.instance.navigation.locationRenderers.get(screen)) {
             this.setState({ page_type: screen });
         }

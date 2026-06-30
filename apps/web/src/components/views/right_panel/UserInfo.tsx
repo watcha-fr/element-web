@@ -28,6 +28,8 @@ import { type IRightPanelCardState } from "../../../stores/right-panel/RightPane
 import PosthogTrackers from "../../../PosthogTrackers";
 import { UserInfoHeaderView } from "./user_info/UserInfoHeaderView";
 import { UserInfoBasicView } from "./user_info/UserInfoBasicView";
+import { useSettingValue } from "../../../hooks/useSettings"; // watcha+
+import { UIFeature } from "../../../settings/UIFeature"; // watcha+
 
 export interface IDevice extends Device {
     ambiguous?: boolean;
@@ -199,6 +201,7 @@ interface IProps {
 
 const UserInfo: React.FC<IProps> = ({ user, room, onClose, phase = RightPanelPhases.MemberInfo, ...props }) => {
     const cli = useContext(MatrixClientContext);
+    const showE2EEUI = useSettingValue(UIFeature.watcha_E2EEUISetting); // watcha+
 
     // fetch latest room member if we have a room, so we don't show historical information, falling back to user
     const member = useMemo(() => (room ? room.getMember(user.userId) || user : user), [room, user]);
@@ -247,7 +250,10 @@ const UserInfo: React.FC<IProps> = ({ user, room, onClose, phase = RightPanelPha
     const header = (
         <>
             <UserInfoHeaderView
+                /* watcha!
                 hideVerificationSection={phase === RightPanelPhases.EncryptionPanel}
+                !watcha */
+                hideVerificationSection={phase === RightPanelPhases.EncryptionPanel || !showE2EEUI /* watcha+ */}
                 member={member}
                 devices={devices}
                 roomId={room?.roomId}

@@ -33,6 +33,8 @@ import { isUserRegistrationSupported } from "./utils/oidc/isUserRegistrationSupp
  */
 export type ClientLoginFlow = LoginFlow | OidcNativeFlow;
 
+export const SSO_LANGUAGE_KEY = "watcha_sso_language"; // watcha+
+
 interface ILoginOptions {
     defaultDeviceDisplayName?: string;
     /**
@@ -263,6 +265,13 @@ export async function sendLoginRequest(
 
     const data = await client.login(loginType, loginParams);
 
+    /* watcha+ : SSO locale hand-off (currently disabled, preserved for future activation)
+    const locale = data.locale;
+    if (locale && locale !== getCurrentLanguage()) {
+        localStorage.setItem(SSO_LANGUAGE_KEY, locale);
+    }
+    +watcha */
+
     const wellknown = data.well_known;
     if (wellknown) {
         if (wellknown["m.homeserver"]?.["base_url"]) {
@@ -285,6 +294,13 @@ export async function sendLoginRequest(
     };
 
     ModuleRunner.instance.extensions.cryptoSetup.examineLoginResponse(data, creds);
+
+    // watcha+ : persister is_partner du Synapse login response sur creds
+    const isPartner = (data as { is_partner?: boolean }).is_partner;
+    if (isPartner) {
+        creds.partner = isPartner;
+    }
+    // +watcha
 
     return creds;
 }

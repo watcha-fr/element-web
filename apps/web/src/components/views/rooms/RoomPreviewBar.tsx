@@ -32,6 +32,7 @@ import { UIFeature } from "../../../settings/UIFeature";
 import { ModuleRunner } from "../../../modules/ModuleRunner";
 import Field from "../elements/Field";
 import { ModuleApi } from "../../../modules/Api.ts";
+import { getSupportEmailAddress } from "../../../utils/watcha_config"; // watcha+
 
 const MemberEventHtmlReasonField = "io.element.html_reason";
 
@@ -523,12 +524,14 @@ class RoomPreviewBar extends React.Component<IProps, IState> {
                         {isDM
                             ? _t("room|dm_invite_subtitle", {}, { userName })
                             : _t("room|invite_subtitle", {}, { userName })}
+                        {/* watcha!
                         {inviteMember && (
                             <>
                                 <br />
                                 <span className="mx_RoomPreviewBar_inviter_mxid">{inviteMember.userId}</span>
                             </>
                         )}
+                        !watcha */}
                     </>
                 );
 
@@ -599,7 +602,10 @@ class RoomPreviewBar extends React.Component<IProps, IState> {
                         {
                             issueLink: (label) => (
                                 <a
+                                    /* watcha!
                                     href={SdkConfig.get().feedback.new_issue_url}
+                                    !watcha */
+                                    href={`mailto:${getSupportEmailAddress()}`} // watcha+
                                     target="_blank"
                                     rel="noreferrer noopener"
                                 >

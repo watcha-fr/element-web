@@ -18,6 +18,10 @@ import { MemberTileView } from "./common/MemberTileView";
 import { InvitedIconView } from "./common/InvitedIconView";
 import { type MemberWithSeparator } from "../../../../viewmodels/memberlist/MemberListViewModel";
 import { DisambiguatedProfileViewModel } from "../../../../../viewmodels/room/timeline/event-tile/DisambiguatedProfileViewModel";
+// watcha+
+import { getWatchaAvatarCrownClass } from "../../../../../utils/watcha_AvatarCrown";
+import classNames from "classnames";
+// +watcha
 
 interface IProps {
     /**
@@ -36,16 +40,24 @@ interface IProps {
 export function RoomMemberTileView(props: IProps): JSX.Element {
     const vm = useMemberTileViewModel(props);
     const member = vm.member;
+    /* watcha! couronne colorée autour de l'avatar selon le domaine du userId
+       (5 instances Watcha). La classe pose un `box-shadow: inset` sur le
+       `.mx_BaseAvatar` interne via sélecteur descendant — voir le commentaire
+       en tête de `_watcha-AvatarCrown.pcss`. */
+    const crownClass = getWatchaAvatarCrownClass(member.userId, "mx_RoomAvatarView_crown_");
     const av = (
-        <BaseAvatar
-            size="32px"
-            name={member.name}
-            idName={member.userId}
-            title={member.displayUserId}
-            url={member.avatarThumbnailUrl}
-            altText={_t("common|user_avatar")}
-        />
+        <span className={crownClass}>
+            <BaseAvatar
+                size="32px"
+                name={member.name}
+                idName={member.userId}
+                title={member.displayUserId}
+                url={member.avatarThumbnailUrl}
+                altText={_t("common|user_avatar")}
+            />
+        </span>
     );
+    /* !watcha */
     const name = vm.name;
     const disambiguatedProfileVM = useCreateAutoDisposedViewModel(
         () =>

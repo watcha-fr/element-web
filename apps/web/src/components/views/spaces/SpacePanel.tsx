@@ -33,7 +33,11 @@ import {
     PlusIcon,
     ChevronRightIcon,
 } from "@vector-im/compound-design-tokens/assets/web/icons";
-import { useCreateAutoDisposedViewModel, UserMenu } from "@element-hq/web-shared-components";
+import { useCreateAutoDisposedViewModel } from "@element-hq/web-shared-components";
+// watcha! le UserMenu shared est remplacé par notre fork local qui injecte
+// 5 items Watcha (Notifications, Administration, Documents, Visio, Email).
+import { WatchaUserMenu } from "../menus/watcha_UserMenu";
+// !watcha
 
 import { _t } from "../../../languageHandler";
 import { useContextMenu } from "../../structures/ContextMenu";
@@ -465,7 +469,7 @@ const SpacePanel: React.FC = () => {
                         ref={ref}
                         aria-label={_t("common|spaces")}
                     >
-                        <UserMenu vm={userMenuVm} className="mx_UserMenu" />
+                        <WatchaUserMenu vm={userMenuVm} className="mx_UserMenu" /> {/* watcha! fork local */}
                         <AccessibleButton
                             className={classNames("mx_SpacePanel_toggleCollapse", {
                                 expanded: !isPanelCollapsed,

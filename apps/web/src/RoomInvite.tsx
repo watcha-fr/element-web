@@ -7,18 +7,43 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React, { type ComponentProps } from "react";
-import { EventType, type MatrixEvent, type Room, type User } from "matrix-js-sdk/src/matrix";
+import { EventType, type MatrixClient, type MatrixEvent, type Room, type User } from "matrix-js-sdk/src/matrix"; // watcha! MatrixClient ajouté !watcha
 
-import type MultiInviter from "./utils/MultiInviter";
+import MultiInviter from "./utils/MultiInviter"; // watcha! default import non-type pour usage runtime !watcha
 import { type CompletionStates } from "./utils/MultiInviter";
 import Modal from "./Modal";
 import { _t } from "./languageHandler";
+/* watcha!
 import InviteDialog from "./components/views/dialogs/InviteDialog";
+!watcha */
+import InviteDialog from "./components/views/dialogs/watcha_InviteDialog"; // watcha+
 import BaseAvatar from "./components/views/avatars/BaseAvatar";
 import { mediaFromMxc } from "./customisations/Media";
 import ErrorDialog from "./components/views/dialogs/ErrorDialog";
 import { InviteKind } from "./components/views/dialogs/InviteDialogTypes";
 import { type Member } from "./utils/direct-messages";
+
+// watcha+
+export interface IInviteResult {
+    states: CompletionStates;
+    inviter: MultiInviter;
+}
+
+/**
+ * Invites multiple addresses to a room
+ * Simpler interface to utils/MultiInviter but with no option to cancel.
+ */
+export function inviteMultipleToRoom(
+    client: MatrixClient,
+    roomId: string,
+    addresses: string[],
+    _sendSharedHistoryKeys = false,
+    progressCallback?: () => void,
+): Promise<IInviteResult> {
+    const inviter = new MultiInviter(client, roomId, { progressCallback });
+    return inviter.invite(addresses).then((states) => Promise.resolve({ states, inviter }));
+}
+// +watcha
 
 export function showStartChatInviteDialog(initialText = ""): void {
     // This dialog handles the room creation internally - we don't need to worry about it.

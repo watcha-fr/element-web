@@ -15,7 +15,7 @@ import React, {
     type SyntheticEvent,
     type ChangeEventHandler,
 } from "react";
-import { type Room, RoomType, JoinRule, Preset, Visibility } from "matrix-js-sdk/src/matrix";
+import { type Room, RoomType, JoinRule, Preset, Visibility, HistoryVisibility /* watcha+ */ } from "matrix-js-sdk/src/matrix";
 import { Form, SettingsToggleInput } from "@vector-im/compound-web";
 
 import SdkConfig from "../../../SdkConfig";
@@ -147,6 +147,7 @@ export default class CreateRoomDialog extends React.Component<IProps, IState> {
             opts.guestAccess = false;
             const { alias } = this.state;
             createOpts.room_alias_name = alias.substring(1, alias.indexOf(":"));
+            opts.historyVisibility = HistoryVisibility.WorldReadable; // watcha+
         } else {
             const encryptedStateFeature = SettingsStore.getValue("feature_msc4362_encrypted_state_events", null, false);
 
@@ -391,6 +392,7 @@ export default class CreateRoomDialog extends React.Component<IProps, IState> {
                 />
             );
         }
+        if (!SettingsStore.getValue(UIFeature.watcha_E2EEUISetting)) e2eeSection = undefined; // watcha+
 
         let e2eeStateSection: JSX.Element | undefined;
         if (
@@ -480,7 +482,7 @@ export default class CreateRoomDialog extends React.Component<IProps, IState> {
                         {e2eeSection}
                         {e2eeStateSection}
                         {aliasField}
-                        {this.advancedSettingsEnabled && (
+                        {this.advancedSettingsEnabled && SettingsStore.getValue(UIFeature.watcha_Federation) /* watcha+ */ && (
                             <details onToggle={this.onDetailsToggled} className="mx_CreateRoomDialog_details">
                                 <summary className="mx_CreateRoomDialog_details_summary">
                                     {this.state.detailsOpen ? _t("action|hide_advanced") : _t("action|show_advanced")}

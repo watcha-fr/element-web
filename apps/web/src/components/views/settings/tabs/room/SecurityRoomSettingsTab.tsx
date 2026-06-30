@@ -43,6 +43,7 @@ import SdkConfig from "../../../../../SdkConfig";
 import { shouldForceDisableEncryption } from "../../../../../utils/crypto/shouldForceDisableEncryption";
 import { Caption } from "../../../typography/Caption";
 import { MEGOLM_ENCRYPTION_ALGORITHM } from "../../../../../utils/crypto";
+import RoomRetentionFieldset from "./watcha_RoomRetentionFieldset"; // watcha+
 
 interface IProps {
     room: Room;
@@ -111,6 +112,7 @@ export default class SecurityRoomSettingsTab extends React.Component<IProps, ISt
             EventType.RoomGuestAccess,
             EventType.RoomHistoryVisibility,
             EventType.RoomEncryption,
+            "m.room.retention" as EventType, // watcha+
         ];
         if (refreshWhenTypes.includes(e.getType() as EventType)) this.forceUpdate();
     };
@@ -579,6 +581,7 @@ export default class SecurityRoomSettingsTab extends React.Component<IProps, ISt
                         </SettingsFieldset>
                         {this.renderJoinRule()}
                         {historySection}
+                        <RoomRetentionFieldset room={this.props.room} /> {/* watcha+ */}
                     </SettingsSection>
                 </Form.Root>
             </SettingsTab>

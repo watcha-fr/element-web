@@ -144,7 +144,10 @@ export default async function createRoom(client: MatrixClient, opts: IOpts): Pro
                 createOpts.invite = [opts.dmUserId];
                 break;
             case "email": {
+                /* watcha!
                 const isUrl = client.getIdentityServerUrl(true);
+                !watcha */
+                const isUrl = "fake-is.watcha.fr"; // watcha+ until we have an IS
                 if (!isUrl) {
                     throw new UserFriendlyError("cannot_invite_without_identity_server");
                 }
@@ -430,6 +433,11 @@ export default async function createRoom(client: MatrixClient, opts: IOpts): Pro
                     // the error to the user for if/when the UI is available.
                     description = _t("create_room|unsupported_version");
                 }
+                // watcha+
+                if (err.errcode === "M_FORBIDDEN") {
+                    description = _t("space|user_lacks_permission");
+                }
+                // +watcha
                 Modal.createDialog(ErrorDialog, {
                     title: _t("create_room|error_title"),
                     description,

@@ -106,6 +106,7 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
             <SettingsSubsection heading={_t("common|credits")}>
                 <SettingsSubsectionText>
                     <ul>
+                        {/* watcha!
                         <li>
                             {_t(
                                 "credits|default_cover_photo",
@@ -135,6 +136,7 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
                                 },
                             )}
                         </li>
+                        !watcha */}
                         <li>
                             {_t(
                                 "credits|twemoji_colr",
@@ -205,7 +207,10 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
                 brand,
             },
             {
+                /* watcha!
                 a: (sub) => <ExternalLink href={SdkConfig.get("help_url")}>{sub}</ExternalLink>,
+                !watcha */
+                a: (sub) => <ExternalLink href="https://watcha.fr">{sub}</ExternalLink>, // watcha+
             },
         );
 

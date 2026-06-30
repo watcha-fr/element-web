@@ -20,6 +20,8 @@ import {
     NotificationsIcon,
     AdvancedSettingsIcon,
     TreeIcon,
+    CalendarIcon, // watcha+
+    FolderIcon, // watcha+
 } from "@vector-im/compound-design-tokens/assets/web/icons";
 
 import TabbedView, { Tab } from "../../structures/TabbedView";
@@ -43,6 +45,12 @@ import { PollHistoryTab } from "../settings/tabs/room/PollHistoryTab";
 import ErrorBoundary from "../elements/ErrorBoundary";
 import { PeopleRoomSettingsTab } from "../settings/tabs/room/PeopleRoomSettingsTab";
 import { SDKContext, type SdkContextClass } from "../../../contexts/SDKContext";
+// watcha+
+import { CALENDAR_EVENT_TYPE } from "../../../utils/watcha_nextcloudUtils";
+import { SettingLevel } from "../../../settings/SettingLevel";
+import NextcloudCalendarSettingsTab from "../settings/tabs/room/watcha_NextcloudCalendarSettingsTab";
+import NextcloudDocumentsSettingsTab from "../settings/tabs/room/watcha_NextcloudDocumentsSettingsTab";
+// +watcha
 
 export const enum RoomSettingsTab {
     General = "ROOM_GENERAL_TAB",
@@ -54,6 +62,8 @@ export const enum RoomSettingsTab {
     Bridges = "ROOM_BRIDGES_TAB",
     Advanced = "ROOM_ADVANCED_TAB",
     PollHistory = "ROOM_POLL_HISTORY_TAB",
+    Calendar = "ROOM_NEXTCLOUD_CALENDAR_TAB", // watcha+
+    Documents = "ROOM_NEXTCLOUD_DOCUMENTS_TAB", // watcha+
 }
 
 interface IProps {
@@ -167,6 +177,38 @@ class RoomSettingsDialog extends React.Component<IProps, IState> {
                 ),
             );
         }
+        // watcha+
+        const showNextcloudFeature =
+            SettingsStore.getValue(UIFeature.watcha_Nextcloud) && !MatrixClientPeg.get()?.isPartner();
+        if (showNextcloudFeature) {
+            const canShareFolder = SettingsStore.canSetValue("nextcloudShare", this.state.room.roomId, SettingLevel.ROOM);
+            if (canShareFolder) {
+                tabs.push(
+                    new Tab(
+                        RoomSettingsTab.Documents,
+                        _td("watcha|documents"),
+                        <FolderIcon />,
+                        <NextcloudDocumentsSettingsTab roomId={this.state.room.roomId} />,
+                    ),
+                );
+            }
+            const client = MatrixClientPeg.get();
+            const room = client?.getRoom(this.state.room.roomId);
+            if (client?.getUserId()) {
+                const canSetCalendar = room?.currentState.maySendStateEvent(CALENDAR_EVENT_TYPE, client.getUserId()!);
+                if (canSetCalendar) {
+                    tabs.push(
+                        new Tab(
+                            RoomSettingsTab.Calendar,
+                            _td("watcha|calendar_tasks"),
+                            <CalendarIcon />,
+                            <NextcloudCalendarSettingsTab roomId={this.state.room.roomId} />,
+                        ),
+                    );
+                }
+            }
+        }
+        // +watcha
         tabs.push(
             new Tab(
                 RoomSettingsTab.Security,

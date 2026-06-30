@@ -51,6 +51,7 @@ import { isLocalRoom } from "../../../utils/localRoom/isLocalRoom";
 import { type VoiceMessageRecording } from "../../../audio/VoiceMessageRecording";
 import { SendWysiwygComposer, sendMessage, getConversionFunctions } from "./wysiwyg_composer/";
 import { type MatrixClientProps, withMatrixClientHOC } from "../../../contexts/MatrixClientContext";
+// @ts-expect-error kept next to the disabled inline showLocationButton compute — watcha+
 import { UIFeature } from "../../../settings/UIFeature";
 import { formatTimeLeft } from "../../../DateUtils";
 import RoomReplacedSvg from "../../../../res/img/room_replaced.svg";
@@ -98,6 +99,7 @@ interface IState {
     isStickerPickerOpen: boolean;
     showStickersButton: boolean;
     showPollsButton: boolean;
+    showLocationButton: boolean; // watcha+
     isWysiwygLabEnabled: boolean;
     isRichTextEnabled: boolean;
     initialComposerContent: string;
@@ -149,6 +151,7 @@ export class MessageComposer extends React.Component<IProps, IState> {
             isStickerPickerOpen: false,
             showStickersButton: SettingsStore.getValue("MessageComposerInput.showStickersButton"),
             showPollsButton: SettingsStore.getValue("MessageComposerInput.showPollsButton"),
+            showLocationButton: false, // watcha+
             isWysiwygLabEnabled: isWysiwygLabEnabled,
             isRichTextEnabled: isRichTextEnabled,
             initialComposerContent: initialComposerContent,
@@ -361,19 +364,27 @@ export class MessageComposer extends React.Component<IProps, IState> {
     };
 
     private renderPlaceholderText = (): string => {
+        // watcha+ quand `UIFeature.watcha_E2EEUISetting` est désactivé, on utilise
+        // toujours les variantes "encrypted" du placeholder qui sont neutres
+        // ("Envoyer un message…") plutôt que les variantes par défaut
+        // ("Envoyer un message non chiffré…") qui mentionnent explicitement le
+        // chiffrement — incohérent quand le client a masqué toute la surface E2EE.
+        const treatAsEncrypted =
+            this.props.e2eStatus || !SettingsStore.getValue(UIFeature.watcha_E2EEUISetting);
+        // +watcha
         if (this.props.replyToEvent) {
             const replyingToThread = this.props.relation?.rel_type === THREAD_RELATION_TYPE.name;
-            if (replyingToThread && this.props.e2eStatus) {
+            if (replyingToThread && treatAsEncrypted) {
                 return _t("composer|placeholder_thread_encrypted");
             } else if (replyingToThread) {
                 return _t("composer|placeholder_thread");
-            } else if (this.props.e2eStatus) {
+            } else if (treatAsEncrypted) {
                 return _t("composer|placeholder_reply_encrypted");
             } else {
                 return _t("composer|placeholder_reply");
             }
         } else {
-            if (this.props.e2eStatus) {
+            if (treatAsEncrypted) {
                 return _t("composer|placeholder_encrypted");
             } else {
                 return _t("composer|placeholder");
@@ -528,7 +539,12 @@ export class MessageComposer extends React.Component<IProps, IState> {
 
     public render(): React.ReactNode {
         let leftIcon: false | JSX.Element = false;
-        if (!this.state.isWysiwygLabEnabled) {
+        // watcha+ masque l'icône E2EE (cadenas barré "salon non chiffré" et le
+        // warning E2EStatus) du composer quand `UIFeature.watcha_E2EEUISetting`
+        // est désactivé — cohérent avec le wrap fait sur RoomSummaryCardView.
+        const showE2EEUI = SettingsStore.getValue(UIFeature.watcha_E2EEUISetting);
+        // +watcha
+        if (showE2EEUI && !this.state.isWysiwygLabEnabled) {
             if (!this.props.e2eStatus) {
                 leftIcon = (
                     <div className="mx_MessageComposer_e2eIconWrapper">
@@ -695,9 +711,12 @@ export class MessageComposer extends React.Component<IProps, IState> {
                                     relation={this.props.relation}
                                     onRecordStartEndClick={this.onRecordStartEndClick}
                                     setStickerPickerOpen={this.setStickerPickerOpen}
+                                    /* watcha!
                                     showLocationButton={
                                         !window.electron && SettingsStore.getValue(UIFeature.LocationSharing)
                                     }
+                                    !watcha */
+                                    showLocationButton={this.state.showLocationButton} // watcha+
                                     showPollsButton={this.state.showPollsButton}
                                     showStickersButton={this.showStickersButton}
                                     isRichTextEnabled={this.state.isRichTextEnabled}

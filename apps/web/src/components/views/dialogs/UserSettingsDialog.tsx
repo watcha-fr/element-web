@@ -11,6 +11,7 @@ import { ClientEvent, type MatrixEvent } from "matrix-js-sdk/src/matrix";
 import { Toast } from "@vector-im/compound-web";
 import React, { type JSX, useState } from "react";
 import UserProfileIcon from "@vector-im/compound-design-tokens/assets/web/icons/user-profile";
+// @ts-expect-error kept next to the disabled SessionManagerTab push block below — watcha+
 import DevicesIcon from "@vector-im/compound-design-tokens/assets/web/icons/devices";
 import VisibilityOnIcon from "@vector-im/compound-design-tokens/assets/web/icons/visibility-on";
 import NotificationsIcon from "@vector-im/compound-design-tokens/assets/web/icons/notifications";
@@ -40,7 +41,11 @@ import { UIFeature } from "../../../settings/UIFeature";
 import BaseDialog from "./BaseDialog";
 import SidebarUserSettingsTab from "../settings/tabs/user/SidebarUserSettingsTab";
 import KeyboardUserSettingsTab from "../settings/tabs/user/KeyboardUserSettingsTab";
+// @ts-expect-error kept next to the disabled SessionManagerTab push block below — watcha+
 import SessionManagerTab from "../settings/tabs/user/SessionManagerTab";
+import { MatrixClientPeg } from "../../../MatrixClientPeg"; // watcha+
+import SSOProfileTab from "../settings/tabs/user/watcha_SSOProfileTab"; // watcha+
+import SdkConfig from "../../../SdkConfig"; // watcha+
 import { UserTab } from "./UserTab";
 import { type NonEmptyArray } from "../../../@types/common";
 import { SDKContext, type SdkContextClass } from "../../../contexts/SDKContext";
@@ -92,6 +97,8 @@ function titleForTabID(tabId: UserTab): React.ReactNode {
             return _t("settings|labs_mjolnir|dialog_title", undefined, subs);
         case UserTab.Help:
             return _t("setting|help_about|dialog_title", undefined, subs);
+        case UserTab.SSOProfile: // watcha+
+            return _t("watcha|sso_profile", undefined, subs);
     }
 }
 
@@ -99,7 +106,8 @@ export default function UserSettingsDialog(props: IProps): JSX.Element {
     const voipEnabled = useSettingValue(UIFeature.Voip);
     const mjolnirEnabled = useSettingValue("feature_mjolnir");
     // store these props in state as changing tabs back and forth should clear them
-    const [showMsc4108QrCode, setShowMsc4108QrCode] = useState(props.showMsc4108QrCode);
+    // watcha+ : read-site disabled (SessionManagerTab push wrapped), setter kept for re-enable
+    const [, setShowMsc4108QrCode] = useState(props.showMsc4108QrCode);
     const [initialEncryptionState, setInitialEncryptionState] = useState(props.initialEncryptionState);
 
     // If the user doesn't have Recovery set up (no default Secret Storage key),
@@ -134,6 +142,7 @@ export default function UserSettingsDialog(props: IProps): JSX.Element {
                 "UserSettingsGeneral",
             ),
         );
+        /* watcha!
         tabs.push(
             new Tab(
                 UserTab.SessionManager,
@@ -143,6 +152,23 @@ export default function UserSettingsDialog(props: IProps): JSX.Element {
                 undefined,
             ),
         );
+        !watcha */
+        // watcha+
+        if (
+            SettingsStore.getValue(UIFeature.watcha_SSOProfile) &&
+            SdkConfig.get().watcha_sso_profile_url &&
+            !MatrixClientPeg.get()!.isPartner()
+        ) {
+            tabs.push(
+                new Tab(
+                    UserTab.SSOProfile,
+                    _td("watcha|sso_profile"),
+                    <UserProfileIcon />,
+                    <SSOProfileTab />,
+                ),
+            );
+        }
+        // +watcha
         tabs.push(
             new Tab(
                 UserTab.Appearance,
@@ -222,7 +248,10 @@ export default function UserSettingsDialog(props: IProps): JSX.Element {
             ),
         );
 
-        if (showLabsFlags() || SettingsStore.getFeatureSettingNames().some((k) => SettingsStore.getBetaInfo(k))) {
+        if (
+            (showLabsFlags() || SettingsStore.getFeatureSettingNames().some((k) => SettingsStore.getBetaInfo(k))) &&
+            !SettingsStore.getValue(UIFeature.watcha_SitivFieldDisabled) /* watcha+ */
+        ) {
             tabs.push(
                 new Tab(UserTab.Labs, _td("common|labs"), <LabsIcon />, <LabsUserSettingsTab />, "UserSettingsLabs"),
             );
