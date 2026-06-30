@@ -56,15 +56,26 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
             });
     }
 
-    private getVersionInfo(): { appVersion: string; cryptoVersion: string } {
+    private getVersionInfo(): { appVersion: string; cryptoVersion: string | null } {
         const brand = SdkConfig.get().brand;
         const appVersion = this.state.appVersion || "unknown";
+        /* watcha!
         const cryptoVersion = this.context.getCrypto()?.getVersion() ?? "<not-enabled>";
 
         return {
             appVersion: `${_t("setting|help_about|brand_version", { brand })} ${appVersion}`,
             cryptoVersion: `${_t("setting|help_about|crypto_version")} ${cryptoVersion}`,
         };
+        !watcha */
+        // watcha+ masque la ligne "Version crypto" si le chiffrement est désactivé
+        const rawCryptoVersion = this.context.getCrypto()?.getVersion();
+        return {
+            appVersion: `${_t("setting|help_about|brand_version", { brand })} ${appVersion}`,
+            cryptoVersion: rawCryptoVersion
+                ? `${_t("setting|help_about|crypto_version")} ${rawCryptoVersion}`
+                : null,
+        };
+        // +watcha
     }
 
     private onClearCacheAndReload = (): void => {
@@ -195,7 +206,7 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
 
     private getVersionTextToCopy = (): string => {
         const { appVersion, cryptoVersion } = this.getVersionInfo();
-        return `${appVersion}\n${cryptoVersion}`;
+        return cryptoVersion ? `${appVersion}\n${cryptoVersion}` : appVersion; // watcha!
     };
 
     public render(): React.ReactNode {
@@ -261,8 +272,13 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
                             <CopyableText getTextToCopy={this.getVersionTextToCopy}>
                                 {appVersion}
                                 <br />
-                                {cryptoVersion}
-                                <br />
+                                {/* watcha! ligne crypto masquée si chiffrement désactivé */}
+                                {cryptoVersion ? (
+                                    <>
+                                        {cryptoVersion}
+                                        <br />
+                                    </>
+                                ) : null}
                             </CopyableText>
                             {updateButton}
                         </SettingsSubsectionText>
