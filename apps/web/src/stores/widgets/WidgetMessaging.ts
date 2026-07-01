@@ -54,7 +54,7 @@ import {
     watchaJitsiPresenceOnJoin,
     watchaJitsiPresenceOnHangup,
 } from "../../watcha_JitsiPinnedWidgetPresence";
-// watcha+ end
+// +watcha
 import { ModalWidgetStore } from "../ModalWidgetStore";
 import { isAppWidget } from "../WidgetStore";
 import ThemeWatcher, { ThemeWatcherEvent } from "../../settings/watchers/ThemeWatcher";
@@ -452,7 +452,7 @@ export class WidgetMessaging extends TypedEventEmitter<WidgetMessagingEvent, Wid
         }
 
         if (WidgetType.JITSI.matches(this.widget.type)) {
-            // watcha+ : suivi de présence pour la fermeture automatique du widget Jitsi épinglé.
+            // watcha+
             // À la connexion on inscrit notre présence dans l'état du salon ; au raccrochage on la retire
             // et, si plus personne n'est connecté, on retire le widget. Voir watcha_JitsiPinnedWidgetPresence.
             this.widgetApi.on(`action:${ElementWidgetActions.JoinCall}`, () => {
@@ -460,7 +460,7 @@ export class WidgetMessaging extends TypedEventEmitter<WidgetMessagingEvent, Wid
                     watchaJitsiPresenceOnJoin(this.client, this.roomId, this.widget.id);
                 }
             });
-            // watcha+ end
+            // +watcha
             this.widgetApi.on(`action:${ElementWidgetActions.HangupCall}`, (ev: CustomEvent<IHangupCallApiRequest>) => {
                 ev.preventDefault();
                 if (ev.detail.data?.errorMessage) {
@@ -472,11 +472,11 @@ export class WidgetMessaging extends TypedEventEmitter<WidgetMessagingEvent, Wid
                     });
                 }
                 this.widgetApi?.transport.reply(ev.detail, <IWidgetApiRequestEmptyData>{});
-                // watcha+ : retrait de notre présence + fermeture du widget si l'on était le dernier
+                // watcha+
                 if (this.roomId) {
                     watchaJitsiPresenceOnHangup(this.client, this.roomId, this.widget.id);
                 }
-                // watcha+ end
+                // +watcha
             });
         }
 

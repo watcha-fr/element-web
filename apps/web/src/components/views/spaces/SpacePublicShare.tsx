@@ -26,7 +26,7 @@ interface IProps {
     isPrivate?: boolean; // watcha+
 }
 
-const SpacePublicShare: React.FC<IProps> = ({ space, onFinished, isPrivate }) => { // watcha! ({ space, onFinished }) !watcha
+const SpacePublicShare: React.FC<IProps> = ({ space, onFinished, isPrivate }) => { // watcha!
     const [copiedText, setCopiedText] = useState(_t("action|click_to_copy"));
 
     return (

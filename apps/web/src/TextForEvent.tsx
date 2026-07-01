@@ -685,11 +685,11 @@ function textForPinnedEvent(event: MatrixEvent, client: MatrixClient, allowJSX: 
 }
 
 function textForWidgetEvent(event: MatrixEvent): (() => string) | null {
-    // watcha+ : les marqueurs de présence Jitsi réutilisent le type d'event widget (seul type
+    // watcha+
     // écrivable en PL0) mais ne sont pas de vrais widgets ; ne pas générer de notice
     // « widget ajouté/supprimé » dans le fil ni dans les aperçus.
     if (event.getStateKey()?.startsWith(WATCHA_JITSI_PRESENCE_STATE_KEY_PREFIX)) return null;
-    // watcha+ end
+    // +watcha
     const senderName = getSenderName(event);
     const { name: prevName, type: prevType, url: prevUrl } = event.getPrevContent();
     const { name, type, url } = event.getContent() || {};

@@ -38,9 +38,7 @@ export function EventTileAvatarAdapter({
         return null;
     }
 
-    /* watcha! couronne colorée autour de l'avatar timeline selon le domaine du
-       sender. Classe posée directement sur le wrapper `.mx_EventTile_avatar` ;
-       le CSS applique un `box-shadow: 0 0 0 2px <color>` autour du wrapper. */
+    /* watcha! */
     const crownClass = getWatchaAvatarCrownClass(mxEvent.getSender(), "mx_EventTile_avatar_crown_");
 
     return (

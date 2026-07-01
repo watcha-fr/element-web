@@ -33,7 +33,7 @@ import DMRoomMap from "./utils/DMRoomMap";
 import Modal from "./Modal";
 import ActiveWidgetStore from "./stores/ActiveWidgetStore";
 import PlatformPeg from "./PlatformPeg";
-import { sendLoginRequest, SSO_LANGUAGE_KEY } from "./Login"; // watcha+ : SSO_LANGUAGE_KEY
+import { sendLoginRequest, SSO_LANGUAGE_KEY } from "./Login"; // watcha+
 import * as StorageManager from "./utils/StorageManager";
 import * as StorageAccess from "./utils/StorageAccess";
 import SettingsStore from "./settings/SettingsStore";
@@ -393,7 +393,7 @@ export function attemptTokenLogin(
     })
         .then(async function (creds) {
             logger.log("Logged in with token");
-            // watcha+ : re-persist SSO language hint across the token swap
+            // watcha+
             const language = localStorage.getItem(SSO_LANGUAGE_KEY);
             if (language) localStorage.setItem(SSO_LANGUAGE_KEY, language);
             // +watcha
@@ -967,7 +967,7 @@ async function persistCredentials(credentials: IMatrixClientCreds): Promise<void
 
     ModuleRunner.instance.extensions.cryptoSetup?.persistCredentials(credentials);
 
-    // watcha+ : persister le flag is_partner dans localStorage pour le lire au boot
+    // watcha+
     localStorage.setItem("watcha_is_partner", JSON.stringify(credentials.partner));
     // +watcha
 
@@ -1141,7 +1141,7 @@ async function startMatrixClient(
  * storage. Used after a session has been logged out.
  */
 export async function onLoggedOut(): Promise<void> {
-    // watcha+ : capture partner state before client teardown for redirect choice
+    // watcha+
     const client = MatrixClientPeg.get();
     const isPartner = !!client?.isPartner();
     const externalAuthenticationForPartners = SettingsStore.getValue("feature_watcha_external_account");
@@ -1162,7 +1162,7 @@ export async function onLoggedOut(): Promise<void> {
         logger.log("Redirecting to external provider to finish logout");
         // XXX: Defer this so that it doesn't race with MatrixChat unmounting the world by going to /#/welcome
         window.setTimeout(() => {
-            // watcha+ : partners without external auth land on /partner instead
+            // watcha+
             if (isPartner && !externalAuthenticationForPartners) {
                 window.location.hash = "/partner";
                 return;

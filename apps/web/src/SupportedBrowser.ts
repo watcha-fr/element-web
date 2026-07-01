@@ -92,7 +92,7 @@ export const getBrowserSupport = memoizeOne(calculateBrowserSupport);
  * Shows a user warning toast if the user's browser is not supported.
  */
 export function checkBrowserSupport(): void {
-    return; // watcha+ neutralise le toast "navigateur non supporté" (browserslist figé au build → faux positifs récurrents)
+    return; // watcha+
     // eslint-disable-next-line no-unreachable
     const supported = getBrowserSupport();
     if (supported) return;

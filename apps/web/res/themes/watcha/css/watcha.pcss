@@ -1,9 +1,4 @@
-/* watcha+ structure layered mimétique de light.pcss v1.12.21
-   (déclaration des layers + imports en `layer(app-web)` + _compound.pcss).
-   Sans cette structure, les overrides Watcha tombent dans le layer anonyme
-   (priorité max), écrasent les styles upstream et cassent tout le layout.
-   _paths.pcss legacy supprimé en v1.12.21 — `$res` legacy remplacé par
-   `$(res)` postcss-simple-vars (résolu en absolu via webpack config). */
+/* watcha+ */
 @layer compound-tokens, compound-web, shared-components, app-web;
 
 @import "../../../../res/css/_font-sizes.pcss" layer(app-web);

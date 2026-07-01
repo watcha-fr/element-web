@@ -94,7 +94,7 @@ export enum AudioID {
     Ringback = "ringbackAudio",
     CallEnd = "callendAudio",
     Busy = "busyAudio",
-    JitsiStart = "jitsiStartAudio", // watcha+ : son joué au lancement d'un widget Jitsi
+    JitsiStart = "jitsiStartAudio", // watcha+
 }
 
 /* istanbul ignore next */
@@ -387,7 +387,7 @@ export default class LegacyCallHandler extends TypedEventEmitter<LegacyCallHandl
             [AudioID.Ringback]: [`./media/ringback`, true],
             [AudioID.CallEnd]: [`./media/callend`, false],
             [AudioID.Busy]: [`./media/busy`, false],
-            [AudioID.JitsiStart]: [`./media/ringback`, false], // watcha+ TODO: dédier un asset audio
+            [AudioID.JitsiStart]: [`./media/ringback`, false], // watcha+
         };
 
         const [urlPrefix, loop] = audioInfo[audioId];

@@ -28,10 +28,7 @@ import { Jitsi } from "../../widgets/Jitsi";
 // Matches maximum size of an avatar in the UserMenu
 const AVATAR_PX = 88;
 
-/* watcha! Étend le snapshot upstream avec les 5 booléens des items Watcha
-   (Notifications shortcut, Administration, Documents, Vidéoconférence, Email)
-   + état isSynapseAdministrator. Le rendu reste dans le View fork
-   `watcha_UserMenu.tsx` qui consomme ce type étendu. */
+/* watcha! */
 export interface WatchaUserMenuSnapshot extends UserMenuSnapshot {
     watchaActions: {
         openNotifications: boolean;
@@ -52,8 +49,8 @@ export interface WatchaUserMenuViewActions extends UserMenuViewActions {
 /* !watcha */
 
 export class UserMenuViewModel
-    extends BaseViewModel<WatchaUserMenuSnapshot, undefined> // watcha! snapshot étendu
-    implements WatchaUserMenuViewActions // watcha! actions étendues
+    extends BaseViewModel<WatchaUserMenuSnapshot, undefined> // watcha!
+    implements WatchaUserMenuViewActions // watcha!
 {
     /* watcha+ */
     private isSynapseAdministrator = false;
@@ -74,9 +71,7 @@ export class UserMenuViewModel
         const userId = client.getSafeUserId();
         const displayName = OwnProfileStore.instance.displayName || userId;
         const avatarUrl = OwnProfileStore.instance.getHttpAvatarUrl(AVATAR_PX) ?? undefined;
-        /* watcha! comptes partner = droits réduits → on masque les services
-           métier (Documents, Visio, Email). L'admin synapse a en plus le
-           raccourci Administration. Notifications est un raccourci universel. */
+        /* watcha! */
         const partnerExcluded = isAuthenticated && !isPartner;
         const watchaActions = {
             openNotifications: isAuthenticated,
@@ -111,7 +106,7 @@ export class UserMenuViewModel
 
     public constructor(
         private readonly dispatcher: MatrixDispatcher,
-        private readonly client: MatrixClient, // watcha! retenu pour les handlers
+        private readonly client: MatrixClient, // watcha!
         isPanelCollapsed: boolean,
         accountManagementEndpoint?: string,
     ) {
@@ -120,9 +115,7 @@ export class UserMenuViewModel
             UserMenuViewModel.computeSnapshot(client, isPanelCollapsed, accountManagementEndpoint, false, false),
         );
         OwnProfileStore.instance.on(UPDATE_EVENT, this.recalculateProfile);
-        /* watcha! charge isSynapseAdministrator + isPartner de façon asynchrone
-           puis remerge le snapshot. Tolère M_FORBIDDEN silencieusement (cas
-           normal pour un non-admin). */
+        /* watcha! */
         this.isPartner = client.isPartner();
         client
             .isSynapseAdministrator()
@@ -221,7 +214,7 @@ export class UserMenuViewModel
         });
     };
 
-    /* watcha+ Handlers des 5 items Watcha (Notifications + 4 raccourcis externes) */
+    /* watcha+ */
     public readonly openNotifications = (): void => {
         this.setOpen(false);
         this.dispatcher.dispatch({

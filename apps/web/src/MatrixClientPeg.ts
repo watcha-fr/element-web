@@ -31,12 +31,7 @@ import MatrixActionCreators from "./actions/MatrixActionCreators";
 import Modal from "./Modal";
 import MatrixClientBackedSettingsHandler from "./settings/handlers/MatrixClientBackedSettingsHandler";
 import * as StorageManager from "./utils/StorageManager";
-/* watcha! IdentityAuthClient import retiré — il créait un cycle d'imports direct
-   (MatrixClientPeg → IdentityAuthClient → MatrixClientPeg) provoquant une TDZ
-   ReferenceError au top-level de WidgetMessagingStore/WidgetLayoutStore/WidgetStore
-   (qui appellent `start()` dans leur static initializer et touchent MatrixClientPeg).
-   L'import était résiduel : l'usage `identityServer: new IdentityAuthClient()` a été
-   supprimé en même temps. !watcha */
+/* watcha! !watcha */
 import { crossSigningCallbacks } from "./SecurityManager";
 import { SlidingSyncManager } from "./SlidingSyncManager";
 import { _t, UserFriendlyError } from "./languageHandler";
@@ -443,7 +438,7 @@ class MatrixClientPegClass implements IMatrixClientPeg {
                 VerificationMethod.ShowQrCode,
                 VerificationMethod.Reciprocate,
             ],
-            /* watcha! until we have an IS
+            /* watcha!
             identityServer: new IdentityAuthClient(),
             !watcha */
             // These are always installed regardless of the labs flag so that cross-signing features

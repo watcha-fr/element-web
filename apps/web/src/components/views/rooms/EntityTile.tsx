@@ -6,14 +6,6 @@ Please see LICENSE files in the repository root for full details.
 */
 
 // watcha+
-// STUB Watcha : EntityTile a été retiré d'element-web v1.12.21+. Ce module
-// reconstitue le rendu minimal nécessaire à `watcha_InviteDialog.tsx` :
-//   - mise en page avatar | nom (+ sous-texte optionnel)
-//   - troncature ellipsis sur noms/MXID longs
-//   - couronne colorée par instance Watcha (cf. _watcha-AvatarCrown.pcss)
-//   - couleur du displayName par instance (cf. mx_Username_color_<domain>)
-// TODO refactor : remplacer EntityTile par MemberAvatar + nom inline.
-
 import React, { type ReactNode } from "react";
 import classNames from "classnames";
 

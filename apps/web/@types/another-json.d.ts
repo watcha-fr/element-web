@@ -1,4 +1,4 @@
-// watcha+ ambient declaration for matrix-js-sdk's `another-json` dependency, which ships no types
+// watcha+
 declare module "another-json" {
     function stringify(value: unknown): string;
     function parse(text: string): unknown;

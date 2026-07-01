@@ -147,7 +147,7 @@ export default async function createRoom(client: MatrixClient, opts: IOpts): Pro
                 /* watcha!
                 const isUrl = client.getIdentityServerUrl(true);
                 !watcha */
-                const isUrl = "fake-is.watcha.fr"; // watcha+ until we have an IS
+                const isUrl = "fake-is.watcha.fr"; // watcha+
                 if (!isUrl) {
                     throw new UserFriendlyError("cannot_invite_without_identity_server");
                 }

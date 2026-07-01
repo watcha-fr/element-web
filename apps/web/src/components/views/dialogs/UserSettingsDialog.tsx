@@ -106,7 +106,7 @@ export default function UserSettingsDialog(props: IProps): JSX.Element {
     const voipEnabled = useSettingValue(UIFeature.Voip);
     const mjolnirEnabled = useSettingValue("feature_mjolnir");
     // store these props in state as changing tabs back and forth should clear them
-    // watcha+ : read-site disabled (SessionManagerTab push wrapped), setter kept for re-enable
+    // watcha+
     const [, setShowMsc4108QrCode] = useState(props.showMsc4108QrCode);
     const [initialEncryptionState, setInitialEncryptionState] = useState(props.initialEncryptionState);
 

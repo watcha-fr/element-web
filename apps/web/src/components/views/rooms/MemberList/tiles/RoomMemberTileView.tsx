@@ -39,10 +39,7 @@ interface IProps {
 export function RoomMemberTileView(props: IProps): JSX.Element {
     const vm = useMemberTileViewModel(props);
     const member = vm.member;
-    /* watcha! couronne colorée autour de l'avatar selon le domaine du userId
-       (5 instances Watcha). La classe pose un `box-shadow: inset` sur le
-       `.mx_BaseAvatar` interne via sélecteur descendant — voir le commentaire
-       en tête de `_watcha-AvatarCrown.pcss`. */
+    /* watcha! */
     const crownClass = getWatchaAvatarCrownClass(member.userId, "mx_RoomAvatarView_crown_");
     const av = (
         <span className={crownClass}>

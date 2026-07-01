@@ -63,7 +63,7 @@ const cssThemes = {
     "theme-dark": "./res/themes/dark/css/dark.pcss",
     "theme-light-custom": "./res/themes/light-custom/css/light-custom.pcss",
     "theme-dark-custom": "./res/themes/dark-custom/css/dark-custom.pcss",
-    // watcha+ register the Watcha theme bundle (matches BUILTIN_THEMES entry "watcha" in theme.ts)
+    // watcha+
     "theme-watcha": "./res/themes/watcha/css/watcha.pcss",
     // +watcha
 };
@@ -259,7 +259,7 @@ export default (env: string, argv: Record<string, any>): webpack.Configuration =
 
                 // Define a variable so the i18n stuff can load
                 "$webapp": path.resolve(__dirname, "webapp"),
-                // watcha+ alias for resolving ~res/... and $(res)/... in pcss
+                // watcha+
                 "res": path.resolve(__dirname, "res"),
                 // +watcha
 
@@ -378,7 +378,7 @@ export default (env: string, argv: Record<string, any>): webpack.Configuration =
                                         // at the top of this webpack config help group the SCSS and
                                         // plain CSS together for the bundler.
 
-                                        postcssSimpleVars({ variables: { res: path.resolve(__dirname, "res") } }), // watcha+ expose `$(res)` to pcss (absolute path resolved by file-loader)
+                                        postcssSimpleVars({ variables: { res: path.resolve(__dirname, "res") } }), // watcha+
                                         postcssHexrgba(),
 
                                         // It's important that this plugin is last otherwise we end
@@ -414,7 +414,7 @@ export default (env: string, argv: Record<string, any>): webpack.Configuration =
                                         // Note that we use slightly different plugins for PostCSS.
                                         postcssImport(),
                                         postcssMixins(),
-                                        postcssSimpleVars({ variables: { res: path.resolve(__dirname, "res") } }), // watcha+ expose `$(res)` to pcss (absolute path resolved by file-loader)
+                                        postcssSimpleVars({ variables: { res: path.resolve(__dirname, "res") } }), // watcha+
                                         postcssNested(),
                                         postcssEasings(),
                                         postcssHexrgba(),

@@ -39,9 +39,7 @@ interface RoomAvatarViewProps {
  */
 export const RoomAvatarView = memo(function RoomAvatarView({ room }: RoomAvatarViewProps): JSX.Element {
     const vm = useRoomAvatarViewModel(room);
-    /* watcha! Quand la room est un DM, on dérive une couronne colorée à partir
-       du domaine du userId de l'interlocuteur (5 instances Watcha + 3 alias
-       test→prod). Pour les rooms non-DM, dmUserId est null → pas de couronne. */
+    /* watcha! */
     const dmUserId = DMRoomMap.shared().getUserIdForRoomId(room.roomId);
     const crownClass = getWatchaAvatarCrownClass(dmUserId, "mx_RoomAvatarView_crown_");
     /* !watcha */
@@ -49,8 +47,7 @@ export const RoomAvatarView = memo(function RoomAvatarView({ room }: RoomAvatarV
     // No decoration, we just show the avatar
     if (!vm.badgeDecoration)
         return (
-            /* watcha! classe couronne posée sur le Flex parent ; le CSS applique
-               un `box-shadow: 0 0 0 2px <color>` autour du wrapper 32x32. */
+            /* watcha! */
             <Flex className={classNames("mx_RoomAvatarView", crownClass)}>
                 <RoomAvatar size="32px" room={room} />
             </Flex>
@@ -68,7 +65,7 @@ export const RoomAvatarView = memo(function RoomAvatarView({ room }: RoomAvatarV
             : "mx_RoomAvatarView_RoomAvatar_icon";
 
     return (
-        /* watcha! classe couronne posée sur le Flex parent (cf. no-decoration path) */
+        /* watcha! */
         <Flex className={classNames("mx_RoomAvatarView", crownClass)}>
             {/* !watcha */}
             <RoomAvatar className={classNames("mx_RoomAvatarView_RoomAvatar", maskClass)} size="32px" room={room} />

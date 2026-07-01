@@ -360,7 +360,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             this.props.onTokenLoginCompleted(this.props.urlParams, this.getFragmentAfterLogin());
         }
 
-        // watcha+ : on SSO completion, restore + clear the language hint stashed during login
+        // watcha+
         const language = localStorage.getItem(SSO_LANGUAGE_KEY);
         if (language) {
             localStorage.removeItem(SSO_LANGUAGE_KEY);
@@ -1569,7 +1569,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
      * Called when the session is logged out
      */
     private onLoggedOut(): void {
-        // watcha+ : honour sso_redirect_options so we stay on a loading screen instead of bouncing back to welcome
+        // watcha+
         const ssoRedirects = SdkConfig.get().sso_redirect_options || {};
         const immediate = ssoRedirects.immediate === true;
         const onWelcomePage = ssoRedirects.on_welcome_page === true;
@@ -2024,7 +2024,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                 userId: userId,
                 subAction: params?.action,
             });
-        // watcha+ : partner-only landing screen redirects straight to login
+        // watcha+
         } else if (screen === "partner") {
             dis.dispatch({
                 action: "start_login",

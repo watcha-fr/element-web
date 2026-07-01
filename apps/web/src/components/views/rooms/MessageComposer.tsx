@@ -363,7 +363,7 @@ export class MessageComposer extends React.Component<IProps, IState> {
     };
 
     private renderPlaceholderText = (): string => {
-        // watcha+ quand `UIFeature.watcha_E2EEUISetting` est désactivé, on utilise
+        // watcha+
         // toujours les variantes "encrypted" du placeholder qui sont neutres
         // ("Envoyer un message…") plutôt que les variantes par défaut
         // ("Envoyer un message non chiffré…") qui mentionnent explicitement le
@@ -538,7 +538,7 @@ export class MessageComposer extends React.Component<IProps, IState> {
 
     public render(): React.ReactNode {
         let leftIcon: false | JSX.Element = false;
-        // watcha+ masque l'icône E2EE (cadenas barré "salon non chiffré" et le
+        // watcha+
         // warning E2EStatus) du composer quand `UIFeature.watcha_E2EEUISetting`
         // est désactivé — cohérent avec le wrap fait sur RoomSummaryCardView.
         const showE2EEUI = SettingsStore.getValue(UIFeature.watcha_E2EEUISetting);

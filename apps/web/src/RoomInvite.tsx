@@ -7,9 +7,9 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React, { type ComponentProps } from "react";
-import { EventType, type MatrixClient, type MatrixEvent, type Room, type User } from "matrix-js-sdk/src/matrix"; // watcha! MatrixClient ajouté !watcha
+import { EventType, type MatrixClient, type MatrixEvent, type Room, type User } from "matrix-js-sdk/src/matrix"; // watcha!
 
-import MultiInviter from "./utils/MultiInviter"; // watcha! default import non-type pour usage runtime !watcha
+import MultiInviter from "./utils/MultiInviter"; // watcha!
 import { type CompletionStates } from "./utils/MultiInviter";
 import Modal from "./Modal";
 import { _t } from "./languageHandler";

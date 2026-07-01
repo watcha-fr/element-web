@@ -97,7 +97,7 @@ async function writeMyDevices(
 
     const newDevices = fn(devices);
     const newContent: PresenceContent = { widgetId, devices: newDevices, expires_ts: now() + PRESENCE_EXPIRY_MS };
-    // watcha+ : cast nécessaire car js-sdk v41 type strictement `im.vector.modular.widgets` comme IWidget|EmptyObject,
+    // watcha+
     // mais on stocke ici délibérément un payload présence (sans type/url) — filtré par WidgetUtils.getRoomWidgets.
     await client.sendStateEvent(roomId, WIDGET_STATE_EVENT_TYPE, newContent as unknown as Record<string, never>, stateKey);
     return newDevices;

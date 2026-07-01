@@ -171,7 +171,7 @@ export default class MessageContextMenu extends React.Component<IProps, IState> 
         // +watcha
     }
 
-    // watcha+ : react to runtime toggles of show* buttons
+    // watcha+
     private onAction = (payload: ActionPayload): void => {
         if (payload.action === Action.SettingUpdated) {
             const settingUpdatedPayload = payload as SettingUpdatedPayload;

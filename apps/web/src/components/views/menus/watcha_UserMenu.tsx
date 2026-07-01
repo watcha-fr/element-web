@@ -126,7 +126,7 @@ export function WatchaUserMenu({ vm, className }: WatchaUserMenuProps): JSX.Elem
                             onSelect={vm.linkNewDevice}
                         />
                     )}
-                    {/* watcha+ raccourci Notifications inséré entre linkNewDevice et openSecurity */}
+                    {/* watcha+ */}
                     {watchaActions.openNotifications && (
                         <MenuItem
                             Icon={NotificationsIcon}
@@ -153,7 +153,7 @@ export function WatchaUserMenu({ vm, className }: WatchaUserMenuProps): JSX.Elem
                         />
                     )}
                 </section>
-                {/* watcha+ Section Administration (admins synapse uniquement) */}
+                {/* watcha+ */}
                 {watchaActions.openAdministration && (
                     <>
                         <Separator />

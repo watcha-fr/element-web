@@ -67,7 +67,7 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
             cryptoVersion: `${_t("setting|help_about|crypto_version")} ${cryptoVersion}`,
         };
         !watcha */
-        // watcha+ masque la ligne "Version crypto" si le chiffrement est désactivé
+        // watcha+
         const rawCryptoVersion = this.context.getCrypto()?.getVersion();
         return {
             appVersion: `${_t("setting|help_about|brand_version", { brand })} ${appVersion}`,
@@ -272,7 +272,7 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
                             <CopyableText getTextToCopy={this.getVersionTextToCopy}>
                                 {appVersion}
                                 <br />
-                                {/* watcha! ligne crypto masquée si chiffrement désactivé */}
+                                {/* watcha! */}
                                 {cryptoVersion ? (
                                     <>
                                         {cryptoVersion}

@@ -265,7 +265,7 @@ export async function sendLoginRequest(
 
     const data = await client.login(loginType, loginParams);
 
-    /* watcha+ : SSO locale hand-off (currently disabled, preserved for future activation)
+    /* watcha+
     const locale = data.locale;
     if (locale && locale !== getCurrentLanguage()) {
         localStorage.setItem(SSO_LANGUAGE_KEY, locale);
@@ -295,7 +295,7 @@ export async function sendLoginRequest(
 
     ModuleRunner.instance.extensions.cryptoSetup.examineLoginResponse(data, creds);
 
-    // watcha+ : persister is_partner du Synapse login response sur creds
+    // watcha+
     const isPartner = (data as { is_partner?: boolean }).is_partner;
     if (isPartner) {
         creds.partner = isPartner;

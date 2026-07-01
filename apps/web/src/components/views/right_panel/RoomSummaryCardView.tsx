@@ -222,10 +222,7 @@ const RoomSummaryCardView: React.FC<IProps> = ({
                     </Badge>
                 )}
 
-                {/* watcha+ wrap E2EE badges + HistoryVisibilityBadge derrière le toggle
-                    `UIFeature.watcha_E2EEUISetting` — quand le client a désactivé la
-                    surface E2EE, on masque les pastilles « Non chiffré / Chiffré / Non vérifié »
-                    et le bandeau d'historique (qui ne fait sens que dans le contexte E2EE). */}
+                {/* watcha+ */}
                 {showE2EEUI && (
                     <>
                         {vm.isRoomEncrypted && vm.e2eStatus !== E2EStatus.Warning && (

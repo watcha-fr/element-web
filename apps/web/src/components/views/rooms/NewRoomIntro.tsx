@@ -301,11 +301,7 @@ const NewRoomIntro: React.FC = () => {
 
     return (
         <li className="mx_NewRoomIntro">
-            {/* watcha! n'affiche le bandeau "salon non chiffré" que si l'UI E2EE
-                est activée — cohérent avec le wrap E2EE multi-sites (piège 13).
-                Sans ce gating, le bandeau reste visible côté admin1 (ou en HMR
-                dev mode où le well-known `io.element.e2ee.default=false` peut ne
-                pas être chargé) et contredit la stratégie « pas d'UI E2EE ». */}
+            {/* watcha! */}
             {!hasExpectedEncryptionSettings(cli, room) && SettingsStore.getValue(UIFeature.watcha_E2EEUISetting) && (
                 <EventTileBubble
                     icon={<ErrorSolidIcon color="var(--cpd-color-icon-critical-primary)" />}

@@ -22,7 +22,7 @@ import { HistoryVisibility, JoinRule, type Room } from "matrix-js-sdk/src/matrix
 import { type ViewRoomOpts } from "@matrix-org/react-sdk-module-api/lib/lifecycles/RoomViewLifecycle";
 import { Flex, Box } from "@element-hq/web-shared-components";
 import { CallType } from "matrix-js-sdk/src/webrtc/call";
-// watcha+ DocumentIcon Compound remplace l'ancien SVG watcha_documents.svg pour
+// watcha+
 // que l'icône d'accès aux documents Nextcloud s'aligne stylistiquement avec
 // les autres icônes du header (caméra, téléphone, threads, info…).
 import { HistoryIcon, UserProfileSolidIcon, DocumentIcon } from "@vector-im/compound-design-tokens/assets/web/icons";
