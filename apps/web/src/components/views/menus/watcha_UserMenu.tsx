@@ -203,7 +203,7 @@ export function WatchaUserMenu({ vm, className }: WatchaUserMenuProps): JSX.Elem
                             <MenuItem
                                 kind="critical"
                                 Icon={LeaveIcon}
-                                label={_t("action|sign_out")}
+                                label={_t("action|logout")}
                                 onSelect={vm.signOut}
                             />
                         </section>

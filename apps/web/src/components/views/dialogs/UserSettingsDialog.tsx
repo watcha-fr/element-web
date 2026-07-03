@@ -105,6 +105,7 @@ function titleForTabID(tabId: UserTab): React.ReactNode {
 export default function UserSettingsDialog(props: IProps): JSX.Element {
     const voipEnabled = useSettingValue(UIFeature.Voip);
     const mjolnirEnabled = useSettingValue("feature_mjolnir");
+    const showE2EEUI = useSettingValue(UIFeature.watcha_E2EEUISetting); // watcha+
     // store these props in state as changing tabs back and forth should clear them
     // watcha+
     const [, setShowMsc4108QrCode] = useState(props.showMsc4108QrCode);
@@ -237,16 +238,18 @@ export default function UserSettingsDialog(props: IProps): JSX.Element {
             ),
         );
 
-        tabs.push(
-            new Tab(
-                UserTab.Encryption,
-                _td("settings|encryption|title"),
-                <KeyIcon />,
-                <EncryptionUserSettingsTab initialState={initialEncryptionState} />,
-                "UserSettingsEncryption",
-                showSetupRecoveryIndicator ? "mx_SettingsDialog_tabLabelsAlert" : undefined,
-            ),
-        );
+        if (showE2EEUI /* watcha+ */) {
+            tabs.push(
+                new Tab(
+                    UserTab.Encryption,
+                    _td("settings|encryption|title"),
+                    <KeyIcon />,
+                    <EncryptionUserSettingsTab initialState={initialEncryptionState} />,
+                    "UserSettingsEncryption",
+                    showSetupRecoveryIndicator ? "mx_SettingsDialog_tabLabelsAlert" : undefined,
+                ),
+            );
+        }
 
         if (
             (showLabsFlags() || SettingsStore.getFeatureSettingNames().some((k) => SettingsStore.getBetaInfo(k))) &&
