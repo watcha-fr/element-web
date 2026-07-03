@@ -122,6 +122,7 @@ export const RoomGeneralContextMenu: React.FC<RoomGeneralContextMenuProps> = ({
     ...props
 }) => {
     const cli = useContext(MatrixClientContext);
+    const showShareRoomButton = useSettingValue("showShareRoomButton"); // watcha+
     const roomTags = useEventEmitterState(RoomListStore.instance, LISTS_UPDATE_EVENT, () => getTagsForRoom(room));
     const isDm = DMRoomMap.shared().getUserIdForRoomId(room.roomId);
     const wrapHandler = (
@@ -195,7 +196,7 @@ export const RoomGeneralContextMenu: React.FC<RoomGeneralContextMenuProps> = ({
     }
 
     let copyLinkOption: JSX.Element | null = null;
-    if (!isDm) {
+    if (!isDm && showShareRoomButton /* watcha+ */) {
         copyLinkOption = (
             <IconizedContextMenuOption
                 onClick={wrapHandler(

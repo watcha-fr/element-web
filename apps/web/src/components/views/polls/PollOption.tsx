@@ -14,6 +14,7 @@ import { CheckIcon } from "@vector-im/compound-design-tokens/assets/web/icons";
 import { _t } from "../../../languageHandler";
 import { Icon as TrophyIcon } from "../../../../res/img/element-icons/trophy.svg";
 import StyledRadioButton from "../elements/StyledRadioButton";
+import StyledCheckbox from "../elements/StyledCheckbox"; // watcha+
 
 type PollOptionContentProps = {
     answer: PollAnswerSubevent;
@@ -40,6 +41,9 @@ interface PollOptionProps extends PollOptionContentProps {
     optionNumber: number;
     isEnded?: boolean;
     isChecked?: boolean;
+    // watcha+ when true, options are rendered as checkboxes so voters can pick multiple answers
+    isMultiSelect?: boolean;
+    // +watcha
     onOptionSelected?: (id: string) => void;
     children?: ReactNode;
 }
@@ -48,6 +52,7 @@ const ActivePollOption: React.FC<Omit<PollOptionProps, "totalVoteCount"> & { chi
     pollId,
     isChecked,
     isEnded,
+    isMultiSelect, // watcha+
     optionNumber,
     isWinner,
     voteCount,
@@ -77,6 +82,23 @@ const ActivePollOption: React.FC<Omit<PollOptionProps, "totalVoteCount"> & { chi
         });
     }
 
+    // watcha+
+    if (isMultiSelect) {
+        return (
+            <StyledCheckbox
+                className="mx_PollOption_live-option"
+                name={`poll_answer_select-${pollId}`}
+                value={answer.id}
+                checked={isChecked}
+                disabled={isEnded}
+                aria-label={ariaLabel}
+                onChange={() => onOptionSelected?.(answer.id)}
+            >
+                <div aria-hidden="true">{children}</div>
+            </StyledCheckbox>
+        );
+    }
+    // +watcha
     return (
         <StyledRadioButton
             className="mx_PollOption_live-option"
@@ -102,6 +124,7 @@ export const PollOption: React.FC<PollOptionProps> = ({
     displayVoteCount,
     isEnded,
     isChecked,
+    isMultiSelect, // watcha+
     onOptionSelected,
 }) => {
     const cls = classNames({
@@ -119,6 +142,7 @@ export const PollOption: React.FC<PollOptionProps> = ({
                 optionNumber={optionNumber}
                 isChecked={isChecked}
                 isEnded={isEnded}
+                isMultiSelect={isMultiSelect} // watcha+
                 isWinner={isWinner}
                 voteCount={voteCount}
                 displayVoteCount={displayVoteCount}

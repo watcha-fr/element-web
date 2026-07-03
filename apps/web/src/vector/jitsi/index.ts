@@ -268,6 +268,14 @@ const setupCompleted = (async (): Promise<string | void> => {
         }
 
         enableJoinButton(); // always enable the button
+
+        // watcha+
+        // HACK: failed to get "languageHandler" to work from Jitsi iframe (no config loaded here)
+        const mxLocalSettings = JSON.parse(localStorage.getItem("mx_local_settings") ?? "null");
+        if (mxLocalSettings?.language === "fr") {
+            document.getElementById("joinButton")!.innerText = "Rejoindre la conférence";
+        }
+        // +watcha
     } catch (e) {
         logger.error("Error setting up Jitsi widget", e);
         document.getElementById("widgetActionContainer")!.innerText = "Failed to load Jitsi widget";
@@ -439,6 +447,7 @@ async function joinConference(audioInput?: string | null, videoInput?: string | 
             // back over the iframe API, and therefore end up crashing
             // https://github.com/jitsi/jitsi-meet/issues/11585
             apiLogLevels: ["warn", "error"],
+            prejoinConfig: { enabled: false }, // watcha+
         } as any,
         jwt: jwt,
         lang: mapLanguage(normalizeLanguage(language)),
@@ -494,6 +503,7 @@ const onVideoConferenceJoined = (): void => {
     if (displayName) meetApi?.executeCommand("displayName", displayName);
     // This doesn't have a userInfo equivalent, so has to be set via commands
     if (avatarUrl) meetApi?.executeCommand("avatarUrl", avatarUrl);
+    if (!avatarUrl) meetApi?.executeCommand("avatarUrl", ""); // watcha+ unset avatar
 
     if (widgetApi) {
         // ignored promise because we don't care if it works

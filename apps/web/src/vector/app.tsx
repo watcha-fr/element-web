@@ -126,6 +126,12 @@ export async function loadApp(urlParams: URLParams, matrixChatRef: React.Ref<Mat
     if (!autoRedirect && ssoRedirects.on_login_page && isLoginPage) {
         autoRedirect = true;
     }
+    // watcha+
+    // pattern may be followed by "startingFragmentQueryParams" (ex: defaultUsername)
+    if (window.location.hash.match("^#/partner(?=\\?|$)")) {
+        autoRedirect = false;
+    }
+    // +watcha
 
     // getInitialScreenAfterLogin has a side effect to write to sessionStorage, perform it before auto-redirect
     const initialScreenAfterLogin = getInitialScreenAfterLogin(window.location);

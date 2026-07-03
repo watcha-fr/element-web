@@ -27,6 +27,7 @@ import { _t } from "../../../languageHandler";
 import { arrayFastClone, arraySeed } from "../../../utils/arrays";
 import Field from "./Field";
 import AccessibleButton from "./AccessibleButton";
+import StyledCheckbox from "./StyledCheckbox"; // watcha+
 import Spinner from "./Spinner";
 import { doMaybeLocalRoomAction } from "../../../utils/local-room";
 
@@ -46,6 +47,9 @@ interface IState extends IScrollableBaseState {
     options: string[];
     busy: boolean;
     kind: KnownPollKind;
+    // watcha+
+    maxSelections: number;
+    // +watcha
     autoFocusTarget: FocusTarget;
 }
 
@@ -64,6 +68,7 @@ function creatingInitialState(): IState {
         options: arraySeed("", DEFAULT_NUM_OPTIONS),
         busy: false,
         kind: M_POLL_KIND_DISCLOSED,
+        maxSelections: 1, // watcha+
         autoFocusTarget: FocusTarget.Topic,
     };
 }
@@ -80,6 +85,7 @@ function editingInitialState(editingMxEvent: MatrixEvent): IState {
         options: poll.answers.map((ans) => ans.text),
         busy: false,
         kind: poll.kind,
+        maxSelections: poll.maxSelections, // watcha+
         autoFocusTarget: FocusTarget.Topic,
     };
 }
@@ -129,10 +135,15 @@ export default class PollCreateDialog extends ScrollableBaseModal<IProps, IState
     };
 
     private createEvent(): IPartialEvent<object> {
+        // watcha+
+        const options = this.state.options.map((a) => a.trim()).filter((a) => !!a);
+        const maxSelections = Math.max(1, Math.min(this.state.maxSelections, options.length));
+        // +watcha
         const pollStart = PollStartEvent.from(
             this.state.question.trim(),
-            this.state.options.map((a) => a.trim()).filter((a) => !!a),
+            options, // watcha!
             this.state.kind.name,
+            maxSelections, // watcha+
         ).serialize();
 
         if (!this.props.editingMxEvent) {
@@ -201,6 +212,16 @@ export default class PollCreateDialog extends ScrollableBaseModal<IProps, IState
                     </option>
                 </Field>
                 <p>{pollTypeNotes(this.state.kind)}</p>
+                {/* watcha+ */}
+                <StyledCheckbox
+                    className="mx_PollCreateDialog_allowMultiple"
+                    checked={this.state.maxSelections > 1}
+                    onChange={this.onAllowMultipleChange}
+                    disabled={this.state.busy}
+                >
+                    {_t("poll|create_poll_allow_multiple")}
+                </StyledCheckbox>
+                {/* +watcha */}
                 <h2>{_t("poll|topic_heading")}</h2>
                 <Field
                     id="poll-topic-input"
@@ -262,6 +283,12 @@ export default class PollCreateDialog extends ScrollableBaseModal<IProps, IState
             kind: M_POLL_KIND_DISCLOSED.matches(e.target.value) ? M_POLL_KIND_DISCLOSED : M_POLL_KIND_UNDISCLOSED,
         });
     };
+
+    // watcha+
+    public onAllowMultipleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ maxSelections: e.target.checked ? MAX_OPTIONS : 1 });
+    };
+    // +watcha
 }
 
 function pollTypeNotes(kind: KnownPollKind): string {

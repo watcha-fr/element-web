@@ -1761,6 +1761,7 @@
     },
     "poll": {
         "create_poll_action": "Créer un sondage",
+        "create_poll_allow_multiple": "Autoriser la sélection de plusieurs réponses",
         "create_poll_title": "Créer un sondage",
         "disclosed_notes": "Les participants voient les résultats dès qu'ils ont voté",
         "edit_poll_title": "Modifier le sondage",
@@ -3793,6 +3794,7 @@
         "title": "Autoriser les utilisateurs invités à rejoindre ce salon"
     },
     "upload_failed_generic": "Le fichier « %(fileName)s » n’a pas pu être envoyé.",
+    "upload_failed_forbidden": "Vous n’avez pas la permission d’envoyer un fichier %(fileName)s.",
     "upload_failed_size": "Le fichier « %(fileName)s » dépasse la taille limite autorisée par ce serveur pour les envois",
     "upload_failed_title": "Échec de l’envoi",
     "upload_file": {

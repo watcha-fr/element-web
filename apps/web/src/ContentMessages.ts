@@ -666,11 +666,17 @@ export default class ContentMessages {
 
             if (!upload.cancelled) {
                 let desc = _t("upload_failed_generic", { fileName: upload.fileName });
-                if (unwrappedError instanceof HTTPError && unwrappedError.httpStatus === 413) {
-                    desc = _t("upload_failed_size", {
-                        fileName: upload.fileName,
-                    });
+                // watcha!
+                if (unwrappedError instanceof HTTPError) {
+                    if (unwrappedError.httpStatus === 413) {
+                        desc = _t("upload_failed_size", { fileName: upload.fileName });
+                    } else if (unwrappedError.httpStatus === 403) {
+                        desc = _t("upload_failed_forbidden", {
+                            fileName: upload.fileName.substring(upload.fileName.lastIndexOf(".") + 1),
+                        });
+                    }
                 }
+                // !watcha
                 Modal.createDialog(ErrorDialog, {
                     title: _t("upload_failed_title"),
                     description: desc,

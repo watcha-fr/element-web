@@ -23,7 +23,9 @@ import SdkConfig from "../../SdkConfig.ts";
 import type { ActionPayload } from "../../dispatcher/payloads.ts";
 import * as SessionLock from "../../utils/SessionLock.ts";
 
+/* watcha! (utilisé uniquement par le poll périodique désactivé dans startUpdater)
 const POKE_RATE_MS = 10 * 60 * 1000; // 10 min
+!watcha */
 
 function getNormalizedAppVersion(version: string): string {
     // if version looks like semver with leading v, strip it (matches scripts/normalize-version.sh)
@@ -187,7 +189,10 @@ export default class WebPlatform extends BasePlatform {
             console.log("Update reloading to " + url.toString());
             window.location.href = url.toString();
         });
+        /* watcha! (désactive le toast "nouvelle version disponible" affiché toutes les 10 min après un déploiement ;
+           la mise à jour reste appliquée silencieusement au prochain rechargement via le poll de démarrage ci-dessus)
         setInterval(() => this.pollForUpdate(showUpdateToast, hideUpdateToast), POKE_RATE_MS);
+        !watcha */
     }
 
     public async canSelfUpdate(): Promise<boolean> {
