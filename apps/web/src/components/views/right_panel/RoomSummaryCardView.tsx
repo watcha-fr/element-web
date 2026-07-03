@@ -62,13 +62,13 @@ import RightPanelStore from "../../../stores/right-panel/RightPanelStore.ts";
 import { RightPanelPhases } from "../../../stores/right-panel/RightPanelStorePhases.ts";
 
 const onRoomDocumentsClick = (): void => {
-    RightPanelStore.instance.showOrHidePhase(RightPanelPhases.NextcloudDocumentPanel);
+    RightPanelStore.instance.pushCard({ phase: RightPanelPhases.NextcloudDocumentPanel }, true);
 };
 const onRoomCalendarClick = (): void => {
-    RightPanelStore.instance.showOrHidePhase(RightPanelPhases.NextcloudCalendarPanel);
+    RightPanelStore.instance.pushCard({ phase: RightPanelPhases.NextcloudCalendarPanel }, true);
 };
 const onRoomTasksClick = (): void => {
-    RightPanelStore.instance.showOrHidePhase(RightPanelPhases.NextcloudTaskPanel);
+    RightPanelStore.instance.pushCard({ phase: RightPanelPhases.NextcloudTaskPanel }, true);
 };
 // +watcha
 
