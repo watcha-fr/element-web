@@ -26,6 +26,7 @@ import {
     DocumentIcon,
     EmailSolidIcon,
     HomeIcon,
+    LeaveIcon,
     LockIcon,
     NotificationsIcon,
     PopOutIcon,
@@ -192,6 +193,19 @@ export function WatchaUserMenu({ vm, className }: WatchaUserMenuProps): JSX.Elem
                                     onSelect={vm.openEmail}
                                 />
                             )}
+                        </section>
+                    </>
+                )}
+                {watchaActions.signOut && (
+                    <>
+                        <Separator />
+                        <section className={styles.actions}>
+                            <MenuItem
+                                kind="critical"
+                                Icon={LeaveIcon}
+                                label={_t("action|sign_out")}
+                                onSelect={vm.signOut}
+                            />
                         </section>
                     </>
                 )}

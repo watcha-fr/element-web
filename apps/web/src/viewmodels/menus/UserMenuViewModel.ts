@@ -23,6 +23,7 @@ import SettingsStore from "../../settings/SettingsStore";
 import { UIFeature } from "../../settings/UIFeature";
 import { getNextcloudBaseUrl } from "../../utils/watcha_nextcloudUtils";
 import { Jitsi } from "../../widgets/Jitsi";
+import LogoutDialog, { shouldShowLogoutDialog } from "../../components/views/dialogs/LogoutDialog";
 // +watcha
 
 // Matches maximum size of an avatar in the UserMenu
@@ -36,6 +37,7 @@ export interface WatchaUserMenuSnapshot extends UserMenuSnapshot {
         openNextcloud: boolean;
         openVideoconferencing: boolean;
         openEmail: boolean;
+        signOut: boolean;
     };
 }
 
@@ -45,6 +47,7 @@ export interface WatchaUserMenuViewActions extends UserMenuViewActions {
     openNextcloud: () => void;
     openVideoconferencing: () => void;
     openEmail: () => void;
+    signOut: () => void;
 }
 /* !watcha */
 
@@ -80,6 +83,7 @@ export class UserMenuViewModel
             openNextcloud: partnerExcluded && SettingsStore.getValue(UIFeature.watcha_Nextcloud),
             openVideoconferencing: partnerExcluded && SettingsStore.getValue(UIFeature.Voip),
             openEmail: partnerExcluded && SettingsStore.getValue(UIFeature.watcha_Mail),
+            signOut: isAuthenticated,
         };
         /* !watcha */
 
@@ -157,6 +161,7 @@ export class UserMenuViewModel
                 openNextcloud: partnerExcluded && SettingsStore.getValue(UIFeature.watcha_Nextcloud),
                 openVideoconferencing: partnerExcluded && SettingsStore.getValue(UIFeature.Voip),
                 openEmail: partnerExcluded && SettingsStore.getValue(UIFeature.watcha_Mail),
+                signOut: isAuthenticated,
             },
         });
     };
@@ -244,6 +249,15 @@ export class UserMenuViewModel
         this.setOpen(false);
         const emailBaseUrl = SdkConfig.get().watcha_email_base_url;
         if (emailBaseUrl) window.open(emailBaseUrl);
+    };
+
+    public readonly signOut = async (): Promise<void> => {
+        this.setOpen(false);
+        if (await shouldShowLogoutDialog(this.client)) {
+            Modal.createDialog(LogoutDialog);
+        } else {
+            this.dispatcher.dispatch({ action: "logout" });
+        }
     };
     /* +watcha */
 }
