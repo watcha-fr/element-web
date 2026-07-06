@@ -22,10 +22,12 @@ import { SettingsSubsection, SettingsSubsectionText } from "../../shared/Setting
 import ExternalLink from "../../../elements/ExternalLink";
 import MatrixClientContext from "../../../../../contexts/MatrixClientContext";
 import { BugReportDialogButton } from "../../../elements/BugReportDialogButton";
+import { getServerVersionFromFederationApi } from "../../../dialogs/devtools/ServerInfo"; // watcha+
 
 interface IState {
     appVersion: string | null;
     canUpdate: boolean;
+    serverVersion: string | null; // watcha+
 }
 
 export default class HelpUserSettingsTab extends React.Component<EmptyObject, IState> {
@@ -38,6 +40,7 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
         this.state = {
             appVersion: null,
             canUpdate: false,
+            serverVersion: null, // watcha+
         };
     }
 
@@ -54,9 +57,18 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
             .catch((e) => {
                 logger.error("Error getting self updatability: ", e);
             });
+        // watcha+
+        // Récupère la version logicielle du homeserver (ex. Synapse 1.153.0-…g4a5b50a)
+        // via l'endpoint fédération non authentifié /_matrix/federation/v1/version.
+        getServerVersionFromFederationApi(this.context)
+            .then((res) => this.setState({ serverVersion: res?.server?.version ?? null }))
+            .catch((e) => {
+                logger.error("Error getting homeserver version: ", e);
+            });
+        // +watcha
     }
 
-    private getVersionInfo(): { appVersion: string; cryptoVersion: string | null } {
+    private getVersionInfo(): { appVersion: string; cryptoVersion: string | null; serverVersion: string | null } {
         const brand = SdkConfig.get().brand;
         const appVersion = this.state.appVersion || "unknown";
         /* watcha!
@@ -73,6 +85,9 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
             appVersion: `${_t("setting|help_about|brand_version", { brand })} ${appVersion}`,
             cryptoVersion: rawCryptoVersion
                 ? `${_t("setting|help_about|crypto_version")} ${rawCryptoVersion}`
+                : null,
+            serverVersion: this.state.serverVersion
+                ? `${_t("setting|help_about|server_version")} ${this.state.serverVersion}`
                 : null,
         };
         // +watcha
@@ -205,8 +220,9 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
     }
 
     private getVersionTextToCopy = (): string => {
-        const { appVersion, cryptoVersion } = this.getVersionInfo();
-        return cryptoVersion ? `${appVersion}\n${cryptoVersion}` : appVersion; // watcha!
+        // watcha!
+        const { appVersion, cryptoVersion, serverVersion } = this.getVersionInfo();
+        return [appVersion, cryptoVersion, serverVersion].filter(Boolean).join("\n");
     };
 
     public render(): React.ReactNode {
@@ -260,7 +276,7 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
             );
         }
 
-        const { appVersion, cryptoVersion } = this.getVersionInfo();
+        const { appVersion, cryptoVersion, serverVersion } = this.getVersionInfo();
 
         return (
             <SettingsTab>
@@ -279,6 +295,14 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
                                         <br />
                                     </>
                                 ) : null}
+                                {/* watcha+ */}
+                                {serverVersion ? (
+                                    <>
+                                        {serverVersion}
+                                        <br />
+                                    </>
+                                ) : null}
+                                {/* +watcha */}
                             </CopyableText>
                             {updateButton}
                         </SettingsSubsectionText>

@@ -2492,6 +2492,7 @@
             "help_link": "For help with using %(brand)s, click <a>here</a>.",
             "homeserver": "Homeserver is <code>%(homeserverUrl)s</code>",
             "identity_server": "Identity server is <code>%(identityServerUrl)s</code>",
+            "server_version": "Homeserver version:",
             "title": "Help & About",
             "versions": "Versions"
         }
