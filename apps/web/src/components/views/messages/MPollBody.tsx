@@ -143,9 +143,6 @@ export default class MPollBody extends React.Component<IBodyProps, IState> {
     public static contextType = MatrixClientContext;
     declare public context: React.ContextType<typeof MatrixClientContext>;
     private seenEventIds: string[] = []; // Events we have already seen
-    // watcha+ track answers toggled in the current tick so row/input double-fire doesn't cancel out
-    private togglingAnswerIds = new Set<string>();
-    // +watcha
 
     public constructor(props: IBodyProps) {
         super(props);
@@ -214,15 +211,7 @@ export default class MPollBody extends React.Component<IBodyProps, IState> {
         if (this.state.poll?.isEnded) {
             return;
         }
-        // watcha+
-        if (this.togglingAnswerIds.has(answerId)) {
-            return;
-        }
-        this.togglingAnswerIds.add(answerId);
-        setTimeout(() => this.togglingAnswerIds.delete(answerId), 0);
-
-        const maxSelections = this.state.poll?.pollEvent?.maxSelections ?? 1;
-        // +watcha
+        const maxSelections = this.state.poll?.pollEvent?.maxSelections ?? 1; // watcha+
         const userVotes = this.collectUserVotes();
         const userId = this.context.getSafeUserId();
         // watcha+

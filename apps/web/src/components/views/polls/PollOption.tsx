@@ -134,8 +134,16 @@ export const PollOption: React.FC<PollOptionProps> = ({
     });
     const isWinner = isEnded && isChecked;
     const answerPercent = totalVoteCount === 0 ? 0 : Math.round((100.0 * voteCount) / totalVoteCount);
+    // watcha+ un clic sur la checkbox/radio (ou son label) est déjà géré par leur `onChange` ;
+    // ne relayer ici que les clics sur le reste de la ligne pour éviter un double-déclenchement
+    // qui, en multi-sélection, annulait la désélection.
+    const onRowClick = (e: React.MouseEvent<HTMLDivElement>): void => {
+        if ((e.target as HTMLElement).closest("input, label")) return;
+        onOptionSelected?.(answer.id);
+    };
+    // +watcha
     return (
-        <div data-testid={`pollOption-${answer.id}`} className={cls} onClick={() => onOptionSelected?.(answer.id)}>
+        <div data-testid={`pollOption-${answer.id}`} className={cls} onClick={onRowClick}>
             <ActivePollOption
                 pollId={pollId}
                 answer={answer}
