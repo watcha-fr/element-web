@@ -252,6 +252,7 @@ export default function UserSettingsDialog(props: IProps): JSX.Element {
         }
 
         if (
+            false /* watcha! onglet "Expérimental" (Labs) masqué en dur — demande client */ &&
             (showLabsFlags() || SettingsStore.getFeatureSettingNames().some((k) => SettingsStore.getBetaInfo(k))) &&
             !SettingsStore.getValue(UIFeature.watcha_SitivFieldDisabled) /* watcha+ */
         ) {
