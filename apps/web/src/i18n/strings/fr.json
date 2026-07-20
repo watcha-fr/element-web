@@ -79,7 +79,7 @@
         "manage": "Gérer",
         "maximise": "Maximiser",
         "mention": "Mentionner",
-        "minimise": "Minimiser",
+        "minimise": "Détacher le widget",
         "new_room": "Nouveau salon",
         "new_video_room": "Nouveau salon visio",
         "next": "Suivant",
@@ -4189,7 +4189,7 @@
             "starting_text": "Ce widget vérifiera votre identifiant d’utilisateur, mais ne pourra pas effectuer des actions en votre nom :",
             "title": "Autoriser ce widget à vérifier votre identité"
         },
-        "popout": "Détacher le widget",
+        "popout": "Ouvrir dans un nouvel onglet",
         "set_room_layout": "Définir la mise en page pour tout le monde",
         "shared_data_avatar": "Votre URL d’image de profil",
         "shared_data_device_id": "Votre ID d’appareil",
