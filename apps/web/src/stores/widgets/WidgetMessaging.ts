@@ -481,6 +481,24 @@ export class WidgetMessaging extends TypedEventEmitter<WidgetMessagingEvent, Wid
         }
 
         this.emit(WidgetMessagingEvent.Start, this.widgetApi);
+
+        // watcha+
+        // start() peut s'exécuter bien après l'insertion de l'iframe : AppTile le déclenche via
+        // requestAnimationFrame, que le navigateur suspend tant que l'onglet est en arrière-plan ou
+        // la fenêtre minimisée — cas typique du destinataire d'un appel Jitsi, dont le widget arrive
+        // par sync pendant qu'il ne regarde pas. Si l'iframe a fini de charger entre-temps, le
+        // listener "load" posé par ClientWidgetApi ne se déclenchera jamais et le handshake
+        // (capabilities → ready) ne démarre pas : bouton « Rejoindre la conférence » inerte.
+        // L'iframe étant same-origin (jitsi.html local), on détecte ce cas et on rejoue l'événement.
+        try {
+            const doc = iframe.contentDocument;
+            if (doc && doc.readyState === "complete" && doc.location.href !== "about:blank") {
+                iframe.dispatchEvent(new Event("load"));
+            }
+        } catch {
+            // iframe cross-origin : impossible à inspecter, le véritable événement "load" fera foi
+        }
+        // +watcha
     }
 
     public async prepare(): Promise<void> {

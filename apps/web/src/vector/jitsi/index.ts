@@ -270,9 +270,12 @@ const setupCompleted = (async (): Promise<string | void> => {
         enableJoinButton(); // always enable the button
 
         // watcha+
-        // HACK: failed to get "languageHandler" to work from Jitsi iframe (no config loaded here)
-        const mxLocalSettings = JSON.parse(localStorage.getItem("mx_local_settings") ?? "null");
-        if (mxLocalSettings?.language === "fr") {
+        // Le languageHandler complet n'est pas disponible dans l'iframe Jitsi (pas de config chargée),
+        // mais Element transmet déjà la langue effective de l'utilisateur via le param d'URL `language`
+        // (cf. WidgetUtils.getLocalJitsiWrapperUrl → $org.matrix.msc2873.client_language). On s'appuie
+        // dessus plutôt que sur localStorage.mx_local_settings, vide quand la langue est réglée au niveau
+        // du compte (synchronisé) et non de l'appareil.
+        if (normalizeLanguage(language).startsWith("fr")) {
             document.getElementById("joinButton")!.innerText = "Rejoindre la conférence";
         }
         // +watcha
@@ -283,7 +286,28 @@ const setupCompleted = (async (): Promise<string | void> => {
 })();
 
 function enableJoinButton(): void {
+    /* watcha!
     document.getElementById("joinButton")!.onclick = (): Promise<void> => joinConference();
+    !watcha */
+    // watcha+
+    // La promesse de joinConference() n'était ni attendue ni catchée : si
+    // requestOpenIDConnectToken() rejette ou ne se résout jamais (permission OIDC
+    // en attente), le clic ne produit rien de visible et chaque nouveau clic
+    // empile un listener côté widget-api. On désactive le bouton pendant la
+    // tentative et on affiche l'échec.
+    const button = document.getElementById("joinButton") as HTMLButtonElement;
+    button.onclick = async (): Promise<void> => {
+        button.disabled = true;
+        try {
+            await joinConference();
+        } catch (e) {
+            logger.error("[Jitsi Widget] Failed to join the conference", e);
+            document.getElementById("widgetActionContainer")!.innerText = "Failed to load Jitsi widget";
+        } finally {
+            button.disabled = false;
+        }
+    };
+    // +watcha
 }
 
 function switchVisibleContainers(): void {
