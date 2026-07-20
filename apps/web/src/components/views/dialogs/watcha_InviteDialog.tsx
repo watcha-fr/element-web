@@ -122,6 +122,11 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
         initialText: "",
     };
 
+    // Dernière requête émise, hors état React : avec le batching de React 19,
+    // `this.state.query` peut être encore obsolète quand la réponse arrive,
+    // ce qui ferait ignorer des résultats valides.
+    private latestQuery = "";
+
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -359,6 +364,7 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
 
     // come from src/components/views/dialogs/AddressPickerDialog.js
     doUserDirectorySearch(query: string) {
+        this.latestQuery = query;
         this.setState({
             query,
             pendingSearch: true,
@@ -371,7 +377,7 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
             .then((resp: ISearchUserDirectory) => {
                 // The query might have changed since we sent the request, so ignore
                 // responses for anything other than the latest query.
-                if (this.state.query !== query) {
+                if (this.latestQuery !== query) {
                     return;
                 }
                 this.processResults(resp.results, query);
