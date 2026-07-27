@@ -52,6 +52,39 @@ export function getDocumentSelectorUrl(shareUrl: string, skipDirParam = true) {
     return getDocumentWidgetUrl(shareUrl, [RefineTargets.DocumentSelector], skipDirParam);
 }
 
+/**
+ * The Nextcloud file id recorded in a stored share value, if any.
+ *
+ * The file id is the only stable way to designate a room folder: a mount name is
+ * per-recipient (any member may rename their own mount, and Nextcloud appends a
+ * suffix on collision), so the `dir` path stored by whoever picked the folder is
+ * wrong for anyone whose mount is named differently.
+ */
+export function getShareFileId(shareUrl: string): string | null {
+    if (!shareUrl) return null;
+    try {
+        return new URL(shareUrl).searchParams.get("fileid");
+    } catch {
+        // Values predating this format are not necessarily valid URLs.
+        return null;
+    }
+}
+
+/**
+ * The same stored share value, carrying the given file id.
+ *
+ * Kept as a URL string rather than promoted to a richer object on purpose: the
+ * value lives in room state and is read by every client version in the wild.
+ * Older clients do `new URL(value)` and would throw on anything else, whereas an
+ * extra query parameter is simply ignored by them. Forward-compatible, and it
+ * needs no migration of the existing estate.
+ */
+export function withFileId(shareUrl: string, fileId: string | number): string {
+    const url = new URL(shareUrl);
+    url.searchParams.set("fileid", String(fileId));
+    return url.toString();
+}
+
 export function getDocumentWidgetUrl(shareUrl: string, refineTargets: RefineTargets[] = [], skipDirParam = true) {
     let path = "/";
     let fileId = null;
@@ -87,10 +120,19 @@ function getIframeUrl(
     const url = getNextcloudBaseUrl();
     url.pathname += `apps/${appName}`;
     for (const [key, value] of searchParams.entries()) {
-        /* watcha!
+        // watcha+
+        // Prefer the file id and drop `dir` entirely when we have one. `dir` is
+        // the folder path as seen by whoever selected the folder, which is not
+        // the path it is mounted at for other members — each recipient may rename
+        // their own mount and Nextcloud appends a suffix on collision. Sending a
+        // `dir` that does not exist for the current user is what made the Files
+        // app answer "folder not found"; given a `fileid` it resolves the path
+        // itself. `dir` is still sent when no file id is known, so rooms that
+        // have not been migrated yet keep working exactly as before.
         if (key == "dir" && skipDirParam && searchParams.get("fileid")) {
             continue;
-        } !watcha */
+        }
+        // +watcha
         url.searchParams.append(key, value);
     }
     for (const target of refineTargets) {

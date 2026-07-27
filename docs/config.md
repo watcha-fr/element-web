@@ -324,14 +324,28 @@ More information about the Jitsi setup can be found [here](./jitsi.md).
 
 The VoIP and Jitsi options are:
 
-1. `jitsi`: Optional configuration for how to start Jitsi conferences. Currently can only contain a single `preferred_domain`
-   value which points at the domain of the Jitsi instance. Defaults to `meet.element.io`. This is _not_ used if the Jitsi widget
+1. `jitsi`: Optional configuration for how to start Jitsi conferences. `preferred_domain` points at the domain of the Jitsi
+   instance and defaults to `meet.element.io`. This is _not_ used if the Jitsi widget
    was created by an integration manager, or if the homeserver provides Jitsi information in `/.well-known/matrix/client`. For
    example:
     ```json
     {
         "jitsi": {
             "preferred_domain": "meet.jit.si"
+        }
+    }
+    ```
+   `force_preferred_domain` (default `false`) makes the client ignore the conference domain recorded in an existing widget and
+   use `preferred_domain` instead. A widget stores its domain in the room state, so widgets created before an infrastructure
+   migration keep pointing at the decommissioned host and their conferences fail to load — the only user-visible workaround
+   being to delete the widget and add it back. Enable this when a deployment has moved its Jitsi instance and has widgets left
+   behind. **Leave it disabled if you intentionally run several Jitsi hosts**, since it would send every participant of every
+   room to the same one:
+    ```json
+    {
+        "jitsi": {
+            "preferred_domain": "meet.example.org",
+            "force_preferred_domain": true
         }
     }
     ```

@@ -50,10 +50,9 @@ import defaultDispatcher from "../../dispatcher/dispatcher";
 import { Action } from "../../dispatcher/actions";
 import { ElementWidgetActions, type IHangupCallApiRequest, type IViewRoomApiRequest } from "./ElementWidgetActions";
 // watcha+
-import {
-    watchaJitsiPresenceOnJoin,
-    watchaJitsiPresenceOnHangup,
-} from "../../watcha_JitsiPinnedWidgetPresence";
+import { watchaJitsiPresenceOnJoin, watchaJitsiPresenceOnHangup } from "../../watcha_JitsiPinnedWidgetPresence";
+import SdkConfig from "../../SdkConfig";
+import { Jitsi } from "../../widgets/Jitsi";
 // +watcha
 import { ModalWidgetStore } from "../ModalWidgetStore";
 import { isAppWidget } from "../WidgetStore";
@@ -110,6 +109,25 @@ export class ElementWidget extends Widget {
             // v1 widgets default to meet.element.io regardless of user settings
             domain = "meet.element.io";
         }
+        // watcha+
+        // A widget stores its conference domain in the room state, so a widget
+        // created before an infrastructure migration keeps pointing at the old
+        // host for ever: the conference then fails to load and the only user
+        // workaround is to delete the widget and add it back.
+        //
+        // Off by default because deployments that deliberately run several Jitsi
+        // hosts rely on the stored domain being honoured — see the reasoning in
+        // docs/jitsi-dev.md.
+        if (WidgetType.JITSI.matches(this.type)) {
+            const preferredDomain = Jitsi.getInstance().preferredDomain;
+            if (SdkConfig.getObject("jitsi")?.get("force_preferred_domain") && domain !== preferredDomain) {
+                logger.info(
+                    `Overriding stale Jitsi conference domain ${domain} with the configured ${preferredDomain}`,
+                );
+                domain = preferredDomain;
+            }
+        }
+        // +watcha
 
         let theme = new ThemeWatcher().getEffectiveTheme();
         if (theme.startsWith("custom-")) {
@@ -122,7 +140,12 @@ export class ElementWidget extends Widget {
         // accounts for legacy-light/legacy-dark themes too
         if (theme.includes("light")) {
             theme = "light";
-        } else if (theme === "watcha") { // watcha+
+        } else if (theme === "watcha") {
+            // watcha+
+            // Pass "watcha" through instead of collapsing it to dark: the Jitsi wrapper
+            // styles it explicitly (body.theme-watcha in src/vector/jitsi/index.pcss), so
+            // the conference chrome stays on brand for users on the Watcha theme.
+            // +watcha
         } else {
             theme = "dark";
         }

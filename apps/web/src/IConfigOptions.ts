@@ -120,6 +120,12 @@ export interface IConfigOptions {
     audio_stream_url?: string;
     jitsi?: {
         preferred_domain: string;
+        // watcha+
+        // Ignore the conference domain stored in an existing widget and always
+        // use preferred_domain. Repairs widgets left behind by an infrastructure
+        // migration; leave it off if you intentionally run several Jitsi hosts.
+        force_preferred_domain?: boolean;
+        // +watcha
     };
     jitsi_widget?: {
         skip_built_in_welcome_screen?: boolean;
