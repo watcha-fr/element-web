@@ -31,15 +31,23 @@ import * as utils from "matrix-js-sdk/src/utils";
  * a git revision; adding methods there would mean re-pinning it for every change.
  */
 
-/** Why a room folder is or is not reachable for the current user. */
+/**
+ * Why a room folder is or is not reachable for the current user.
+ *
+ * Note there is deliberately no "share not accepted yet" state. Access is carried
+ * by the parent group share; Nextcloud only materialises a per-recipient child
+ * row lazily, when the recipient renames, moves or rejects their mount. A missing
+ * child row is the normal state of a perfectly reachable folder, and reading it as
+ * a defect once led to a whole fix being built on a wrong diagnosis.
+ */
 export enum RoomFolderStatus {
     /** Reachable; `fileId` and `path` are usable. */
     Ok = "ok",
-    /** The share exists but has never been accepted for this user. Recoverable. */
-    Pending = "pending",
+    /** The recipient explicitly dismissed this share, so their mount was removed. */
+    Rejected = "rejected",
     /** The user does not belong to the room's Nextcloud group. */
     NotMember = "not-member",
-    /** The share is accepted but the folder itself is gone. */
+    /** The folder itself is gone. */
     Deleted = "deleted",
     /** No folder is bound to this room. */
     NoShare = "no-share",
@@ -57,11 +65,6 @@ export interface IRoomFolder {
     shareId: string | null;
 }
 
-export interface IRoomMemberSyncReport {
-    groupMembership?: string;
-    sharesAccepted?: number;
-}
-
 /**
  * Resolve the calling user's view of a room's document folder.
  */
@@ -70,22 +73,4 @@ export function getRoomFolder(client: MatrixClient, roomId: string): Promise<IRo
     return client.http.authedRequest(Method.Get, path, undefined, undefined, {
         prefix: WatchaPrefix.NEXTCLOUD,
     });
-}
-
-/**
- * Repair the calling user's access to a room's document space.
- *
- * Idempotent, so it is safe to call before every retry.
- */
-export function syncRoomMember(client: MatrixClient, roomId: string): Promise<IRoomMemberSyncReport> {
-    const path = utils.encodeUri("/rooms/$roomId/sync", { $roomId: roomId });
-    return client.http.authedRequest(
-        Method.Post,
-        path,
-        undefined,
-        {},
-        {
-            prefix: WatchaPrefix.NEXTCLOUD,
-        },
-    );
 }

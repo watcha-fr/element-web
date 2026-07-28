@@ -17,12 +17,11 @@ import MatrixClientContext from "../../../../src/contexts/MatrixClientContext";
 import SettingsStore from "../../../../src/settings/SettingsStore";
 import SdkConfig from "../../../../src/SdkConfig";
 import { getMockClientWithEventEmitter, flushPromises } from "../../../test-utils";
-import { getRoomFolder, syncRoomMember, RoomFolderStatus } from "../../../../src/utils/watcha_nextcloudApi";
+import { getRoomFolder, RoomFolderStatus } from "../../../../src/utils/watcha_nextcloudApi";
 
 jest.mock("../../../../src/utils/watcha_nextcloudApi", () => ({
     ...(jest.requireActual("../../../../src/utils/watcha_nextcloudApi") as object),
     getRoomFolder: jest.fn(),
-    syncRoomMember: jest.fn(),
 }));
 
 const roomId = "!room:example.org";
@@ -131,42 +130,6 @@ describe("watcha_DocumentPanel", () => {
         });
     });
 
-    describe("a member who joined after the folder was shared", () => {
-        it("repairs the pending share and shows the folder, without bothering the user", async () => {
-            settings.nextcloudShare = shareValue({ dir: "/Nouveau dossier" });
-            (getRoomFolder as jest.Mock)
-                .mockResolvedValueOnce({ status: RoomFolderStatus.Pending, fileId: 59, path: null })
-                .mockResolvedValueOnce({ status: RoomFolderStatus.Ok, fileId: 59, path: "/Nouveau dossier" });
-            (syncRoomMember as jest.Mock).mockResolvedValue({ sharesAccepted: 1 });
-
-            renderPanel();
-            await flushPromises();
-
-            expect(syncRoomMember).toHaveBeenCalledWith(mockClient, roomId);
-            await waitFor(() => expect(iframeSrc()).toContain("fileid=59"));
-            expect(screen.queryByText("Document space unavailable")).not.toBeInTheDocument();
-        });
-
-        it("reports an actionable message when the share stays pending, and retries only once", async () => {
-            // The old UI showed one dead end with a Retry button that could not
-            // change anything. A sync loop would be just as useless.
-            settings.nextcloudShare = shareValue({ dir: "/Nouveau dossier" });
-            (getRoomFolder as jest.Mock).mockResolvedValue({
-                status: RoomFolderStatus.Pending,
-                fileId: 59,
-                path: null,
-            });
-            (syncRoomMember as jest.Mock).mockResolvedValue({ sharesAccepted: 0 });
-
-            renderPanel();
-            await flushPromises();
-
-            expect(syncRoomMember).toHaveBeenCalledTimes(1);
-            expect(await screen.findByText("Document space unavailable")).toBeInTheDocument();
-            expect(screen.getByText(/could not be enabled automatically/)).toBeInTheDocument();
-        });
-    });
-
     describe("distinguishes the reasons the folder is unreachable", () => {
         beforeEach(() => {
             settings.nextcloudShare = shareValue({ dir: "/Nouveau dossier" });
@@ -188,6 +151,17 @@ describe("watcha_DocumentPanel", () => {
             renderPanel();
 
             expect(await screen.findByText(/has been deleted in Nextcloud/)).toBeInTheDocument();
+            expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
+        });
+
+        it("explains an explicitly dismissed share", async () => {
+            // The only per-recipient state that really denies access. A merely
+            // "unaccepted" share is the normal lazy state and must never surface.
+            (getRoomFolder as jest.Mock).mockResolvedValue({ status: RoomFolderStatus.Rejected, fileId: 59 });
+
+            renderPanel();
+
+            expect(await screen.findByText(/dismissed this folder's share/)).toBeInTheDocument();
             expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
         });
 

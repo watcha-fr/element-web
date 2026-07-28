@@ -4031,7 +4031,7 @@
         "error_two_ressources": "It is not possible to share two resources of the same type within the same room",
         "folder_deleted": "The folder shared with this room has been deleted in Nextcloud. A member who can change the room settings can share a new one.",
         "folder_not_member": "You are not part of this room's Nextcloud group, so your access has not been created yet. If this persists, contact an administrator.",
-        "folder_still_pending": "Your access to the folder could not be enabled automatically. You can try again; if this persists, contact an administrator.",
+        "folder_rejected": "You dismissed this folder's share in Nextcloud. Accept it again from Nextcloud to regain access.",
         "folder_unavailable": "Document space unavailable",
         "folder_unreachable": "Nextcloud is temporarily unreachable.",
         "error_start_dm": "Failure to start DM",

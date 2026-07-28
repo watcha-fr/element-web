@@ -4035,7 +4035,7 @@
         "error_two_ressources": "Il n'est pas possible de partager deux ressources du même type au sein d'un même salon",
         "folder_deleted": "Le dossier partagé avec ce salon a été supprimé dans Nextcloud. Un membre pouvant modifier les paramètres du salon peut en partager un nouveau.",
         "folder_not_member": "Vous ne faites pas partie du groupe Nextcloud de ce salon, votre accès n'a donc pas encore été créé. Si cela persiste, contactez un administrateur.",
-        "folder_still_pending": "Votre accès au dossier n'a pas pu être activé automatiquement. Vous pouvez réessayer ; si cela persiste, contactez un administrateur.",
+        "folder_rejected": "Vous avez refusé le partage de ce dossier dans Nextcloud. Réacceptez-le depuis Nextcloud pour retrouver l'accès.",
         "folder_unavailable": "Espace documentaire indisponible",
         "folder_unreachable": "Nextcloud est momentanément injoignable.",
         "error_start_dm": "Vous n'avez pas les droits pour créer une conversation privée !",

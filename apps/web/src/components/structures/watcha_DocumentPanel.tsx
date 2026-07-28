@@ -29,7 +29,7 @@ import { SettingLevel } from "../../settings/SettingLevel";
 import Spinner from "../views/elements/Spinner";
 import AccessibleButton from "../views/elements/AccessibleButton";
 import { getDocumentWidgetUrl, getShareFileId, withFileId } from "../../utils/watcha_nextcloudUtils";
-import { getRoomFolder, syncRoomMember, RoomFolderStatus } from "../../utils/watcha_nextcloudApi";
+import { getRoomFolder, RoomFolderStatus } from "../../utils/watcha_nextcloudApi";
 
 interface IProps {
     roomId: string;
@@ -43,8 +43,8 @@ interface IProps {
 type Problem =
     | { kind: "notMember" }
     | { kind: "deleted" }
-    | { kind: "network"; retry: () => void }
-    | { kind: "stillPending"; retry: () => void };
+    | { kind: "rejected" }
+    | { kind: "network"; retry: () => void };
 
 const WatchaDocumentPanel: React.FC<IProps> = ({ roomId, initialTabId, empty, emptyClass, onClose }) => {
     const client = useMatrixClientContext();
@@ -86,12 +86,9 @@ const WatchaDocumentPanel: React.FC<IProps> = ({ roomId, initialTabId, empty, em
     /**
      * Resolve the folder server-side, and act on *why* it is unreachable rather
      * than showing one dead end for every cause.
-     *
-     * `attemptSync` is false on the retry that follows a sync, so a share that
-     * stays pending reports itself instead of looping.
      */
     const resolve = useCallback(
-        async (shareUrl: string, attemptSync = true): Promise<void> => {
+        async (shareUrl: string): Promise<void> => {
             setResolving(true);
             try {
                 const folder = await getRoomFolder(client, roomId);
@@ -105,15 +102,8 @@ const WatchaDocumentPanel: React.FC<IProps> = ({ roomId, initialTabId, empty, em
                         }
                         return;
 
-                    case RoomFolderStatus.Pending:
-                        // The share exists but was never accepted for this user —
-                        // what happens to anyone who joined after the folder was
-                        // shared. Repair it and look again, once.
-                        if (attemptSync) {
-                            await syncRoomMember(client, roomId);
-                            return resolve(shareUrl, false);
-                        }
-                        setProblem({ kind: "stillPending", retry: () => void resolve(shareUrl) });
+                    case RoomFolderStatus.Rejected:
+                        setProblem({ kind: "rejected" });
                         return;
 
                     case RoomFolderStatus.NotMember:
@@ -179,8 +169,8 @@ const WatchaDocumentPanel: React.FC<IProps> = ({ roomId, initialTabId, empty, em
                 case "deleted":
                     panel = problemView(_t("watcha|folder_deleted"));
                     break;
-                case "stillPending":
-                    panel = problemView(_t("watcha|folder_still_pending"), problem.retry);
+                case "rejected":
+                    panel = problemView(_t("watcha|folder_rejected"));
                     break;
                 case "network":
                     panel = problemView(_t("watcha|folder_unreachable"), problem.retry);
