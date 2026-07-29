@@ -153,7 +153,7 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
                 originalList,
                 suggestedList,
                 selectedList,
-                addEmailAddressToSelectedList: this.addEmailAddressToSelectedList,
+                addEmailAddressesToSelectedList: this.addEmailAddressesToSelectedList,
             });
         }
         else if(this.props.kind === InviteKind.Dm) {
@@ -162,7 +162,7 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
                 originalList,
                 suggestedList,
                 selectedList,
-                addEmailAddressToSelectedList: this.addEmailAddressToSelectedList,
+                addEmailAddressesToSelectedList: this.addEmailAddressesToSelectedList,
             });
         }
     };
@@ -179,28 +179,38 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
         this.setState({ busy: false });
     };
 
-    addEmailAddressToSelectedList = (emailAddress: any) => {
-        let knownUser;
+    addEmailAddressesToSelectedList = (emailAddresses: string[]) => {
         const { originalList } = this.state;
-        for (const user of originalList) {
-            if (user.email === emailAddress) {
-                knownUser = user;
-                break;
-            }
-        }
+        this.setState(({ suggestedList, selectedList }) => {
+            const addedAddresses = new Set<string>();
+            const addedUsers: IUser[] = [];
 
-        if (!knownUser) {
-            const newUser = {
-                address: emailAddress,
-                addressType: "email",
-                displayName: emailAddress,
-            } as IUser;
-            this.setState(({ selectedList }) => ({
-                selectedList: [newUser, ...selectedList],
-            }));
-        } else {
-            this.addToSelectedList(knownUser);
-        }
+            for (const emailAddress of emailAddresses) {
+                // A user already listed in the directory is invited through its
+                // Matrix ID rather than through its email address.
+                const knownUser =
+                    suggestedList.find(user => user.email === emailAddress) ??
+                    originalList.find(user => user.email === emailAddress);
+                const user =
+                    knownUser ??
+                    ({
+                        address: emailAddress,
+                        addressType: "email",
+                        displayName: emailAddress,
+                    } as IUser);
+
+                if (addedAddresses.has(user.address) || selectedList.some(u => u.address === user.address)) {
+                    continue;
+                }
+                addedAddresses.add(user.address);
+                addedUsers.push(user);
+            }
+
+            return {
+                suggestedList: suggestedList.filter(user => !addedAddresses.has(user.address)),
+                selectedList: [...addedUsers, ...selectedList],
+            };
+        });
     };
 
     addToSelectedList = (user: IUser) => {

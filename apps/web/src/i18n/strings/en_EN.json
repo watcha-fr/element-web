@@ -3998,6 +3998,10 @@
         "add_calendar_tasks_title": "Create and share a calendar including a to-do list: it will be dedicated to the room without you or any other member owning it",
         "administration": "Administration",
         "administration_title": "Open the administration console in a new tab",
+        "add_email_addresses": {
+            "one": "Add %(count)s address",
+            "other": "Add %(count)s addresses"
+        },
         "already_invited": "Already invited",
         "already_room_member": "Already room member",
         "attachment_button": "Show explore chat attachments button",
@@ -4017,6 +4021,9 @@
         "document_sharing": "Document sharing",
         "documents": "Documents",
         "email_already_add": "You have already added this email address to the invitation list",
+        "email_addresses_field_label": "Email addresses",
+        "email_addresses_hint": "One address per line, or separated by a comma, a semicolon or a space. A column copied from a spreadsheet can be pasted as is.",
+        "email_addresses_placeholder": "joe@example.com; jane@example.com",
         "email_already_bound": "This email address is already bound to your account",
         "email_placeholder": "joe@example.com",
         "empty_calendar": "No calendar shared with this room",
@@ -4032,6 +4039,7 @@
         "error_start_dm": "Failure to start DM",
         "filter_users": "Filter users",
         "ignore_user_button": "Show button to ignore user",
+        "ignored_email_addresses": "The following addresses will not be invited:",
         "ignore_user_button_description": "Also visible on incoming invitations",
         "invitation_list": "Invitation list",
         "invite_dialog": "Select users<br/>Invite them<br/>Collaborate!",

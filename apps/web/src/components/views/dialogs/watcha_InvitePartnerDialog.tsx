@@ -20,11 +20,12 @@ import { RoomMember } from "matrix-js-sdk/src/models/room-member";
 
 import { _t } from "../../../languageHandler";
 import { Key } from "../../../Keyboard";
+import { MatrixClientPeg } from "../../../MatrixClientPeg";
 import * as Email from "../../../email";
+import { parseAddressList } from "../../../utils/watcha_emailAddressList";
 import BaseDialog from "./BaseDialog";
 import DialogButtons from "../elements/DialogButtons";
 import Field from "../elements/Field";
-import withValidation, { IFieldState, IValidationResult } from "../elements/Validation";
 import { IUser } from "./watcha_InviteDialog";
 
 interface IProps {
@@ -32,14 +33,25 @@ interface IProps {
     originalList: IUser[];
     suggestedList: IUser[];
     selectedList: IUser[];
-    addEmailAddressToSelectedList: (emailAddress: string) => void;
+    addEmailAddressesToSelectedList: (emailAddresses: string[]) => void;
     onFinished(): void;
 }
 
 interface IState {
-    emailAddress: string;
-    isValid: boolean;
-    pendingSubmission: boolean;
+    input: string;
+    // The email addresses bound to the account of the current user. `null` until
+    // they have been fetched from the homeserver.
+    ownEmailAddresses: string[] | null;
+}
+
+interface IRejectedAddress {
+    address: string;
+    reason: string;
+}
+
+interface IReview {
+    accepted: string[];
+    rejected: IRejectedAddress[];
 }
 
 export default class InvitePartnerDialog extends React.Component<IProps, IState> {
@@ -48,102 +60,95 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
     constructor(props: IProps) {
         super(props);
         this.state = {
-            emailAddress: "",
-            isValid: false,
-            pendingSubmission: false,
+            input: "",
+            ownEmailAddresses: null,
         };
     }
 
     public componentDidMount() {
         this.fieldRef.current?.focus();
+        this.fetchOwnEmailAddresses();
     }
 
-    private onChange = (event: React.ChangeEvent<any>) => {
-        this.setState({ emailAddress: event.target.value });
-    };
-
-    private onOk = () => {
-        this.setState({ pendingSubmission: true }, async () => {
-            await this.submit();
-        });
-    };
-
-    private onKeyDown = (event: KeyboardEvent | React.KeyboardEvent<Element>) => {
-        if (event.key === Key.ENTER) {
-            this.onOk();
-            event.preventDefault();
-            event.stopPropagation();
-        } else {
-            this.setState({ pendingSubmission: false });
+    private fetchOwnEmailAddresses = async () => {
+        try {
+            const { threepids } = await MatrixClientPeg.get()!.getThreePids();
+            this.setState({
+                ownEmailAddresses: threepids
+                    .filter(threepid => threepid.medium === "email")
+                    .map(threepid => threepid.address),
+            });
+        } catch (error) {
+            console.error("Error whilst fetching the email addresses of the user: ", error);
+            this.setState({ ownEmailAddresses: [] });
         }
     };
 
-    private onValidate = async (fieldState: IFieldState): Promise<IValidationResult> => {
-        const result = await this._validationRules(fieldState);
-        this.setState({
-            isValid: result.valid ?? false,
-        });
-        return result;
+    private onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        this.setState({ input: event.target.value });
     };
 
-    private _validationRules = withValidation<this, { value: string }>({
-        deriveData: async ({ value }) => ({ value: value ?? '' }),
-        rules: [
-            {
-                key: "notNull",
-                test: ({ value }) => !!value,
-            },
-            {
-                key: "validUponSubmission",
-                skip: () => !this.state.pendingSubmission,
-                test: ({ value }) => Email.looksValid(value ?? ''),
-                invalid: () => _t("watcha|enter_valid_email"),
-                final: true,
-            },
-            {
-                key: "notMine",
-                test: async ({ value }) => !(await Email.isMine(value ?? '')),
-                invalid: () => _t("watcha|email_already_bound"),
-                final: true,
-            },
-            {
-                key: "notForbiddenDomain",
-                skip: ({ value }) =>
-                    this.props.selectedList.some(user => user.email === value) ||
-                    this.props.suggestedList.some(user => user.email === value),
-                test: ({ value }) => !Email.hasForbiddenDomainForPartner(value ?? ''),
-                invalid: ({ value }) =>
-                    _t("watcha|error_email_domain", { domain: value.split("@")[1] }),
-                final: true,
-            },
-            {
-                key: "emailNotInInvitations",
-                test: async ({ value }) => !this.props.selectedList.some(user => user.address === value),
-                invalid: () => _t("watcha|email_already_add"),
-                final: true,
-            },
-            {
-                key: "userNotInInvitations",
-                test: async ({ value }) => !this.props.selectedList.some(user => user.email === value),
-                invalid: () => _t("watcha|user_already_add"),
-                final: true,
-            },
-            {
-                key: "notRoomMember",
-                skip: () => !this.props.room,
-                test: async ({ value }) => !this.isMemberWithMembership(value ?? '', "join"),
-                invalid: () => _t("watcha|user_already_room_member"),
-                final: true,
-            },
-            {
-                key: "notInvited",
-                skip: () => !this.props.room,
-                test: async ({ value }) => !this.isMemberWithMembership(value ?? '', "invite"),
-                invalid: () => _t("watcha|user_already_inivte_room"),
-                final: true,
-            },
-        ],
-    });
+    private onOk = () => {
+        const { accepted } = this.review();
+        if (!accepted.length) {
+            return;
+        }
+        this.props.addEmailAddressesToSelectedList(accepted);
+        this.props.onFinished();
+    };
+
+    private onKeyDown = (event: KeyboardEvent | React.KeyboardEvent<Element>) => {
+        // A bare `Enter` inserts a line break, as the field holds a list of
+        // addresses spread over several lines.
+        if (event.key === Key.ENTER && (event.ctrlKey || event.metaKey)) {
+            this.onOk();
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    };
+
+    /**
+     * Sorts the addresses of the input between the ones that can be invited and
+     * the ones that must be discarded, along with the reason why.
+     */
+    private review = (): IReview => {
+        const { originalList, suggestedList, selectedList, room } = this.props;
+        const { ownEmailAddresses } = this.state;
+        const { addresses, malformed } = parseAddressList(this.state.input);
+
+        const accepted: string[] = [];
+        const rejected: IRejectedAddress[] = malformed.map(address => ({
+            address,
+            reason: _t("watcha|enter_valid_email"),
+        }));
+
+        for (const address of addresses) {
+            const reject = (reason: string) => rejected.push({ address, reason });
+
+            if (ownEmailAddresses?.includes(address)) {
+                reject(_t("watcha|email_already_bound"));
+            } else if (selectedList.some(user => user.address === address)) {
+                reject(_t("watcha|email_already_add"));
+            } else if (selectedList.some(user => user.email === address)) {
+                reject(_t("watcha|user_already_add"));
+            } else if (room && this.isMemberWithMembership(address, "join")) {
+                reject(_t("watcha|user_already_room_member"));
+            } else if (room && this.isMemberWithMembership(address, "invite")) {
+                reject(_t("watcha|user_already_inivte_room"));
+            } else if (
+                // A known user keeps being invitable whatever its email domain.
+                !suggestedList.some(user => user.email === address) &&
+                !originalList.some(user => user.email === address) &&
+                Email.hasForbiddenDomainForPartner(address)
+            ) {
+                reject(_t("watcha|error_email_domain", { domain: address.split("@")[1] }));
+            } else {
+                accepted.push(address);
+            }
+        }
+
+        return { accepted, rejected };
+    };
 
     private isMemberWithMembership = (emailAddress: string, membership: "join" | "invite"): boolean => {
         const user = this.getUserFromEmailAddress(emailAddress);
@@ -165,33 +170,10 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
         }
     };
 
-    private submit = async () => {
-        const { addEmailAddressToSelectedList, onFinished } = this.props;
-        const { emailAddress } = this.state;
-
-        const field = this.fieldRef.current;
-        await field!.validate({ allowEmpty: false });
-
-        // Validation and state updates are async, so we need to wait for them to complete
-        // first. Queue a `setState` callback and wait for it to resolve.
-        await new Promise<void>(resolve => {
-            this.setState({}, resolve);
-        });
-
-        if (this.state.isValid) {
-            addEmailAddressToSelectedList(emailAddress);
-            onFinished();
-        } else {
-            field!.focus();
-            if (!this.state.isValid) {
-                field!.validate({ allowEmpty: false, focused: true });
-            }
-        }
-    };
-
     public render() {
         const { onFinished } = this.props;
-        const { emailAddress } = this.state;
+        const { input } = this.state;
+        const { accepted, rejected } = this.review();
 
         return (
             <BaseDialog
@@ -202,16 +184,40 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
             >
                 <div className="mx_Dialog_content">
                     <Field
-                        id="emailAddress"
+                        id="emailAddresses"
+                        element="textarea"
+                        rows={6}
                         ref={this.fieldRef}
-                        label={_t("auth|email_field_label")}
-                        placeholder={_t("watcha|email_placeholder")}
-                        value={emailAddress}
+                        label={_t("watcha|email_addresses_field_label")}
+                        placeholder={_t("watcha|email_addresses_placeholder")}
+                        value={input}
                         onChange={this.onChange}
-                        onValidate={this.onValidate}
                     />
+                    <div className="watcha_InvitePartnerDialog_hint">{ _t("watcha|email_addresses_hint") }</div>
+                    { rejected.length > 0 && (
+                        <div className="watcha_InvitePartnerDialog_rejected">
+                            <span>{ _t("watcha|ignored_email_addresses") }</span>
+                            <ul>
+                                { rejected.map(({ address, reason }) => (
+                                    <li key={address}>
+                                        <span className="watcha_InvitePartnerDialog_rejected_address">{ address }</span>
+                                        { ` — ${reason}` }
+                                    </li>
+                                )) }
+                            </ul>
+                        </div>
+                    ) }
                 </div>
-                <DialogButtons primaryButton={_t("action|ok")} onPrimaryButtonClick={this.onOk} onCancel={onFinished} />
+                <DialogButtons
+                    primaryButton={
+                        accepted.length
+                            ? _t("watcha|add_email_addresses", { count: accepted.length })
+                            : _t("action|add")
+                    }
+                    primaryDisabled={!accepted.length}
+                    onPrimaryButtonClick={this.onOk}
+                    onCancel={onFinished}
+                />
             </BaseDialog>
         );
     }

@@ -4002,6 +4002,10 @@
         "add_calendar_tasks_title": "Créez et partagez un calendrier comprenant une liste de tâches : il sera dédié au salon sans que vous ou aucun autre membre n'en soyez propriétaire",
         "administration": "Administration",
         "administration_title": "Ouvrez la console d'administration dans un nouvel onglet",
+        "add_email_addresses": {
+            "one": "Ajouter %(count)s adresse",
+            "other": "Ajouter %(count)s adresses"
+        },
         "already_invited": "Déjà invité",
         "already_room_member": "Déjà membre du salon",
         "attachment_button": "Afficher le bouton pièces jointes",
@@ -4021,6 +4025,9 @@
         "document_sharing": "Partage de documents",
         "documents": "Documents",
         "email_already_add": "Vous avez déjà ajouté cette adresse email à la liste d'invitation",
+        "email_addresses_field_label": "Adresses e-mail",
+        "email_addresses_hint": "Une adresse par ligne, ou séparées par une virgule, un point-virgule ou une espace. Une colonne copiée depuis un tableur peut être collée telle quelle.",
+        "email_addresses_placeholder": "joe@exemple.com; jeanne@exemple.com",
         "email_already_bound": "Cette adresse e-mail est déjà liée à votre compte",
         "email_placeholder": "joe@exemple.com",
         "empty_calendar": "Aucun agenda partagé avec ce salon",
@@ -4036,6 +4043,7 @@
         "error_start_dm": "Vous n'avez pas les droits pour créer une conversation privée !",
         "filter_users": "Filtrer les utilisateurs",
         "ignore_user_button": "Afficher le bouton pour ignorer l'utilisateur",
+        "ignored_email_addresses": "Les adresses suivantes ne seront pas invitées :",
         "ignore_user_button_description": "Également visible sur les invitations entrantes",
         "invitation_list": "Liste d'invitations",
         "invite_dialog": "Sélectionnez des utilisateurs<br/>Invitez-les<br/>Collaborez !",
