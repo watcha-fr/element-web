@@ -24,7 +24,7 @@ import { MatrixCall } from "matrix-js-sdk/src/webrtc/call";
 import { _t } from "../../../languageHandler";
 import { findDMForUser } from "../../../utils/dm/findDMForUser";
 import { getAddressType } from "../../../UserAddress";
-import { IInviteResult, inviteMultipleToRoom } from "../../../RoomInvite";
+import { inviteInBackground } from "../../../utils/watcha_backgroundInvite";
 import { InviteKind } from "./InviteDialogTypes";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
 import { privateShouldBeEncrypted } from "../../../utils/rooms";
@@ -549,43 +549,16 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
                 return;
             }
             if(client){
-                inviteMultipleToRoom(client, this.props.roomId, targetIds, true)
-                    .then(result => {
-                        if (!this.shouldAbortAfterInviteError(result)) {
-                            // handles setting error message too
-                            this.props.onFinished();
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        this.setState({
-                            busy: false,
-                            errorText: _t(
-                                "invite|error_invite",
-                            ),
-                        });
-                    });
+                // Inviting an external partner has the homeserver create an
+                // account and mail it: on a long list this takes minutes. The
+                // dialog is closed at once and the invitations carry on in the
+                // background, reported by a toast, instead of holding the user
+                // behind a spinner.
+                this.props.onFinished();
+                inviteInBackground(client, this.props.roomId, targetIds);
             }
         }
     };
-
-    // come from src/components/views/dialogs/InviteDialog.tsx
-    shouldAbortAfterInviteError(result: IInviteResult) {
-        const failedUsers = Object.keys(result.states).filter(a => result.states[a] === "error");
-        if (failedUsers.length > 0) {
-            this.setState({
-                busy: false,
-                errorText: _t(
-                    "invite|error_find_user_description",
-                    {
-                        csvNames: failedUsers.join(", "),
-                    },
-                ),
-            });
-            return true; // abort
-        }
-        return false;
-    }
 
     render(): React.ReactNode {
         const { onFinished } = this.props;

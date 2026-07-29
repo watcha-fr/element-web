@@ -4043,6 +4043,17 @@
         "ignore_user_button_description": "Also visible on incoming invitations",
         "invitation_list": "Invitation list",
         "invite_dialog": "Select users<br/>Invite them<br/>Collaborate!",
+        "invite_incomplete_title": "Incomplete invitations",
+        "invite_not_sent": {
+            "one": "%(count)s address could not be invited",
+            "other": "%(count)s addresses could not be invited"
+        },
+        "invite_progress": "%(sent)s of %(total)s invitations sent",
+        "invite_progress_title": "Sending invitations",
+        "invite_sent": {
+            "one": "%(count)s invitation sent",
+            "other": "%(count)s invitations sent"
+        },
         "invite_user": "Click to add this user to the invitation list",
         "invtation_externe": "You want to collaborate with a partner from outside your organisation: invite them by e-mail",
         "invitation_externe_comue": "Your contact is not in the list: click here to invite them by e-mail",

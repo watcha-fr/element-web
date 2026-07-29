@@ -4047,6 +4047,17 @@
         "ignore_user_button_description": "Également visible sur les invitations entrantes",
         "invitation_list": "Liste d'invitations",
         "invite_dialog": "Sélectionnez des utilisateurs<br/>Invitez-les<br/>Collaborez !",
+        "invite_incomplete_title": "Invitations incomplètes",
+        "invite_not_sent": {
+            "one": "%(count)s adresse n'a pas pu être invitée",
+            "other": "%(count)s adresses n'ont pas pu être invitées"
+        },
+        "invite_progress": "%(sent)s invitations envoyées sur %(total)s",
+        "invite_progress_title": "Envoi des invitations",
+        "invite_sent": {
+            "one": "%(count)s invitation envoyée",
+            "other": "%(count)s invitations envoyées"
+        },
         "invite_user": "Cliquez pour ajouter cet utilisateur à la liste d'invitation",
         "invtation_externe": "Vous souhaitez collaborer avec un partenaire extérieur à votre organisation : invitez-le par e-mail",
         "invitation_externe_comue": "Votre contact n'est pas dans la liste : cliquez ici pour l'inviter par e-mail",
