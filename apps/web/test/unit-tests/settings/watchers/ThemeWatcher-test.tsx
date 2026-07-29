@@ -205,4 +205,37 @@ describe("ThemeWatcher", function () {
         expect(themeWatcher.getEffectiveTheme()).toBe("custom-darkula");
         expect(themeWatcher.isUserOnDarkTheme()).toBe(true);
     });
+
+    // watcha+
+    describe("on the unauthenticated screens", () => {
+        afterEach(() => {
+            ThemeWatcher.isAuthScreen = false;
+        });
+
+        it("should force the Watcha theme over an explicit preference", () => {
+            // Given a user who explicitly asked for the dark theme
+            global.matchMedia = makeMatchMedia({});
+            SettingsStore.getValueAt = makeGetValueAt({ theme: "dark" });
+            SettingsStore.getValue = makeGetValue({ theme: "dark" });
+
+            // When we are on a login/welcome/register screen
+            ThemeWatcher.isAuthScreen = true;
+
+            // Then those screens stay Watcha-branded
+            expect(new ThemeWatcher().getEffectiveTheme()).toBe("watcha");
+        });
+
+        it("should not leak the Watcha theme once the user is logged in", () => {
+            // Given the flag was set while the login screen was up, then cleared
+            global.matchMedia = makeMatchMedia({});
+            SettingsStore.getValueAt = makeGetValueAt({ theme: "dark" });
+            SettingsStore.getValue = makeGetValue({ theme: "dark" });
+            ThemeWatcher.isAuthScreen = true;
+            ThemeWatcher.isAuthScreen = false;
+
+            // Then the user gets their own theme back
+            expect(new ThemeWatcher().getEffectiveTheme()).toBe("dark");
+        });
+    });
+    // +watcha
 });
