@@ -28,7 +28,7 @@ import SettingsStore from "../../settings/SettingsStore";
 import { SettingLevel } from "../../settings/SettingLevel";
 import Spinner from "../views/elements/Spinner";
 import AccessibleButton from "../views/elements/AccessibleButton";
-import { getDocumentWidgetUrl, getShareFileId, withFileId } from "../../utils/watcha_nextcloudUtils";
+import { getDocumentWidgetUrl, getShareFileId, withFileId, withPath } from "../../utils/watcha_nextcloudUtils";
 import { getRoomFolder, RoomFolderStatus } from "../../utils/watcha_nextcloudApi";
 
 interface IProps {
@@ -51,10 +51,12 @@ const WatchaDocumentPanel: React.FC<IProps> = ({ roomId, initialTabId, empty, em
     const [iframeLoading, setIframeLoading] = useState(true);
     const [resolving, setResolving] = useState(false);
     const [problem, setProblem] = useState<Problem | null>(null);
-    /** File id resolved at runtime, when the stored value does not carry one. */
-    const [resolvedFileId, setResolvedFileId] = useState<string | null>(null);
+    /**
+     * The folder as resolved for *this* user: its stable file id, and the path it
+     * is actually mounted at for them. Both are needed — see `withPath`.
+     */
+    const [resolved, setResolved] = useState<{ fileId: number | null; path: string | null } | null>(null);
     const nextcloudShare = useSettingValue("nextcloudShare", roomId) as string | undefined;
-    const storedFileId = nextcloudShare ? getShareFileId(nextcloudShare) : null;
 
     useEffect(() => {
         if (nextcloudShare) {
@@ -96,8 +98,8 @@ const WatchaDocumentPanel: React.FC<IProps> = ({ roomId, initialTabId, empty, em
                     case RoomFolderStatus.Ok:
                     case RoomFolderStatus.NoShare:
                         setProblem(null);
+                        setResolved({ fileId: folder.fileId, path: folder.path });
                         if (folder.fileId !== null) {
-                            setResolvedFileId(String(folder.fileId));
                             rememberFileId(shareUrl, folder.fileId);
                         }
                         return;
@@ -124,14 +126,18 @@ const WatchaDocumentPanel: React.FC<IProps> = ({ roomId, initialTabId, empty, em
         [client, roomId, rememberFileId],
     );
 
-    // Resolve on mount when the stored value has no file id, and whenever the
-    // bound folder changes. Rooms already carrying a file id cost nothing.
+    // Resolve on every mount, and whenever the bound folder changes.
+    //
+    // Not only when the stored value lacks a file id: the *path* is per-user and
+    // cannot be inferred from the room setting at all. Skipping this call was what
+    // made the panel fall back to the stored path — or, worse, to the user's root.
+    // It is a small authenticated GET, next to an iframe load.
     const resolveRef = useRef(resolve);
     resolveRef.current = resolve;
     useEffect(() => {
         setProblem(null);
-        setResolvedFileId(null);
-        if (nextcloudShare && !getShareFileId(nextcloudShare)) {
+        setResolved(null);
+        if (nextcloudShare) {
             void resolveRef.current(nextcloudShare);
         }
     }, [nextcloudShare]);
@@ -177,11 +183,20 @@ const WatchaDocumentPanel: React.FC<IProps> = ({ roomId, initialTabId, empty, em
                     break;
             }
         } else if (nextcloudShare) {
-            // Address the folder by file id whenever one is known, from the stored
-            // value or resolved just now. Only fall back to the stored path while
-            // a legacy room is still being resolved.
-            const shareUrl =
-                !storedFileId && resolvedFileId ? withFileId(nextcloudShare, resolvedFileId) : nextcloudShare;
+            // Point the Files app at the folder as *this* user sees it: the path it
+            // is mounted at for them, plus the stable file id so the folder stays
+            // highlighted. Both come from the resolution above.
+            //
+            // Until it answers, fall back to the value stored in the room — the
+            // pre-existing behaviour, correct for whoever picked the folder. Never
+            // omit the path: without it the Files app opens the user's root.
+            let shareUrl = nextcloudShare;
+            if (resolved?.path) {
+                shareUrl = withPath(shareUrl, resolved.path);
+            }
+            if (resolved?.fileId !== null && resolved?.fileId !== undefined) {
+                shareUrl = withFileId(shareUrl, resolved.fileId);
+            }
             panel = (
                 <>
                     {(iframeLoading || resolving) && <Spinner />}

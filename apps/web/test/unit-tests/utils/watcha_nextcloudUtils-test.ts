@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import { getDocumentWidgetUrl, getShareFileId, withFileId } from "../../../src/utils/watcha_nextcloudUtils";
+import { getDocumentWidgetUrl, getShareFileId, withFileId, withPath } from "../../../src/utils/watcha_nextcloudUtils";
 import SdkConfig from "../../../src/SdkConfig";
 
 const NEXTCLOUD = "https://nextcloud.example.org/";
@@ -73,34 +73,28 @@ describe("watcha_nextcloudUtils room folder addressing", () => {
         });
     });
 
+    describe("withPath", () => {
+        it("replaces the stored path with the one resolved for this user", () => {
+            // The stored path is whoever picked the folder's view of it; every
+            // recipient may rename their own mount or get a collision suffix.
+            const forThisUser = withPath(shareUrl({ dir: "/Nouveau dossier", fileid: "59" }), "/FACILITATEURS");
+
+            const params = new URL(forThisUser).searchParams;
+            expect(params.get("dir")).toBe("/FACILITATEURS");
+            expect(params.get("fileid")).toBe("59");
+        });
+    });
+
     describe("getDocumentWidgetUrl", () => {
-        it("addresses the folder by file id and omits the unreliable path", () => {
-            // The regression: `dir` was the path as seen by whoever picked the
-            // folder. Sent to a member whose mount is named differently, the Files
-            // app answered 404 — "folder not found".
+        it("always sends a path, and the file id alongside it", () => {
+            // Dropping `dir` and relying on `fileid` alone made the Files app open
+            // the user's root, exposing their whole personal tree in the panel:
+            // in the current frontend `fileid` is a selection hint, not a
+            // navigation target.
             const url = new URL(getDocumentWidgetUrl(shareUrl({ dir: "/Facilitateurs", fileid: "12345" })));
 
             expect(url.searchParams.get("fileid")).toBe("12345");
-            expect(url.searchParams.has("dir")).toBe(false);
-        });
-
-        it("resolves a renamed mount to the same folder for every recipient", () => {
-            // Same folder (parent share), three different mount names. Addressed
-            // by file id, all three produce the same request.
-            const owner = getDocumentWidgetUrl(shareUrl({ dir: "/Nouveau dossier", fileid: "59" }));
-            const memberA = getDocumentWidgetUrl(shareUrl({ dir: "/Facilitateurs", fileid: "59" }));
-            const memberB = getDocumentWidgetUrl(shareUrl({ dir: "/FACILITATEURS", fileid: "59" }));
-
-            expect(memberA).toBe(owner);
-            expect(memberB).toBe(owner);
-        });
-
-        it("is unaffected by a collision suffix in the mount name", () => {
-            // Nextcloud appends " (2)" when a mount name is already taken.
-            const plain = getDocumentWidgetUrl(shareUrl({ dir: "/Dossier", fileid: "77" }));
-            const suffixed = getDocumentWidgetUrl(shareUrl({ dir: "/Dossier (2)", fileid: "77" }));
-
-            expect(suffixed).toBe(plain);
+            expect(url.searchParams.get("dir")).toBe("/Facilitateurs");
         });
 
         it("still falls back to the stored path when no file id is known", () => {

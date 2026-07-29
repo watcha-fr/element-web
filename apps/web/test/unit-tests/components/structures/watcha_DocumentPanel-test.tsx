@@ -79,15 +79,22 @@ describe("watcha_DocumentPanel", () => {
         expect(getRoomFolder).not.toHaveBeenCalled();
     });
 
-    it("does not resolve anything when the stored value already carries a file id", () => {
-        // The common case once migrated: no extra round trip per panel open.
+    it("resolves the per-user path even when the stored value carries a file id", async () => {
+        // The path is per-user and cannot be inferred from the room setting, so a
+        // stored file id is not enough to skip the call.
         settings.nextcloudShare = shareValue({ dir: "/Nouveau dossier", fileid: "59" });
+        (getRoomFolder as jest.Mock).mockResolvedValue({
+            status: RoomFolderStatus.Ok,
+            fileId: 59,
+            path: "/FACILITATEURS",
+        });
 
         renderPanel();
+        await flushPromises();
 
-        expect(getRoomFolder).not.toHaveBeenCalled();
+        expect(getRoomFolder).toHaveBeenCalled();
+        await waitFor(() => expect(iframeSrc()).toContain("dir=%2FFACILITATEURS"));
         expect(iframeSrc()).toContain("fileid=59");
-        expect(iframeSrc()).not.toContain("dir=");
     });
 
     describe("soft migration of a legacy room", () => {
