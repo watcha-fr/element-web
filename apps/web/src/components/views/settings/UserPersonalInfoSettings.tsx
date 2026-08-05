@@ -19,6 +19,7 @@ import SettingsStore from "../../../settings/SettingsStore";
 import { UIFeature } from "../../../settings/UIFeature";
 import { AddRemoveThreepids } from "./AddRemoveThreepids";
 import { SettingsSection } from "./shared/SettingsSection.tsx";
+import SdkConfig from "../../../SdkConfig"; // watcha+
 
 type LoadingState = "loading" | "loaded" | "error";
 
@@ -103,25 +104,32 @@ export const UserPersonalInfoSettings: React.FC<UserPersonalInfoSettingsProps> =
                 </ThreepidSectionWrapper>
             </SettingsSubsection>
 
-            <SettingsSubsection
-                heading={_t("settings|general|msisdns_heading")}
-                stretchContent
-                data-testid="mx_AccountPhoneNumbers"
-            >
-                <ThreepidSectionWrapper
-                    error={_t("settings|general|unable_to_load_msisdns")}
-                    loadingState={loadingState}
+            {/* watcha+
+                Some deployments (e.g. ComUE) hide the phone-number section entirely:
+                no adding, no listing. Gated by config, off by default so upstream
+                behaviour is unchanged. */}
+            {!SdkConfig.get("watcha_hide_phone_number") && (
+                <SettingsSubsection
+                    heading={_t("settings|general|msisdns_heading")}
+                    stretchContent
+                    data-testid="mx_AccountPhoneNumbers"
                 >
-                    <AddRemoveThreepids
-                        mode="hs"
-                        medium={ThreepidMedium.Phone}
-                        threepids={phoneNumbers!}
-                        onChange={onMsisdnsChange}
-                        disabled={!canMake3pidChanges}
-                        isLoading={loadingState === "loading"}
-                    />
-                </ThreepidSectionWrapper>
-            </SettingsSubsection>
+                    <ThreepidSectionWrapper
+                        error={_t("settings|general|unable_to_load_msisdns")}
+                        loadingState={loadingState}
+                    >
+                        <AddRemoveThreepids
+                            mode="hs"
+                            medium={ThreepidMedium.Phone}
+                            threepids={phoneNumbers!}
+                            onChange={onMsisdnsChange}
+                            disabled={!canMake3pidChanges}
+                            isLoading={loadingState === "loading"}
+                        />
+                    </ThreepidSectionWrapper>
+                </SettingsSubsection>
+            )}
+            {/* +watcha */}
         </SettingsSection>
     );
 };

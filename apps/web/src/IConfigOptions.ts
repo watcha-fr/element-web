@@ -234,6 +234,9 @@ export interface IConfigOptions {
     watcha_sso_profile_url?: string;
     watcha_email_base_url?: string;
     watcha_support_email_address?: string;
+    // Hide the "Phone numbers" section from the user settings entirely
+    // (no adding, no listing). Off by default. Requested by ComUE.
+    watcha_hide_phone_number?: boolean;
     /* eslint-enable camelcase */
     // +watcha
 }
