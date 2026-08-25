@@ -232,6 +232,15 @@ describe("<AccountUserSettingsTab />", () => {
             });
 
             mockClient.getIdentityServerUrl.mockReturnValue(undefined);
+
+            // watcha+
+            // Ces tests amont valident la capacité serveur `m.3pid_changes`. La garde Watcha
+            // `watcha_SitivFieldDisabled` (activée par défaut) gèle les e-mails indépendamment
+            // de cette capacité : on la neutralise ici, et on la teste explicitement plus bas.
+            jest.spyOn(SettingsStore, "getValue").mockImplementation(
+                (settingName) => settingName === UIFeature.ThirdPartyID,
+            );
+            // +watcha
         });
 
         it("should show loaders while 3pids load", () => {
@@ -322,6 +331,25 @@ describe("<AccountUserSettingsTab />", () => {
             expect(within(section).getByLabelText("Email Address")).not.toBeDisabled();
             expect(within(section).getByText("Add")).not.toHaveAttribute("aria-disabled");
         });
+
+        // watcha+
+        it("should not allow email changes when watcha_SitivFieldDisabled is set", async () => {
+            jest.spyOn(SettingsStore, "getValue").mockImplementation(
+                (settingName) =>
+                    settingName === UIFeature.ThirdPartyID || settingName === UIFeature.watcha_SitivFieldDisabled,
+            );
+
+            render(getComponent());
+
+            await flushPromises();
+
+            const section = screen.getByTestId("mx_AccountEmailAddresses");
+
+            expect(within(section).getByLabelText("Email Address")).toBeDisabled();
+            expect(within(section).getByText("Add")).toHaveAttribute("aria-disabled", "true");
+            expect(within(section).getByText("Remove")).toHaveAttribute("aria-disabled", "true");
+        });
+        // +watcha
 
         describe("when 3pid changes capability is disabled", () => {
             beforeEach(() => {

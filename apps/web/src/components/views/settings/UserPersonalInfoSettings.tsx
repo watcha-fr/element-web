@@ -81,6 +81,12 @@ export const UserPersonalInfoSettings: React.FC<UserPersonalInfoSettingsProps> =
 
     if (!SettingsStore.getValue(UIFeature.ThirdPartyID)) return null;
 
+    // watcha+
+    // Les adresses e-mail sont pilotées par l'IdP : on gèle l'ajout et la suppression.
+    // Reprise de la garde que l'ancien fork portait sur EmailAddresses.tsx, supprimé en amont.
+    const emailsDisabled = !canMake3pidChanges || SettingsStore.getValue(UIFeature.watcha_SitivFieldDisabled);
+    // +watcha
+
     return (
         <SettingsSection heading={_t("settings|general|personal_info")} className="mx_UserPersonalInfoSettings">
             <SettingsSubsection
@@ -97,7 +103,7 @@ export const UserPersonalInfoSettings: React.FC<UserPersonalInfoSettingsProps> =
                         medium={ThreepidMedium.Email}
                         threepids={emails!}
                         onChange={onEmailsChange}
-                        disabled={!canMake3pidChanges}
+                        disabled={emailsDisabled} // watcha+
                         isLoading={loadingState === "loading"}
                     />
                 </ThreepidSectionWrapper>
