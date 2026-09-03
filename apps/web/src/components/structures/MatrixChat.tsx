@@ -470,9 +470,28 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
     private async maybePrimeNextcloudSession(): Promise<boolean> {
         if (!SdkConfig.get().watcha_nextcloud_session_priming) return false;
         if (!SettingsStore.getValue(UIFeature.watcha_Nextcloud)) return false;
-        // A partner has no Nextcloud account, and registration is open on some deployments:
-        // priming would create one behind their back.
-        if (MatrixClientPeg.get()?.isPartner()) return false;
+
+        const client = MatrixClientPeg.get();
+        if (!client) return false;
+
+        // Same rule the room summary card applies to its Nextcloud buttons: a partner holds a
+        // Nextcloud account only where the deployment authenticates partners externally.
+        // Getting this wrong in either direction hurts — skipping them where they do have an
+        // account denies the priming to the majority of some deployments, and priming them where
+        // they do not would create an account behind their back, registration being open.
+        if (client.isPartner()) {
+            let partnersHaveNextcloud = false;
+            try {
+                const capabilities = await client.getCapabilities();
+                partnersHaveNextcloud = Boolean(
+                    capabilities.watcha?.external_authentication_for_partners?.enabled,
+                );
+            } catch {
+                // Unknown policy: leave the account alone.
+                return false;
+            }
+            if (!partnersHaveNextcloud) return false;
+        }
 
         try {
             if (window.sessionStorage.getItem(NEXTCLOUD_SESSION_PRIMED_KEY)) return false;
