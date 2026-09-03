@@ -144,7 +144,11 @@ import { type IScreen } from "../../vector/routing.ts";
 import { type URLParams } from "../../vector/url_utils.ts";
 import { SSO_LANGUAGE_KEY } from "../../Login"; // watcha+
 // watcha+
-import { getNextcloudSessionPrimingUrl, NEXTCLOUD_SESSION_PRIMED_KEY } from "../../utils/watcha_nextcloudUtils";
+import {
+    getNextcloudSessionPrimingUrl,
+    isNextcloudReachable,
+    NEXTCLOUD_SESSION_PRIMED_KEY,
+} from "../../utils/watcha_nextcloudUtils";
 // +watcha
 
 // legacy export
@@ -392,7 +396,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             // Placed after the client is created, so that isPartner() is populated from the
             // stored credentials, but before postLoginSetup, whose crypto setup and first sync
             // the navigation would otherwise throw away.
-            if (this.maybePrimeNextcloudSession()) {
+            if (await this.maybePrimeNextcloudSession()) {
                 return;
             }
             // +watcha
@@ -463,7 +467,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
      * The sessionStorage guard is not cosmetic: the `user_oidc` route carries Nextcloud's
      * BruteForceProtection, and a whole institution usually shares one public IP.
      */
-    private maybePrimeNextcloudSession(): boolean {
+    private async maybePrimeNextcloudSession(): Promise<boolean> {
         if (!SdkConfig.get().watcha_nextcloud_session_priming) return false;
         if (!SettingsStore.getValue(UIFeature.watcha_Nextcloud)) return false;
         // A partner has no Nextcloud account, and registration is open on some deployments:
@@ -472,9 +476,25 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
 
         try {
             if (window.sessionStorage.getItem(NEXTCLOUD_SESSION_PRIMED_KEY)) return false;
-            window.sessionStorage.setItem(NEXTCLOUD_SESSION_PRIMED_KEY, "1");
         } catch {
             // Without usable sessionStorage there is no loop guard, so do not prime at all.
+            return false;
+        }
+
+        // Asked before navigating, and not after: a Nextcloud that is down would otherwise leave
+        // the user on a gateway error, having just logged in successfully. Measured at ~170 ms on
+        // a healthy deployment. Keycloak needs no such check — were it down, the login that just
+        // happened could not have.
+        if (!(await isNextcloudReachable())) {
+            logger.warn("Nextcloud does not answer, skipping session priming");
+            return false;
+        }
+
+        try {
+            // Only now, so that a deployment that was merely unreachable gets another chance at
+            // the next login rather than being written off for the whole browser session.
+            window.sessionStorage.setItem(NEXTCLOUD_SESSION_PRIMED_KEY, "1");
+        } catch {
             return false;
         }
 

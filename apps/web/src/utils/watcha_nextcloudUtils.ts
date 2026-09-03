@@ -74,6 +74,28 @@ export function getNextcloudSessionPrimingUrl(fragmentAfterLogin: string) {
     return url.toString();
 }
 
+/**
+ * Whether Nextcloud answers at all, asked on its public `status.php`.
+ *
+ * Priming navigates away from Element, so a Nextcloud that is down would strand the user on a
+ * gateway error *after* a successful login — the Matrix session is already persisted by then, but
+ * the browser has left the app. Checking first turns that into a silent skip.
+ */
+export async function isNextcloudReachable(timeoutMs = 2000): Promise<boolean> {
+    const url = getNextcloudBaseUrl();
+    url.pathname += "status.php";
+    try {
+        const response = await fetch(url.toString(), {
+            cache: "no-store",
+            signal: AbortSignal.timeout(timeoutMs),
+        });
+        return response.ok;
+    } catch {
+        // Unreachable, timed out, or blocked: all mean "do not navigate there".
+        return false;
+    }
+}
+
 export function getDocumentSelectorUrl(shareUrl: string, skipDirParam = true) {
     return getDocumentWidgetUrl(shareUrl, [RefineTargets.DocumentSelector], skipDirParam);
 }
