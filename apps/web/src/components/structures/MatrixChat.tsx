@@ -143,6 +143,9 @@ import { ModuleApi } from "../../modules/Api.ts";
 import { type IScreen } from "../../vector/routing.ts";
 import { type URLParams } from "../../vector/url_utils.ts";
 import { SSO_LANGUAGE_KEY } from "../../Login"; // watcha+
+// watcha+
+import { getNextcloudSessionPrimingUrl, NEXTCLOUD_SESSION_PRIMED_KEY } from "../../utils/watcha_nextcloudUtils";
+// +watcha
 
 // legacy export
 export { default as Views } from "../../Views";
@@ -385,6 +388,14 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             // accesses the new credentials just set in storage during attemptDelegatedAuthLogin
             // and sets logged in state
             await Lifecycle.restoreSessionFromStorage({ ignoreGuest: true });
+            // watcha+
+            // Placed after the client is created, so that isPartner() is populated from the
+            // stored credentials, but before postLoginSetup, whose crypto setup and first sync
+            // the navigation would otherwise throw away.
+            if (this.maybePrimeNextcloudSession()) {
+                return;
+            }
+            // +watcha
             await this.postLoginSetup();
             return;
         }
@@ -434,6 +445,44 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
      * This method either calls {@link onLoggedIn} directly, or switches to {@link Views.E2E_SETUP} or
      * {@link Views.COMPLETE_SECURITY}, which will later call {@link onCompleteSecurityE2eSetupFinished}.
      */
+    // watcha+
+    /**
+     * Open a Nextcloud session at the top level, once per browser session, then come back here.
+     *
+     * Returns true when the navigation has been started, in which case the caller must stop:
+     * the page is on its way out.
+     *
+     * Nextcloud is served from the same origin as Element, so once it holds a session the
+     * document panel's iframe works on a first-party cookie and never needs to authenticate
+     * again. What cannot work inside that iframe is *establishing* the session: the handshake
+     * goes out to Keycloak, which is a third-party context there, so its cookie is withheld —
+     * and for users federated through SAML the flow additionally crosses sites it cannot
+     * complete from a frame. Doing it here, right after a top-level login, is what makes the
+     * panel work by itself afterwards.
+     *
+     * The sessionStorage guard is not cosmetic: the `user_oidc` route carries Nextcloud's
+     * BruteForceProtection, and a whole institution usually shares one public IP.
+     */
+    private maybePrimeNextcloudSession(): boolean {
+        if (!SdkConfig.get().watcha_nextcloud_session_priming) return false;
+        if (!SettingsStore.getValue(UIFeature.watcha_Nextcloud)) return false;
+        // A partner has no Nextcloud account, and registration is open on some deployments:
+        // priming would create one behind their back.
+        if (MatrixClientPeg.get()?.isPartner()) return false;
+
+        try {
+            if (window.sessionStorage.getItem(NEXTCLOUD_SESSION_PRIMED_KEY)) return false;
+            window.sessionStorage.setItem(NEXTCLOUD_SESSION_PRIMED_KEY, "1");
+        } catch {
+            // Without usable sessionStorage there is no loop guard, so do not prime at all.
+            return false;
+        }
+
+        window.location.assign(getNextcloudSessionPrimingUrl(this.getFragmentAfterLogin()));
+        return true;
+    }
+    // +watcha
+
     private async postLoginSetup(): Promise<void> {
         const cli = MatrixClientPeg.safeGet();
         const cryptoEnabled = Boolean(cli.getCrypto());

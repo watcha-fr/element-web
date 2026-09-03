@@ -48,6 +48,32 @@ export function getNextcloudBaseUrl() {
     return url;
 }
 
+/** Key of the once-per-browser-session guard of the Nextcloud session priming. */
+export const NEXTCLOUD_SESSION_PRIMED_KEY = "watcha_nextcloud_session_primed";
+
+/**
+ * URL of the `user_oidc` route that opens a Nextcloud session, then comes back to Element.
+ *
+ * That route is a public page and requires no CSRF token, so a plain navigation is enough.
+ * It also short-circuits itself: when a Nextcloud session already exists it redirects to
+ * `redirectUrl` straight away, without any OIDC round trip — which makes priming cheap and
+ * idempotent.
+ *
+ * `redirectUrl` must be a path starting with a single "/" followed by a non-"/" character,
+ * because `user_oidc` validates it against that shape to refuse open redirects. A bare "/"
+ * is therefore rejected, hence the fragment — which doubles as a way to land the user on the
+ * screen they were heading to.
+ */
+export function getNextcloudSessionPrimingUrl(fragmentAfterLogin: string) {
+    const url = getNextcloudBaseUrl();
+    const providerId = SdkConfig.get().watcha_nextcloud_oidc_provider_id ?? 1;
+    url.pathname += `apps/user_oidc/login/${providerId}`;
+    // `searchParams` percent-encodes the "#", without which the browser would keep the
+    // fragment to itself and the server would never see the target screen.
+    url.searchParams.set("redirectUrl", `/${fragmentAfterLogin || "#/home"}`);
+    return url.toString();
+}
+
 export function getDocumentSelectorUrl(shareUrl: string, skipDirParam = true) {
     return getDocumentWidgetUrl(shareUrl, [RefineTargets.DocumentSelector], skipDirParam);
 }
