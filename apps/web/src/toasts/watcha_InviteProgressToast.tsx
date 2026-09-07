@@ -20,6 +20,7 @@ import { _t } from "../languageHandler";
 import Modal from "../Modal";
 import ErrorDialog from "../components/views/dialogs/ErrorDialog";
 import GenericToast from "../components/views/toasts/GenericToast";
+import DraggableToast from "../components/views/toasts/watcha_DraggableToast";
 import ProgressBar from "../components/views/elements/ProgressBar";
 import ToastStore from "../stores/ToastStore";
 
@@ -38,10 +39,25 @@ interface IProgressProps {
 }
 
 const InviteProgress: React.FC<IProgressProps> = ({ sent, total }) => (
-    <div>
+    <DraggableToast>
         <div className="mx_Toast_description">{_t("watcha|invite_progress", { sent, total })}</div>
         <ProgressBar value={sent} max={total} />
-    </div>
+    </DraggableToast>
+);
+
+/**
+ * The report is a plain `GenericToast`, made movable the same way as the
+ * progress it replaces — so that it does not come back over whatever the user
+ * had cleared the toast away from.
+ *
+ * Declared at module level: `addOrReplaceToast` compares components by
+ * identity, and one rebuilt at every call would remount the toast — losing the
+ * listeners of the drag — at every invitation sent.
+ */
+const DraggableGenericToast: React.FC<React.ComponentProps<typeof GenericToast>> = (props) => (
+    <DraggableToast>
+        <GenericToast {...props} />
+    </DraggableToast>
 );
 
 /**
@@ -72,7 +88,7 @@ export const showSuccessToast = (sent: number): void => {
             primaryLabel: _t("action|ok"),
             onPrimaryClick: hideToast,
         },
-        component: GenericToast,
+        component: DraggableGenericToast,
         priority: TOAST_PRIORITY,
     });
     window.setTimeout(hideToast, SUCCESS_TOAST_TIMEOUT_MS);
@@ -110,7 +126,7 @@ export const showFailureToast = (sent: number, failures: { address: string; erro
             primaryLabel: _t("action|view"),
             onPrimaryClick: showDetails,
         },
-        component: GenericToast,
+        component: DraggableGenericToast,
         priority: TOAST_PRIORITY,
     });
 };
