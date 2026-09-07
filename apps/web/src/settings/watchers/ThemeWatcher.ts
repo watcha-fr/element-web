@@ -26,6 +26,24 @@ interface ThemeWatcherEventHandlerMap {
 }
 
 export default class ThemeWatcher extends TypedEventEmitter<ThemeWatcherEvent, ThemeWatcherEventHandlerMap> {
+    // watcha+
+    /**
+     * Whether the app is currently showing an unauthenticated screen (welcome, login,
+     * register, forgot password). While it is, {@link getEffectiveTheme} forces the
+     * Watcha-branded theme so those pages stay on brand whatever the stored preference.
+     *
+     * Replaces the upstream `ThemeController.isLogin`, dropped in element-web #31293,
+     * which forced "light" in exactly the same situation. Like that flag this one
+     * defaults to false and is driven by MatrixChat, which is the only component that
+     * knows which view is on screen. It must NOT be inferred from `window.location.hash`:
+     * an unset hash is indistinguishable from a logged-in user landing on the bare root
+     * URL, and nothing rechecks the theme on navigation, so such a user would be stuck
+     * on the Watcha theme for the whole session. Contexts with no route at all (unit
+     * tests, the Jitsi widget wrapper) would silently get it too.
+     */
+    public static isAuthScreen = false;
+    // +watcha
+
     private themeWatchRef?: string;
     private systemThemeWatchRef?: string;
     private dispatcherRef?: string;
@@ -88,14 +106,12 @@ export default class ThemeWatcher extends TypedEventEmitter<ThemeWatcherEvent, T
         // Dev note: Much of this logic is replicated in the AppearanceUserSettingsTab
 
         // watcha+
-        // Force the Watcha-branded theme on the login/welcome page, before the user has
-        // had a chance to express any theme preference. ThemeController.isLogin no longer
-        // exists upstream → fall back to URL hash detection (matches vector/app.tsx logic).
+        // Force the Watcha-branded theme on the unauthenticated screens, where the user
+        // has not yet had a chance to express any theme preference. See isAuthScreen.
         // Note: "watcha" is a built-in theme (BUILTIN_THEMES in theme.ts + webpack entry
         // theme-watcha) — must NOT use the "custom-" prefix or setTheme() would route to
         // getCustomTheme() and throw "Can't find custom theme 'watcha'".
-        const hash = window.location.hash;
-        if (hash === "" || hash === "#/login" || hash === "#/welcome" || hash.startsWith("#/forgot_password")) {
+        if (ThemeWatcher.isAuthScreen) {
             return "watcha";
         }
         // +watcha

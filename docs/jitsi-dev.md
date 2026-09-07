@@ -96,5 +96,12 @@ Critically, when the widget URL is reconstructed it does _not_ take into account
 config.json's `preferredDomain` for Jitsi. If it did this, users would end up on different
 conference servers and therefore different calls entirely.
 
+The one exception is the opt-in `jitsi.force_preferred_domain` config flag (default off),
+which does override the stored domain. It exists for a deployment that has migrated its
+Jitsi instance: the old domain stays frozen in the room state of every pre-existing widget,
+so those conferences fail to load until the widget is deleted and recreated. Because it
+defeats the guarantee described above, it must only be enabled where a single Jitsi host
+serves the whole deployment.
+
 **Note**: Per [jitsi.md](./jitsi.md) the `preferredDomain` can also come from the server's
 client .well-known data.

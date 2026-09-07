@@ -92,10 +92,23 @@ const LegacyCallEventFactory: Factory<FactoryProps & { callEventGrouper: LegacyC
     <LegacyCallEvent ref={ref} {...props} />
 );
 const CallEventFactory: Factory = (ref, props) => <CallEvent ref={ref} {...props} />;
+/* watcha!
 export const TextualEventFactory: Factory = (ref, props) => {
     const vm = new TextualEventViewModel(props);
     return <TextualEventView vm={vm} className="mx_TextualEvent" />;
 };
+!watcha */
+// watcha+
+// Le `new TextualEventViewModel(props)` upstream est exécuté à chaque render et
+// abonne un listener `SentinelUpdated` jamais libéré (MaxListenersExceededWarning,
+// fuite mémoire sur chaque re-render de timeline). On lie le ViewModel au cycle de
+// vie du composant, comme EncryptionEventWrappedView ci-dessous.
+function TextualEventWrappedView(props: FactoryProps): JSX.Element {
+    const vm = useCreateAutoDisposedViewModel(() => new TextualEventViewModel(props));
+    return <TextualEventView vm={vm} className="mx_TextualEvent" />;
+}
+export const TextualEventFactory: Factory = (ref, props) => <TextualEventWrappedView {...props} />;
+// +watcha
 function EncryptionEventWrappedView({ mxEvent, ref }: IBodyProps): JSX.Element {
     const cli = useMatrixClientContext();
     const vm = useCreateAutoDisposedViewModel(() => new EncryptionEventViewModel({ mxEvent, cli }));

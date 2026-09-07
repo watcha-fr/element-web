@@ -150,6 +150,14 @@ export { default as Views } from "../../Views";
 const AUTH_SCREENS = ["register", "mobile_register", "login", "forgot_password", "start_sso", "start_cas", "welcome"];
 AUTH_SCREENS.push("partner"); // watcha+
 
+// watcha+
+// The views shown to a user who is not logged in yet. While one of them is on screen we
+// force the Watcha-branded theme, mirroring the upstream `ThemeController.isLogin` that
+// forced "light" until element-web #31293. SOFT_LOGOUT is deliberately absent, as it was
+// upstream: the user is known there and keeps their own theme.
+const AUTH_SCREEN_VIEWS = [Views.WELCOME, Views.LOGIN, Views.REGISTER, Views.FORGOT_PASSWORD];
+// +watcha
+
 // Actions that are redirected through the onboarding process prior to being
 // re-dispatched. NOTE: some actions are non-trivial and would require
 // re-factoring to be included in this list in future.
@@ -532,6 +540,19 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
     }
 
     public componentDidUpdate(prevProps: IProps, prevState: IState): void {
+        // watcha+
+        // Drive the Watcha branding of the unauthenticated screens from the view state
+        // machine, which is the single place that knows every transition in and out of
+        // them. Upstream set `ThemeController.isLogin` from each view* method instead;
+        // doing it here cannot miss a path.
+        if (prevState.view !== this.state.view) {
+            const isAuthScreen = AUTH_SCREEN_VIEWS.includes(this.state.view);
+            if (ThemeWatcher.isAuthScreen !== isAuthScreen) {
+                ThemeWatcher.isAuthScreen = isAuthScreen;
+                this.themeWatcher?.recheck();
+            }
+        }
+        // +watcha
         if (this.shouldTrackPageChange(prevState, this.state)) {
             const durationMs = this.stopPageChangeTimer();
             if (durationMs != null) {

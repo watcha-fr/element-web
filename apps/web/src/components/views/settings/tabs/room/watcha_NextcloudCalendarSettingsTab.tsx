@@ -49,11 +49,14 @@ export default ({ roomId }: IProps) => {
     const client = useContext(MatrixClientContext);
     const room = client.getRoom(roomId);
 
-    const getCalendarEvents = useCallback((): ICalendarEvents => ({
-        VEVENT_VTODO: room!.currentState.getStateEvents(CALENDAR_EVENT_TYPE, StateKeys.VEVENT_VTODO),
-        VEVENT: room!.currentState.getStateEvents(CALENDAR_EVENT_TYPE, StateKeys.VEVENT),
-        VTODO: room!.currentState.getStateEvents(CALENDAR_EVENT_TYPE, StateKeys.VTODO),
-    }), [room]);
+    const getCalendarEvents = useCallback(
+        (): ICalendarEvents => ({
+            VEVENT_VTODO: room!.currentState.getStateEvents(CALENDAR_EVENT_TYPE, StateKeys.VEVENT_VTODO),
+            VEVENT: room!.currentState.getStateEvents(CALENDAR_EVENT_TYPE, StateKeys.VEVENT),
+            VTODO: room!.currentState.getStateEvents(CALENDAR_EVENT_TYPE, StateKeys.VTODO),
+        }),
+        [room],
+    );
 
     const [calendarEvents, setCalendarEvents] = useState(getCalendarEvents());
 
@@ -68,13 +71,12 @@ export default ({ roomId }: IProps) => {
         const event = calendarEvents[stateKey];
         return event && isOwnedByMe(event);
     };
-    
 
     const serviceShareAny = calendarEvents[StateKeys.VEVENT_VTODO]?.getContent()?.is_personal === false;
 
-    const iShareAny = Object.values(calendarEvents).some(event => event && isOwnedByMe(event));
+    const iShareAny = Object.values(calendarEvents).some((event) => event && isOwnedByMe(event));
 
-    const anyIsShared = Object.values(calendarEvents).some(event => event?.getContent()?.id);
+    const anyIsShared = Object.values(calendarEvents).some((event) => event?.getContent()?.id);
 
     const getSharedCalendarId = (stateKey: StateKeys): number | null =>
         calendarEvents[stateKey]?.getContent()?.id || null;
@@ -126,31 +128,31 @@ export default ({ roomId }: IProps) => {
     if (!anyIsShared) {
         addButton = (
             <div className="mx_SettingsTab_section">
-                <AccessibleButton
-                    kind="primary"
-                    onClick={onNew}
-                    title={_t(
-                        "watcha|add_calendar_tasks_title",
-                    )}
-                >
-                    { _t("watcha|add_calendar_tasks") }
+                <AccessibleButton kind="primary" onClick={onNew} title={_t("watcha|add_calendar_tasks_title")}>
+                    {_t("watcha|add_calendar_tasks")}
                 </AccessibleButton>
             </div>
         );
     }
 
     const onRemove = async (): Promise<void> => {
-        Modal.createDialog(QuestionDialog, {
+        // watcha+
+        // `onFinished` must NOT be passed as a prop: Modal.createDialog types its
+        // props as `Omit<ComponentProps<C>, "onFinished">` and supplies its own
+        // (`onFinished={closeDialog}`), so a callback given here is silently
+        // dropped — the dialog closes and nothing else happens, with no error and
+        // no request. The outcome is read from the returned promise instead.
+        const { finished } = Modal.createDialog(QuestionDialog, {
             danger: true,
             title: _t("watcha|delete_calendar_tasks_title"),
             description: _t("watcha|delete_calendar_tasks"),
             button: _t("action|delete"),
-            onFinished: proceed => {
-                if (proceed) {
-                    client.unsetRoomCalendar(roomId, StateKeys.VEVENT_VTODO);
-                }
-            },
         });
+        const [proceed] = await finished;
+        if (proceed) {
+            await client.unsetRoomCalendar(roomId, StateKeys.VEVENT_VTODO);
+        }
+        // +watcha
     };
 
     let deleteButton: React.ReactNode;
@@ -158,7 +160,7 @@ export default ({ roomId }: IProps) => {
         deleteButton = (
             <div className="mx_SettingsTab_section">
                 <AccessibleButton kind="danger" onClick={onRemove}>
-                    { _t("action|delete") }
+                    {_t("action|delete")}
                 </AccessibleButton>
             </div>
         );
@@ -173,13 +175,22 @@ export default ({ roomId }: IProps) => {
         }
         const calendarContent = calendarEvent?.getContent();
         const calendar: ICalendarEventContent | undefined = calendarContent as ICalendarEventContent;
-        
-        if (!calendar || isEmpty(calendar) || (calendarEvent && !isOwnedByAnUser(calendarEvent)) || (calendarEvent && isOwnedByMe(calendarEvent))) {
+
+        if (
+            !calendar ||
+            isEmpty(calendar) ||
+            (calendarEvent && !isOwnedByAnUser(calendarEvent)) ||
+            (calendarEvent && isOwnedByMe(calendarEvent))
+        ) {
             continue;
         }
         const ownerId = calendarEvent && isOwnedByAnUser(calendarEvent) ? calendarEvent.getSender() : null;
         sharedCalendarsList.push(
-            <SharedCalendar key={stateKey} {...{ roomId, stateKey, ownerId: ownerId ?? ""}} calendarId={calendar.id} />,
+            <SharedCalendar
+                key={stateKey}
+                {...{ roomId, stateKey, ownerId: ownerId ?? "" }}
+                calendarId={calendar.id}
+            />,
         );
     }
 
@@ -188,9 +199,9 @@ export default ({ roomId }: IProps) => {
         sharedCalendars = (
             <div className="mx_SettingsTab_section watcha_CalendarSettingsTab_sharedCalendarsList">
                 <span className="mx_SettingsTab_subheading">
-                    { _t("watcha|count_shared_calendar_list", { count: sharedCalendarsList.length }) }
+                    {_t("watcha|count_shared_calendar_list", { count: sharedCalendarsList.length })}
                 </span>
-                { sharedCalendarsList }
+                {sharedCalendarsList}
             </div>
         );
     }
@@ -244,10 +255,8 @@ export default ({ roomId }: IProps) => {
     let toggle: React.ReactNode;
     if (ownCalendarsLists.length) {
         toggle = (
-            <AccessibleButton
-                kind="link"
-                onClick={() => setShowAdvanced(!showAdvanced)}>
-                { showAdvanced ? _t("action|hide_advanced") : _t("action|show_advanced") }
+            <AccessibleButton kind="link" onClick={() => setShowAdvanced(!showAdvanced)}>
+                {showAdvanced ? _t("action|hide_advanced") : _t("action|show_advanced")}
             </AccessibleButton>
         );
     }
@@ -256,26 +265,22 @@ export default ({ roomId }: IProps) => {
     if (ownCalendarsLists.length && showAdvanced) {
         advanced = (
             <>
-                <div className="mx_SettingsTab_subsectionText">
-                    { _t("watcha|share_ressources_calendar_tasks") }
-                </div>
-                { ownCalendarsLists }
+                <div className="mx_SettingsTab_subsectionText">{_t("watcha|share_ressources_calendar_tasks")}</div>
+                {ownCalendarsLists}
             </>
         );
     }
 
     return (
         <div className="mx_SettingsTab">
-            <div className="mx_SettingsTab_heading">{ _t("watcha|calendar_tasks_sharing") }</div>
-            <div className="mx_SettingsTab_subsectionText">
-                { _t("watcha|calendar_tasks_sharing_text") }
-            </div>
-            { addButton }
-            { deleteButton }
-            { sharedCalendars }
+            <div className="mx_SettingsTab_heading">{_t("watcha|calendar_tasks_sharing")}</div>
+            <div className="mx_SettingsTab_subsectionText">{_t("watcha|calendar_tasks_sharing_text")}</div>
+            {addButton}
+            {deleteButton}
+            {sharedCalendars}
             <div>
-                { toggle }
-                { advanced }
+                {toggle}
+                {advanced}
             </div>
         </div>
     );
@@ -306,17 +311,18 @@ const SharedCalendar: React.FC<ISharedCalendarProps> = ({ roomId, stateKey, cale
         });
     }, [client, calendarId, ownerId]);
 
-    const onUnshare = (): void => {
-        Modal.createDialog(QuestionDialog, {
+    const onUnshare = async (): Promise<void> => {
+        // watcha+ see the note on onRemove: onFinished cannot be passed as a prop.
+        const { finished } = Modal.createDialog(QuestionDialog, {
             title: _t("watcha|stop_sharing_title"),
             description: _t("watcha|stop_sharing_description"),
             button: _t("watcha|stop_sharing"),
-            onFinished: proceed => {
-                if (proceed) {
-                    client.unsetRoomCalendar(roomId, stateKey);
-                }
-            },
         });
+        const [proceed] = await finished;
+        if (proceed) {
+            await client.unsetRoomCalendar(roomId, stateKey);
+        }
+        // +watcha
     };
 
     let icons: React.ReactNode;
@@ -327,14 +333,18 @@ const SharedCalendar: React.FC<ISharedCalendarProps> = ({ roomId, stateKey, cale
                     className="watcha_CalendarSettingsTab_SharedCalendar_maskedIcon_container"
                     title={_t("watcha|calendar_include_tasks") + displayName}
                 >
-                    <span className={
-                        "watcha_CalendarSettingsTab_SharedCalendar_maskedIcon " +
-                        "watcha_CalendarSettingsTab_SharedCalendar_calendarIcon"
-                    } />
-                    <span className={
-                        "watcha_CalendarSettingsTab_SharedCalendar_maskedIcon " +
-                        "watcha_CalendarSettingsTab_SharedCalendar_tasksIcon"
-                    } />
+                    <span
+                        className={
+                            "watcha_CalendarSettingsTab_SharedCalendar_maskedIcon " +
+                            "watcha_CalendarSettingsTab_SharedCalendar_calendarIcon"
+                        }
+                    />
+                    <span
+                        className={
+                            "watcha_CalendarSettingsTab_SharedCalendar_maskedIcon " +
+                            "watcha_CalendarSettingsTab_SharedCalendar_tasksIcon"
+                        }
+                    />
                 </div>
             );
             break;
@@ -364,16 +374,16 @@ const SharedCalendar: React.FC<ISharedCalendarProps> = ({ roomId, stateKey, cale
 
     return (
         <div className="watcha_CalendarSettingsTab_SharedCalendar">
-            { icons }
+            {icons}
             <span className="watcha_CalendarSettingsTab_SharedCalendar_ownerDisplayName" title={ownerDisplayName}>
-                { ownerDisplayName }
+                {ownerDisplayName}
             </span>
             <AccessibleButton
                 className="watcha_CalendarSettingsTab_SharedCalendar_unshareButton"
                 kind="danger_outline"
                 onClick={onUnshare}
             >
-                { _t("watcha|stop_sharing") }
+                {_t("watcha|stop_sharing")}
             </AccessibleButton>
         </div>
     );
@@ -410,13 +420,13 @@ const OwnCalendarList: React.FC<IOwnCalendarListProps> = ({
         client.unsetRoomCalendar(roomId, stateKey);
     };
 
-    const iAmCurrentlySharing: boolean = calendars.some(calendar => calendar.id === sharedCalendarId);
+    const iAmCurrentlySharing: boolean = calendars.some((calendar) => calendar.id === sharedCalendarId);
 
     let unshareButton: React.ReactNode;
     if (iAmCurrentlySharing) {
         unshareButton = (
             <AccessibleButton kind="danger_outline" onClick={onUnshare}>
-                { _t("watcha|stop_sharing") }
+                {_t("watcha|stop_sharing")}
             </AccessibleButton>
         );
     }
@@ -424,27 +434,27 @@ const OwnCalendarList: React.FC<IOwnCalendarListProps> = ({
     const getLabel = (calendar: IOwnCalendar): React.ReactNode => {
         const displayName = (
             <span className="watcha_CalendarSettingsTab_OwnCalendarList_displayName" title={calendar.displayname}>
-                { calendar.displayname }
+                {calendar.displayname}
             </span>
         );
         return calendar.id === sharedCalendarId ? (
             <>
-                { displayName }
-                { unshareButton }
+                {displayName}
+                {unshareButton}
             </>
         ) : (
             displayName
         );
     };
 
-    let title: string="";
+    let title: string = "";
     if (disabled) {
         title = _t("watcha|error_two_ressources");
     }
 
     return (
         <div className="mx_SettingsTab_section" {...{ title }}>
-            <span className="mx_SettingsTab_subheading">{ subheading }</span>
+            <span className="mx_SettingsTab_subheading">{subheading}</span>
             <StyledRadioGroup
                 name={stateKey}
                 className="watcha_CalendarSettingsTab_OwnCalendarList_StyledRadioButton"

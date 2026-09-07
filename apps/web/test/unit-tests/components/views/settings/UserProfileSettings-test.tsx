@@ -19,6 +19,8 @@ import { ToastContext, type ToastRack } from "../../../../../src/contexts/ToastC
 import { OwnProfileStore } from "../../../../../src/stores/OwnProfileStore";
 import MatrixClientContext from "../../../../../src/contexts/MatrixClientContext";
 import Modal from "../../../../../src/Modal";
+import SettingsStore from "../../../../../src/settings/SettingsStore"; // watcha+
+import { UIFeature } from "../../../../../src/settings/UIFeature"; // watcha+
 
 interface MockedAvatarSettingProps {
     removeAvatar: () => void;
@@ -46,12 +48,14 @@ jest.mock("../../../../../src/dispatcher/dispatcher", () => ({
 let editInPlaceOnChange: (e: ChangeEvent<HTMLInputElement>) => void;
 let editInPlaceOnSave: () => void;
 let editInPlaceOnCancel: () => void;
+let editInPlaceDisabled: boolean | undefined; // watcha+
 
 interface MockedEditInPlaceProps {
     onChange: (e: ChangeEvent<HTMLInputElement>) => void;
     onSave: () => void;
     onCancel: () => void;
     value: string;
+    disabled?: boolean; // watcha+
 }
 
 jest.mock("@vector-im/compound-web", () => {
@@ -59,10 +63,11 @@ jest.mock("@vector-im/compound-web", () => {
     return {
         __esModule: true,
         ...compound,
-        EditInPlace: (({ onChange, onSave, onCancel, value }) => {
+        EditInPlace: (({ onChange, onSave, onCancel, value, disabled }) => {
             editInPlaceOnChange = onChange;
             editInPlaceOnSave = onSave;
             editInPlaceOnCancel = onCancel;
+            editInPlaceDisabled = disabled; // watcha+
             return <div>Mocked EditInPlace: {value}</div>;
         }) as React.FC<MockedEditInPlaceProps>,
     };
@@ -245,4 +250,35 @@ describe("ProfileSettings", () => {
 
         expect(Modal.createDialog).toHaveBeenCalled();
     });
+
+    // watcha+
+    describe("garde watcha_SitivFieldDisabled sur le nom affiché", () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it("gèle le nom affiché quand le drapeau est actif", async () => {
+            jest.spyOn(SettingsStore, "getValue").mockImplementation(
+                (settingName) => settingName === UIFeature.watcha_SitivFieldDisabled,
+            );
+
+            renderProfileSettings(toastRack, client);
+
+            expect(await screen.findByText(/Mocked EditInPlace/)).toBeInTheDocument();
+            expect(editInPlaceDisabled).toBe(true);
+        });
+
+        it("laisse la main à l'utilisateur sur les instances ComUE", async () => {
+            jest.spyOn(SettingsStore, "getValue").mockImplementation(
+                (settingName) =>
+                    settingName === UIFeature.watcha_SitivFieldDisabled || settingName === UIFeature.watcha_ComUE,
+            );
+
+            renderProfileSettings(toastRack, client);
+
+            expect(await screen.findByText(/Mocked EditInPlace/)).toBeInTheDocument();
+            expect(editInPlaceDisabled).toBe(false);
+        });
+    });
+    // +watcha
 });

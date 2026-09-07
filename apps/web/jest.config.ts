@@ -48,7 +48,13 @@ const config: Config = {
         "@vector-im/compound-web": "<rootDir>/node_modules/@vector-im/compound-web",
     },
     transformIgnorePatterns: [
-        `${path.join(__dirname, "../..")}/node_modules/.pnpm/(?!(mime|uuid|p-retry|is-network-error|react-merge-refs|is-ip|ip-regex|super-regex|function-timeout|time-span|convert-hrtime|clone-regexp|is-regexp|matrix-web-i18n|await-lock|@element-hq/web-shared-components|react-virtuoso|lodash|domutils|domhandler|domelementtype|dom-serializer|entities)).+$`,
+        // watcha+ matrix-js-sdk is pinned to a git revision of the Watcha fork, so
+        // pnpm stores it under .pnpm and it is resolved from TypeScript sources
+        // (see the `^matrix-js-sdk(.*)$` moduleNameMapper above). Without it in
+        // this allow-list nothing transforms it, and every suite fails to load on
+        // `import` in setupTests.ts.
+        `${path.join(__dirname, "../..")}/node_modules/.pnpm/(?!(matrix-js-sdk|mime|uuid|p-retry|is-network-error|react-merge-refs|is-ip|ip-regex|super-regex|function-timeout|time-span|convert-hrtime|clone-regexp|is-regexp|matrix-web-i18n|await-lock|@element-hq/web-shared-components|react-virtuoso|lodash|domutils|domhandler|domelementtype|dom-serializer|entities)).+$`,
+        // +watcha
     ],
     collectCoverageFrom: [
         "<rootDir>/src/**/*.{js,ts,tsx}",

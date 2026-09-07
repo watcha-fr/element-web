@@ -28,6 +28,8 @@ import LogoutDialog, { shouldShowLogoutDialog } from "../dialogs/LogoutDialog";
 import Modal from "../../../Modal";
 import defaultDispatcher from "../../../dispatcher/dispatcher";
 import { SettingsSection } from "./shared/SettingsSection.tsx";
+import SettingsStore from "../../../settings/SettingsStore"; // watcha+
+import { UIFeature } from "../../../settings/UIFeature"; // watcha+
 
 const SpinnerToast: React.FC<{ children?: ReactNode }> = ({ children }) => (
     <>
@@ -195,6 +197,15 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({
 
     const someFieldsDisabled = !canSetDisplayName || !canSetAvatar;
 
+    // watcha+
+    // Le nom affiché est piloté par l'IdP, sauf sur les instances ComUE qui laissent la main
+    // à l'utilisateur. Reprise de la garde de l'ancien fork (UserProfileSettings.tsx).
+    const displayNameDisabled =
+        !canSetDisplayName ||
+        (SettingsStore.getValue(UIFeature.watcha_SitivFieldDisabled) &&
+            !SettingsStore.getValue(UIFeature.watcha_ComUE));
+    // +watcha
+
     return (
         <SettingsSection heading={_t("common|profile")}>
             <div className="mx_UserProfileSettings">
@@ -224,7 +235,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({
                         onChange={onDisplayNameChanged}
                         onCancel={onDisplayNameCancel}
                         onSave={onDisplayNameSave}
-                        disabled={!canSetDisplayName}
+                        disabled={displayNameDisabled} // watcha+
                     >
                         {displayNameError && <ErrorMessage>{_t("settings|general|display_name_error")}</ErrorMessage>}
                     </EditInPlace>

@@ -32,6 +32,7 @@ export const DEFAULTS: DeepReadonly<IConfigOptions> = {
 
     jitsi: {
         preferred_domain: "meet.element.io",
+        force_preferred_domain: false, // watcha+
     },
     element_call: {
         use_exclusively: false,

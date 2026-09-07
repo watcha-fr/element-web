@@ -545,40 +545,44 @@ export default class SecurityRoomSettingsTab extends React.Component<IProps, ISt
                     }}
                 >
                     <SettingsSection heading={_t("room_settings|security|title")}>
-                        <SettingsFieldset
-                            legend={_t("settings|security|encryption_section")}
-                            description={
-                                isEncryptionForceDisabled && !isEncrypted
-                                    ? undefined
-                                    : _t("room_settings|security|encryption_permanent")
-                            }
-                        >
-                            {isEncryptionLoading ? (
-                                <InlineSpinner />
-                            ) : (
-                                <>
-                                    <SettingsToggleInput
-                                        name="enable-encryption"
-                                        checked={isEncrypted}
-                                        onChange={this.onEncryptionChange}
-                                        label={_t("common|encrypted")}
-                                        disabled={!canEnableEncryption}
-                                    />
-                                    {isEncryptionForceDisabled && !isEncrypted && (
-                                        <Caption>{_t("room_settings|security|encryption_forced")}</Caption>
-                                    )}
-                                    {isStateEncrypted && (
+                        {/* watcha+ */}
+                        {SettingsStore.getValue(UIFeature.watcha_E2EEUISetting) && (
+                            <SettingsFieldset
+                                legend={_t("settings|security|encryption_section")}
+                                description={
+                                    isEncryptionForceDisabled && !isEncrypted
+                                        ? undefined
+                                        : _t("room_settings|security|encryption_permanent")
+                                }
+                            >
+                                {isEncryptionLoading ? (
+                                    <InlineSpinner />
+                                ) : (
+                                    <>
                                         <SettingsToggleInput
-                                            name="enable-state-encryption"
-                                            checked={isStateEncrypted}
-                                            label={_t("common|state_encryption_enabled")}
-                                            disabled={true}
+                                            name="enable-encryption"
+                                            checked={isEncrypted}
+                                            onChange={this.onEncryptionChange}
+                                            label={_t("common|encrypted")}
+                                            disabled={!canEnableEncryption}
                                         />
-                                    )}
-                                    {encryptionSettings}
-                                </>
-                            )}
-                        </SettingsFieldset>
+                                        {isEncryptionForceDisabled && !isEncrypted && (
+                                            <Caption>{_t("room_settings|security|encryption_forced")}</Caption>
+                                        )}
+                                        {isStateEncrypted && (
+                                            <SettingsToggleInput
+                                                name="enable-state-encryption"
+                                                checked={isStateEncrypted}
+                                                label={_t("common|state_encryption_enabled")}
+                                                disabled={true}
+                                            />
+                                        )}
+                                        {encryptionSettings}
+                                    </>
+                                )}
+                            </SettingsFieldset>
+                        )}
+                        {/* +watcha */}
                         {this.renderJoinRule()}
                         {historySection}
                         <RoomRetentionFieldset room={this.props.room} /> {/* watcha+ */}
