@@ -9,6 +9,7 @@
 import { render, screen } from "jest-matrix-react";
 import React, { type ComponentProps } from "react";
 import userEvent from "@testing-library/user-event";
+import { type Room } from "matrix-js-sdk/src/matrix"; // watcha+
 
 import { PowerLevelSelector } from "../../../../../src/components/views/settings/PowerLevelSelector";
 import { stubClient } from "../../../../test-utils";
@@ -166,4 +167,18 @@ describe("PowerLevelSelector", () => {
         // the power level should be back to initial value
         expect(select).toHaveValue("100");
     });
+
+    // watcha+
+    it("should label the users with their display name in the room when one is given", async () => {
+        const room = {
+            getMember: (userId: string) => (userId === "@alice:server.org" ? { name: "Alice" } : null),
+        } as unknown as Room;
+        renderPLS({ room });
+
+        // Alice is a member of the room, so her display name is used
+        expect(screen.getByRole("combobox", { name: "Alice" })).toBeInTheDocument();
+        // Bob is not, so we fall back on his user id
+        expect(screen.getByRole("combobox", { name: "@bob:server.org" })).toBeInTheDocument();
+    });
+    // watcha+
 });

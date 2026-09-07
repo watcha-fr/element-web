@@ -346,6 +346,7 @@ export default class RolesRoomSettingsTab extends React.Component<IProps, RolesR
                     currentUserLevel={currentUserLevel}
                     onClick={this.onUserPowerLevelChanged}
                     filter={(user) => userLevels[user] > defaultUserLevel}
+                    room={room} // watcha+
                 >
                     <div>{_t("room_settings|permissions|no_privileged_users")}</div>
                 </PowerLevelSelector>
@@ -359,6 +360,7 @@ export default class RolesRoomSettingsTab extends React.Component<IProps, RolesR
                     currentUserLevel={currentUserLevel}
                     onClick={this.onUserPowerLevelChanged}
                     filter={(user) => userLevels[user] < defaultUserLevel}
+                    room={room} // watcha+
                 />
             );
         }

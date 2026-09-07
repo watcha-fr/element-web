@@ -48,6 +48,54 @@ export function getNextcloudBaseUrl() {
     return url;
 }
 
+/** Key of the once-per-browser-session guard of the Nextcloud session priming. */
+export const NEXTCLOUD_SESSION_PRIMED_KEY = "watcha_nextcloud_session_primed";
+
+/**
+ * URL of the `user_oidc` route that opens a Nextcloud session, then comes back to Element.
+ *
+ * That route is a public page and requires no CSRF token, so a plain navigation is enough.
+ * It also short-circuits itself: when a Nextcloud session already exists it redirects to
+ * `redirectUrl` straight away, without any OIDC round trip — which makes priming cheap and
+ * idempotent.
+ *
+ * `redirectUrl` must be a path starting with a single "/" followed by a non-"/" character,
+ * because `user_oidc` validates it against that shape to refuse open redirects. A bare "/"
+ * is therefore rejected, hence the fragment — which doubles as a way to land the user on the
+ * screen they were heading to.
+ */
+export function getNextcloudSessionPrimingUrl(fragmentAfterLogin: string) {
+    const url = getNextcloudBaseUrl();
+    const providerId = SdkConfig.get().watcha_nextcloud_oidc_provider_id ?? 1;
+    url.pathname += `apps/user_oidc/login/${providerId}`;
+    // `searchParams` percent-encodes the "#", without which the browser would keep the
+    // fragment to itself and the server would never see the target screen.
+    url.searchParams.set("redirectUrl", `/${fragmentAfterLogin || "#/home"}`);
+    return url.toString();
+}
+
+/**
+ * Whether Nextcloud answers at all, asked on its public `status.php`.
+ *
+ * Priming navigates away from Element, so a Nextcloud that is down would strand the user on a
+ * gateway error *after* a successful login — the Matrix session is already persisted by then, but
+ * the browser has left the app. Checking first turns that into a silent skip.
+ */
+export async function isNextcloudReachable(timeoutMs = 2000): Promise<boolean> {
+    const url = getNextcloudBaseUrl();
+    url.pathname += "status.php";
+    try {
+        const response = await fetch(url.toString(), {
+            cache: "no-store",
+            signal: AbortSignal.timeout(timeoutMs),
+        });
+        return response.ok;
+    } catch {
+        // Unreachable, timed out, or blocked: all mean "do not navigate there".
+        return false;
+    }
+}
+
 export function getDocumentSelectorUrl(shareUrl: string, skipDirParam = true) {
     return getDocumentWidgetUrl(shareUrl, [RefineTargets.DocumentSelector], skipDirParam);
 }

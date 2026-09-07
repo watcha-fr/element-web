@@ -231,6 +231,8 @@ export interface IConfigOptions {
     watcha_forbidden_partner_domains?: string[];
     watcha_jitsi_home_url?: string;
     watcha_nextcloud_base_url?: string;
+    watcha_nextcloud_session_priming?: boolean;
+    watcha_nextcloud_oidc_provider_id?: number;
     watcha_sso_profile_url?: string;
     watcha_email_base_url?: string;
     watcha_support_email_address?: string;

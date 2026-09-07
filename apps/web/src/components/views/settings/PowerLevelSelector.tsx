@@ -8,6 +8,7 @@
 
 import React, { useState, type JSX, type PropsWithChildren } from "react";
 import { Button } from "@vector-im/compound-web";
+import { type Room } from "matrix-js-sdk/src/matrix"; // watcha+
 
 import { useMatrixClientContext } from "../../../contexts/MatrixClientContext";
 import PowerSelector from "../elements/PowerSelector";
@@ -50,6 +51,13 @@ interface PowerLevelSelectorProps {
      * The title of the fieldset
      */
     title: string;
+    // watcha+
+    /**
+     * The room the power levels belong to.
+     * When provided, the users are labelled with their display name in the room instead of their user id.
+     */
+    room?: Room;
+    // watcha+
 }
 
 export function PowerLevelSelector({
@@ -59,6 +67,7 @@ export function PowerLevelSelector({
     onClick,
     filter,
     title,
+    room, // watcha+
     children,
 }: PropsWithChildren<PowerLevelSelectorProps>): JSX.Element | null {
     const matrixClient = useMatrixClientContext();
@@ -71,9 +80,14 @@ export function PowerLevelSelector({
 
     const collator = new Intl.Collator();
 
+    // watcha+
+    // Prefer the display name of the member over its user id, when the room is known
+    const getUserLabel = (userId: string): string => room?.getMember(userId)?.name || userId;
+    // watcha+
+
     // We sort the users by power level, then we filter them
     const users = Object.keys(userLevels)
-        .sort((userA, userB) => sortUser(collator, userA, userB, userLevels))
+        .sort((userA, userB) => sortUser(collator, userA, userB, userLevels, getUserLabel)) // watcha!
         .filter(filter);
 
     // No user to display, we return the children into fragment to convert it to JSX.Element type
@@ -103,7 +117,7 @@ export function PowerLevelSelector({
                     <PowerSelector
                         value={userLevel}
                         disabled={!canChange}
-                        label={userId}
+                        label={getUserLabel(userId)} // watcha!
                         key={userId}
                         maxValue={currentUserLevel}
                         onChange={async (value) => {
@@ -153,15 +167,17 @@ export function PowerLevelSelector({
  * @param userA
  * @param userB
  * @param userLevels
+ * @param getUserLabel - resolve the label displayed for a user, so that the list is sorted on what is shown // watcha+
  */
 function sortUser(
     collator: Intl.Collator,
     userA: string,
     userB: string,
     userLevels: PowerLevelSelectorProps["userLevels"],
+    getUserLabel: (userId: string) => string, // watcha+
 ): number {
     const powerLevelDiff = userLevels[userA] - userLevels[userB];
     return powerLevelDiff !== 0
         ? powerLevelDiff
-        : collator.compare(userA.toLocaleLowerCase(), userB.toLocaleLowerCase());
+        : collator.compare(getUserLabel(userA).toLocaleLowerCase(), getUserLabel(userB).toLocaleLowerCase()); // watcha!
 }

@@ -67,10 +67,16 @@ describe("RolesRoomSettingsTab", () => {
             return null;
         });
         mocked(room.currentState.mayClientSendStateEvent).mockReturnValue(true);
+        // watcha+
+        // the privileged users are labelled with their display name in the room
+        mocked(room.getMember).mockImplementation(
+            (userId) => ({ userId, name: `Name of ${userId}` }) as unknown as RoomMember,
+        );
+        // watcha+
         const { container } = await renderTab();
 
-        expect(container.querySelector(`[placeholder="${cli.getUserId()}"]`)).not.toBeDisabled();
-        expect(container.querySelector(`[placeholder="@admin:server"]`)).toBeDisabled();
+        expect(container.querySelector(`[placeholder="Name of ${cli.getUserId()}"]`)).not.toBeDisabled(); // watcha!
+        expect(container.querySelector(`[placeholder="Name of @admin:server"]`)).toBeDisabled(); // watcha!
     });
 
     describe("Element Call", () => {
