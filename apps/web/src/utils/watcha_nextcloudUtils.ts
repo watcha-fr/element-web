@@ -68,9 +68,16 @@ export function getNextcloudSessionPrimingUrl(fragmentAfterLogin: string) {
     const url = getNextcloudBaseUrl();
     const providerId = SdkConfig.get().watcha_nextcloud_oidc_provider_id ?? 1;
     url.pathname += `apps/user_oidc/login/${providerId}`;
+    // `getFragmentAfterLogin()` returns a *path* — "" or "/home" — and never the leading "#",
+    // which has to be added here. Concatenating it raw yields "//home", which `user_oidc`
+    // refuses through its `^/[^/]` open-redirect guard and answers with its own dashboard
+    // instead: the user logs into Watcha and lands in Nextcloud. The bug only showed for
+    // people who had a screen to restore, which is why it survived testing.
+    const screen = fragmentAfterLogin.replace(/^#/, "") || "/home";
+    const path = screen.startsWith("/") ? screen : `/${screen}`;
     // `searchParams` percent-encodes the "#", without which the browser would keep the
     // fragment to itself and the server would never see the target screen.
-    url.searchParams.set("redirectUrl", `/${fragmentAfterLogin || "#/home"}`);
+    url.searchParams.set("redirectUrl", `/#${path}`);
     return url.toString();
 }
 
