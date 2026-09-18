@@ -51,4 +51,13 @@ limitations under the License.
             word-break: break-all;
         }
     }
+
+    /* Le plafond n'est pas une faute de saisie : ton informatif, pas d'erreur,
+       contrairement à la liste des adresses écartées ci-dessus. (Le jeu de
+       jetons Compound n'expose pas de couleur de texte « warning ».) */
+    .watcha_InvitePartnerDialog_overLimit {
+        margin-top: 1em;
+        font-size: $font-12px;
+        color: var(--cpd-color-text-info-primary);
+    }
 }

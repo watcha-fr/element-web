@@ -4023,6 +4023,10 @@
         "email_already_add": "You have already added this email address to the invitation list",
         "email_addresses_field_label": "Email addresses",
         "email_addresses_hint": "One address per line, or separated by a comma, a semicolon or a space. A column copied from a spreadsheet can be pasted as is.",
+        "email_addresses_over_limit": {
+            "one": "Limit of %(max)s invitations per batch: %(count)s address was left out.",
+            "other": "Limit of %(max)s invitations per batch: %(count)s addresses were left out."
+        },
         "email_addresses_placeholder": "joe@example.com; jane@example.com",
         "email_already_bound": "This email address is already bound to your account",
         "email_placeholder": "joe@example.com",

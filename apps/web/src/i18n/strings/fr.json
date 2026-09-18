@@ -4027,6 +4027,10 @@
         "email_already_add": "Vous avez déjà ajouté cette adresse email à la liste d'invitation",
         "email_addresses_field_label": "Adresses e-mail",
         "email_addresses_hint": "Une adresse par ligne, ou séparées par une virgule, un point-virgule ou une espace. Une colonne copiée depuis un tableur peut être collée telle quelle.",
+        "email_addresses_over_limit": {
+            "one": "Limite de %(max)s invitations par envoi : %(count)s adresse n'a pas été retenue.",
+            "other": "Limite de %(max)s invitations par envoi : %(count)s adresses n'ont pas été retenues."
+        },
         "email_addresses_placeholder": "joe@exemple.com; jeanne@exemple.com",
         "email_already_bound": "Cette adresse e-mail est déjà liée à votre compte",
         "email_placeholder": "joe@exemple.com",

@@ -28,6 +28,14 @@ import DialogButtons from "../elements/DialogButtons";
 import Field from "../elements/Field";
 import { IUser } from "./watcha_InviteDialog";
 
+/**
+ * Plafond du nombre d'invitations d'un même envoi. Garde-fou contre le collage
+ * d'une colonne entière de tableur, et alignement sur le `burst_count` de
+ * `rc_third_party_invite` côté serveur : au-delà, les invitations ne partent
+ * plus d'un bloc mais s'étalent au rythme du limiteur.
+ */
+export const MAX_INVITATIONS_PER_BATCH = 50;
+
 interface IProps {
     room?: Room;
     originalList: IUser[];
@@ -52,6 +60,10 @@ interface IRejectedAddress {
 interface IReview {
     accepted: string[];
     rejected: IRejectedAddress[];
+    // Adresses valides écartées faute de place sous le plafond. Comptées à
+    // part : un collage trop gros en produirait des centaines, qui noieraient
+    // les adresses réellement en faute dans le récapitulatif.
+    overflow: string[];
 }
 
 export default class InvitePartnerDialog extends React.Component<IProps, IState> {
@@ -117,10 +129,16 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
         const { addresses, malformed } = parseAddressList(this.state.input);
 
         const accepted: string[] = [];
+        const overflow: string[] = [];
         const rejected: IRejectedAddress[] = malformed.map(address => ({
             address,
             reason: _t("watcha|enter_valid_email"),
         }));
+
+        // Les personnes déjà dans la liste d'invitation consomment le plafond :
+        // c'est bien le nombre d'invitations de l'envoi qui est borné, pas le
+        // nombre d'adresses collées d'un coup.
+        const remaining = Math.max(0, MAX_INVITATIONS_PER_BATCH - selectedList.length);
 
         for (const address of addresses) {
             const reject = (reason: string) => rejected.push({ address, reason });
@@ -142,12 +160,16 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
                 Email.hasForbiddenDomainForPartner(address)
             ) {
                 reject(_t("watcha|error_email_domain", { domain: address.split("@")[1] }));
+            } else if (accepted.length >= remaining) {
+                // Le plafond s'applique en dernier : une adresse en faute est
+                // signalée pour ce qu'elle est, pas comme étant « en trop ».
+                overflow.push(address);
             } else {
                 accepted.push(address);
             }
         }
 
-        return { accepted, rejected };
+        return { accepted, rejected, overflow };
     };
 
     private isMemberWithMembership = (emailAddress: string, membership: "join" | "invite"): boolean => {
@@ -173,7 +195,7 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
     public render() {
         const { onFinished } = this.props;
         const { input } = this.state;
-        const { accepted, rejected } = this.review();
+        const { accepted, rejected, overflow } = this.review();
 
         return (
             <BaseDialog
@@ -205,6 +227,14 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
                                     </li>
                                 )) }
                             </ul>
+                        </div>
+                    ) }
+                    { overflow.length > 0 && (
+                        <div className="watcha_InvitePartnerDialog_overLimit">
+                            { _t("watcha|email_addresses_over_limit", {
+                                count: overflow.length,
+                                max: MAX_INVITATIONS_PER_BATCH,
+                            }) }
                         </div>
                     ) }
                 </div>
