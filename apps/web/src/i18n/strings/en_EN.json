@@ -4021,6 +4021,7 @@
         "document_sharing": "Document sharing",
         "documents": "Documents",
         "email_already_add": "You have already added this email address to the invitation list",
+        "email_addresses_budget": "%(used)s of %(max)s invitations in this batch",
         "email_addresses_field_label": "Email addresses",
         "email_addresses_hint": "One address per line, or separated by a comma, a semicolon or a space. A column copied from a spreadsheet can be pasted as is.",
         "email_addresses_over_limit": {

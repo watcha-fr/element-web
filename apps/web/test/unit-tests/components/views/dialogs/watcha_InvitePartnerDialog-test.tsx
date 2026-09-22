@@ -58,6 +58,24 @@ describe("watcha_InvitePartnerDialog — plafond par envoi", () => {
         });
     });
 
+    it("annonce le plafond dès l'ouverture, avant toute saisie", async () => {
+        renderDialog();
+        await flushPromises();
+
+        expect(
+            await screen.findByText(`0 of ${MAX_INVITATIONS_PER_BATCH} invitations in this batch`),
+        ).toBeInTheDocument();
+    });
+
+    it("compte la liste d'invitation déjà constituée dans le budget annoncé", async () => {
+        renderDialog(selected(addressList(20, 100)));
+        await paste(addressList(3));
+
+        expect(
+            await screen.findByText(`23 of ${MAX_INVITATIONS_PER_BATCH} invitations in this batch`),
+        ).toBeInTheDocument();
+    });
+
     it("ne retient que les premières adresses et annonce celles laissées de côté", async () => {
         renderDialog();
         await paste(addressList(MAX_INVITATIONS_PER_BATCH + 5));

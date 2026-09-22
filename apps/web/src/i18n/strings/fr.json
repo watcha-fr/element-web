@@ -4025,6 +4025,7 @@
         "document_sharing": "Partage de documents",
         "documents": "Documents",
         "email_already_add": "Vous avez déjà ajouté cette adresse email à la liste d'invitation",
+        "email_addresses_budget": "%(used)s invitations sur %(max)s pour cet envoi",
         "email_addresses_field_label": "Adresses e-mail",
         "email_addresses_hint": "Une adresse par ligne, ou séparées par une virgule, un point-virgule ou une espace. Une colonne copiée depuis un tableur peut être collée telle quelle.",
         "email_addresses_over_limit": {

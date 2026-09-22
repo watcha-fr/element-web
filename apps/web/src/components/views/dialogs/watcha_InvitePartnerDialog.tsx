@@ -196,6 +196,9 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
         const { onFinished } = this.props;
         const { input } = this.state;
         const { accepted, rejected, overflow } = this.review();
+        // Ce que pèsera l'envoi : la liste d'invitation déjà constituée, plus ce
+        // que la saisie courante y ajouterait.
+        const used = this.props.selectedList.length + accepted.length;
 
         return (
             <BaseDialog
@@ -216,6 +219,20 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
                         onChange={this.onChange}
                     />
                     <div className="watcha_InvitePartnerDialog_hint">{ _t("watcha|email_addresses_hint") }</div>
+                    { /* Le plafond est annoncé dès l'ouverture, et pas seulement
+                         quand il mord : on doit pouvoir doser sa liste avant de
+                         coller, pas après s'être fait tronquer. */ }
+                    <div
+                        className={
+                            "watcha_InvitePartnerDialog_budget" +
+                            (used >= MAX_INVITATIONS_PER_BATCH ? " watcha_InvitePartnerDialog_budget_full" : "")
+                        }
+                    >
+                        { _t("watcha|email_addresses_budget", {
+                            used,
+                            max: MAX_INVITATIONS_PER_BATCH,
+                        }) }
+                    </div>
                     { rejected.length > 0 && (
                         <div className="watcha_InvitePartnerDialog_rejected">
                             <span>{ _t("watcha|ignored_email_addresses") }</span>
