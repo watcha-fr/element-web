@@ -24,7 +24,7 @@ import { MatrixCall } from "matrix-js-sdk/src/webrtc/call";
 import { _t } from "../../../languageHandler";
 import { findDMForUser } from "../../../utils/dm/findDMForUser";
 import { getAddressType } from "../../../UserAddress";
-import { inviteInBackground } from "../../../utils/watcha_backgroundInvite";
+import { inviteInBackground, isInviteInProgress } from "../../../utils/watcha_backgroundInvite";
 import { InviteKind } from "./InviteDialogTypes";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
 import { privateShouldBeEncrypted } from "../../../utils/rooms";
@@ -544,6 +544,20 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
         const { selectedList } = this.state;
         const targetIds = selectedList.map(user => user.address);
         if (this.props.kind === InviteKind.Invite) {
+            // watcha+
+            // Un envoi à la fois. Le refus est posé ici, avant la fermeture du
+            // dialogue : la liste saisie est conservée, et la personne sait
+            // pourquoi rien ne part. Sans cette garde, deux lots simultanés se
+            // partageraient l'unique toast de progression et le bilan du second
+            // effacerait celui du premier.
+            if (isInviteInProgress()) {
+                this.setState({
+                    busy: false,
+                    errorText: _t("watcha|invite_already_in_progress"),
+                });
+                return;
+            }
+            // +watcha
             const client = MatrixClientPeg.get();
             const room = client?.getRoom(this.props.roomId);
             if (!room) {

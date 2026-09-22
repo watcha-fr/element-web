@@ -19,7 +19,7 @@ import { type MatrixClient, MatrixError } from "matrix-js-sdk/src/matrix";
 
 import { MatrixClientPeg } from "../../../src/MatrixClientPeg";
 import Modal from "../../../src/Modal";
-import { inviteInBackground } from "../../../src/utils/watcha_backgroundInvite";
+import { inviteInBackground, isInviteInProgress } from "../../../src/utils/watcha_backgroundInvite";
 import * as InviteProgressToast from "../../../src/toasts/watcha_InviteProgressToast";
 import * as TestUtilsMatrix from "../../test-utils";
 
@@ -85,6 +85,49 @@ describe("inviteInBackground", () => {
         expect(failures).toHaveLength(1);
         expect(failures[0].address).toBe(EMAIL2);
         expect(failures[0].errorText).toBeTruthy();
+    });
+
+    /** Laisse tourner les micro-tâches jusqu'à ce que la condition soit vraie. */
+    const until = async (predicate: () => boolean): Promise<void> => {
+        for (let attempt = 0; attempt < 20 && !predicate(); attempt++) {
+            await TestUtilsMatrix.flushPromises();
+        }
+    };
+
+    it("refuses a second batch while the first one is still running", async () => {
+        let unblock: () => void = () => {};
+        client.inviteByEmail = jest
+            .fn()
+            .mockImplementation(() => new Promise<void>((resolve) => (unblock = () => resolve())));
+
+        const first = inviteInBackground(client, ROOM_ID, [EMAIL1]);
+        await until(() => client.inviteByEmail.mock.calls.length > 0);
+        expect(isInviteInProgress()).toBe(true);
+
+        await inviteInBackground(client, ROOM_ID, [EMAIL2, EMAIL3]);
+
+        // Le second lot n'a envoyé aucune invitation, et n'a pas touché au toast
+        // de progression du premier.
+        expect(client.inviteByEmail).toHaveBeenCalledTimes(1);
+        expect(mocked(InviteProgressToast.showProgressToast).mock.calls).toEqual([[0, 1]]);
+
+        unblock();
+        await first;
+        expect(isInviteInProgress()).toBe(false);
+    });
+
+    it("releases the lock once the batch is over, failures included", async () => {
+        client.inviteByEmail = jest.fn().mockRejectedValue(new MatrixError({ errcode: "M_BAD_STATE" }));
+
+        await inviteInBackground(client, ROOM_ID, [EMAIL1]);
+
+        expect(InviteProgressToast.showFailureToast).toHaveBeenCalled();
+        expect(isInviteInProgress()).toBe(false);
+
+        // Et un envoi suivant repart normalement.
+        client.inviteByEmail = jest.fn().mockResolvedValue({});
+        await inviteInBackground(client, ROOM_ID, [EMAIL2]);
+        expect(client.inviteByEmail).toHaveBeenCalledTimes(1);
     });
 
     it("reports the addresses left aside when the invitations are given up on", async () => {

@@ -4051,6 +4051,7 @@
         "ignored_email_addresses": "The following addresses will not be invited:",
         "ignore_user_button_description": "Also visible on incoming invitations",
         "invitation_list": "Invitation list",
+        "invite_already_in_progress": "Invitations are already being sent. Wait for them to finish before starting another batch.",
         "invite_dialog": "Select users<br/>Invite them<br/>Collaborate!",
         "invite_incomplete_title": "Incomplete invitations",
         "invite_not_sent": {
