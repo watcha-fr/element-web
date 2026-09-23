@@ -15,6 +15,7 @@ import { type Mocked } from "jest-mock";
 import InviteDialog from "../../../../../src/components/views/dialogs/watcha_InviteDialog";
 import { InviteKind } from "../../../../../src/components/views/dialogs/InviteDialogTypes";
 import { getMockClientWithEventEmitter, flushPromises } from "../../../../test-utils";
+import { MAX_INVITATIONS_PER_BATCH } from "../../../../../src/utils/watcha_inviteLimits";
 import DMRoomMap from "../../../../../src/utils/DMRoomMap";
 
 const roomId = "!room:example.org";
@@ -51,6 +52,53 @@ describe("watcha_InviteDialog", () => {
             getDMRoomsForUserId: jest.fn().mockReturnValue([]),
             getDMRoomForIdentifiers: jest.fn(),
         } as unknown as DMRoomMap);
+    });
+
+    it("annonce le plafond dès l'ouverture, sur la liste d'invitations", async () => {
+        render(<InviteDialog kind={InviteKind.Invite} roomId={roomId} onFinished={jest.fn()} />);
+        await flushPromises();
+
+        expect(
+            await screen.findByText(`0 of ${MAX_INVITATIONS_PER_BATCH} invitations in this batch`),
+        ).toBeInTheDocument();
+    });
+
+    it("refuse d'ajouter au-delà du plafond, et le dit", async () => {
+        // Assez de monde dans l'annuaire pour dépasser le plafond au clic.
+        const crowd = Array.from({ length: MAX_INVITATIONS_PER_BATCH + 5 }, (_, index) => ({
+            user_id: `@u${index}:example.org`,
+            display_name: `Suggest${String(index).padStart(2, "0")}`,
+            email: `u${index}@example.org`,
+        }));
+        mockClient.searchUserDirectory.mockResolvedValue({ limited: false, results: crowd as any });
+
+        render(<InviteDialog kind={InviteKind.Invite} roomId={roomId} onFinished={jest.fn()} />);
+        await flushPromises();
+
+        // Chaque nom n'est présent qu'une fois : dans l'annuaire tant qu'il n'est
+        // pas choisi, dans la liste d'invitations ensuite.
+        for (let index = 0; index < MAX_INVITATIONS_PER_BATCH; index++) {
+            fireEvent.click(screen.getByText(`Suggest${String(index).padStart(2, "0")}`));
+        }
+
+        expect(
+            await screen.findByText(
+                `${MAX_INVITATIONS_PER_BATCH} of ${MAX_INVITATIONS_PER_BATCH} invitations in this batch`,
+            ),
+        ).toBeInTheDocument();
+
+        fireEvent.click(screen.getByText(`Suggest${MAX_INVITATIONS_PER_BATCH}`));
+
+        expect(
+            await screen.findByText(
+                `Limit of ${MAX_INVITATIONS_PER_BATCH} invitations per batch reached. ` +
+                    "Remove someone from the list to add another.",
+            ),
+        ).toBeInTheDocument();
+        // La personne refusée est restée dans l'annuaire, et le compte n'a pas bougé.
+        expect(
+            screen.getByText(`${MAX_INVITATIONS_PER_BATCH} of ${MAX_INVITATIONS_PER_BATCH} invitations in this batch`),
+        ).toBeInTheDocument();
     });
 
     it("renders the suggested user list after the initial directory search", async () => {

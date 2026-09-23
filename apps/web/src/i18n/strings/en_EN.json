@@ -4053,6 +4053,7 @@
         "ignore_user_button_description": "Also visible on incoming invitations",
         "invitation_list": "Invitation list",
         "invite_already_in_progress": "Invitations are already being sent. Wait for them to finish before starting another batch.",
+        "invite_limit_reached": "Limit of %(max)s invitations per batch reached. Remove someone from the list to add another.",
         "invite_dialog": "Select users<br/>Invite them<br/>Collaborate!",
         "invite_incomplete_title": "Incomplete invitations",
         "invite_not_sent": {

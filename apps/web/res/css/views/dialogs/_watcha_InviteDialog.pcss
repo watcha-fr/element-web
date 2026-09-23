@@ -74,6 +74,22 @@ limitations under the License.
         text-align: center;
         font-weight: bold;
     }
+
+    /* Compteur du plafond, sous le titre de la liste d'invitations : discret
+       tant qu'il reste de la place, marqué une fois le budget consommé. */
+    .watcha_InviteDialog_budget {
+        margin: -0.4em 0 0.6em;
+        text-align: center;
+        font-size: $font-12px;
+        opacity: 0.7;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .watcha_InviteDialog_budget_full {
+        opacity: 1;
+        font-weight: 600;
+        color: var(--cpd-color-text-info-primary);
+    }
 }
 
 .watcha_InviteDialog_userLists {

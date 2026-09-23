@@ -4057,6 +4057,7 @@
         "ignore_user_button_description": "Également visible sur les invitations entrantes",
         "invitation_list": "Liste d'invitations",
         "invite_already_in_progress": "Un envoi d'invitations est déjà en cours. Attendez qu'il se termine avant d'en lancer un autre.",
+        "invite_limit_reached": "Plafond de %(max)s invitations par envoi atteint. Retirez quelqu'un de la liste pour en ajouter un autre.",
         "invite_dialog": "Sélectionnez des utilisateurs<br/>Invitez-les<br/>Collaborez !",
         "invite_incomplete_title": "Invitations incomplètes",
         "invite_not_sent": {

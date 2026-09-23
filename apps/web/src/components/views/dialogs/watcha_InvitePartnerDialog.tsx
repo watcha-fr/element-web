@@ -23,18 +23,11 @@ import { Key } from "../../../Keyboard";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
 import * as Email from "../../../email";
 import { parseAddressList } from "../../../utils/watcha_emailAddressList";
+import { MAX_INVITATIONS_PER_BATCH } from "../../../utils/watcha_inviteLimits";
 import BaseDialog from "./BaseDialog";
 import DialogButtons from "../elements/DialogButtons";
 import Field from "../elements/Field";
 import { IUser } from "./watcha_InviteDialog";
-
-/**
- * Plafond du nombre d'invitations d'un même envoi. Garde-fou contre le collage
- * d'une colonne entière de tableur, et alignement sur le `burst_count` de
- * `rc_third_party_invite` côté serveur : au-delà, les invitations ne partent
- * plus d'un bloc mais s'étalent au rythme du limiteur.
- */
-export const MAX_INVITATIONS_PER_BATCH = 50;
 
 interface IProps {
     room?: Room;

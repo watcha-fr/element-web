@@ -25,6 +25,7 @@ import { _t } from "../../../languageHandler";
 import { findDMForUser } from "../../../utils/dm/findDMForUser";
 import { getAddressType } from "../../../UserAddress";
 import { inviteInBackground, isInviteInProgress } from "../../../utils/watcha_backgroundInvite";
+import { MAX_INVITATIONS_PER_BATCH } from "../../../utils/watcha_inviteLimits";
 import { InviteKind } from "./InviteDialogTypes";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
 import { privateShouldBeEncrypted } from "../../../utils/rooms";
@@ -219,6 +220,17 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
     };
 
     addToSelectedList = (user: IUser) => {
+        // watcha+
+        // L'ajout par clic consomme le plafond au même titre que le collage
+        // d'adresses. Sans cette garde, le compteur afficherait « 51 sur 50 »
+        // et le lot partirait quand même.
+        if (this.state.selectedList.length >= MAX_INVITATIONS_PER_BATCH) {
+            this.setState({
+                errorText: _t("watcha|invite_limit_reached", { max: MAX_INVITATIONS_PER_BATCH }),
+            });
+            return;
+        }
+        // +watcha
         this.setState(({ suggestedList, selectedList }) => {
             const updatedSuggestedList = [...suggestedList];
             const index = updatedSuggestedList.findIndex((u) => u === user);
@@ -240,7 +252,8 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
             const index = updatedSelectedList.findIndex((u) => u === user);
             if (index !== -1) {
                 updatedSelectedList.splice(index, 1);
-                return { selectedList: updatedSelectedList };
+                // watcha+ : la liste se vide, un avertissement de plafond n'a plus lieu d'être
+                return { selectedList: updatedSelectedList, errorText: null };
             }
             return null;
         });
@@ -258,6 +271,8 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
                 return {
                     suggestedList: updatedSuggestedList,
                     selectedList: updatedSelectedList,
+                    // watcha+ : idem, on libère l'avertissement de plafond
+                    errorText: null,
                 };
             }
             return null;
@@ -582,7 +597,7 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
 
     render(): React.ReactNode {
         const { onFinished } = this.props;
-        const { pendingSearch, query, busy, errorText } = this.state;
+        const { pendingSearch, query, busy, errorText, selectedList } = this.state;
 
         const suggestedTiles = this.getSuggestedTiles();
         const selectedTiles = this.getSelectedTiles();
@@ -618,7 +633,28 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
                                 { suggestedTiles }
                             </SuggestedList>
                         </Section>
-                        <Section header={_t("watcha|invitation_list")}>
+                        <Section
+                            header={_t("watcha|invitation_list")}
+                            // watcha+
+                            // Le plafond vaut pour l'envoi entier, pas seulement
+                            // pour la fenêtre de collage : on l'annonce donc là où
+                            // la liste se constitue, y compris quand elle se
+                            // remplit par des clics dans l'annuaire.
+                            hint={
+                                <div
+                                    className={classNames("watcha_InviteDialog_budget", {
+                                        watcha_InviteDialog_budget_full:
+                                            selectedList.length >= MAX_INVITATIONS_PER_BATCH,
+                                    })}
+                                >
+                                    { _t("watcha|email_addresses_budget", {
+                                        used: selectedList.length,
+                                        max: MAX_INVITATIONS_PER_BATCH,
+                                    }) }
+                                </div>
+                            }
+                            // +watcha
+                        >
                             <SelectedList resume={this.resume} {...{ busy, invite }}>
                                 { selectedTiles }
                             </SelectedList>
@@ -658,12 +694,15 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
 interface ISectionProps {
     className?: string;
     header: string;
+    // watcha+ : ligne sous le titre, pour le compteur du plafond
+    hint?: React.ReactNode;
     children?: React.ReactNode;
 }
 
-const Section: React.FC<ISectionProps> = ({ className, header, children }) => (
+const Section: React.FC<ISectionProps> = ({ className, header, hint, children }) => (
     <div className={classNames("watcha_InviteDialog_Section", className)}>
         <h2>{ header }</h2>
+        { hint /* watcha+ */ }
         { children }
     </div>
 );

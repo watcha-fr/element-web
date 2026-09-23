@@ -17,9 +17,8 @@ limitations under the License.
 import React from "react";
 import { render, screen, fireEvent } from "jest-matrix-react";
 
-import InvitePartnerDialog, {
-    MAX_INVITATIONS_PER_BATCH,
-} from "../../../../../src/components/views/dialogs/watcha_InvitePartnerDialog";
+import InvitePartnerDialog from "../../../../../src/components/views/dialogs/watcha_InvitePartnerDialog";
+import { MAX_INVITATIONS_PER_BATCH } from "../../../../../src/utils/watcha_inviteLimits";
 import { type IUser } from "../../../../../src/components/views/dialogs/watcha_InviteDialog";
 import { getMockClientWithEventEmitter, flushPromises } from "../../../../test-utils";
 
