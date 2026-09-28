@@ -68,9 +68,7 @@ const InviteProgress: React.FC<IProgressProps> = ({ sent, total, roomName, queue
             <div className="mx_Toast_description">{_t("watcha|invite_progress", { sent, total })}</div>
             <ProgressBar value={sent} max={total} />
             {queued > 0 && (
-                <div className="watcha_InviteProgressToast_queued">
-                    {_t("watcha|invite_queued", { count: queued })}
-                </div>
+                <div className="watcha_InviteProgressToast_queued">{_t("watcha|invite_queued", { count: queued })}</div>
             )}
         </div>
     </DraggableToast>
