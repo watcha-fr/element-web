@@ -4052,7 +4052,6 @@
         "ignored_email_addresses": "The following addresses will not be invited:",
         "ignore_user_button_description": "Also visible on incoming invitations",
         "invitation_list": "Invitation list",
-        "invite_already_in_progress": "Invitations are already being sent. Wait for them to finish before starting another batch.",
         "invite_limit_reached": "Limit of %(max)s invitations per batch reached. Remove someone from the list to add another.",
         "invite_dialog": "Select users<br/>Invite them<br/>Collaborate!",
         "invite_incomplete_title": "Incomplete invitations",
@@ -4062,6 +4061,10 @@
         },
         "invite_progress": "%(sent)s of %(total)s invitations sent",
         "invite_progress_title": "Sending invitations",
+        "invite_queued": {
+            "one": "%(count)s other batch waiting",
+            "other": "%(count)s other batches waiting"
+        },
         "invite_sent": {
             "one": "%(count)s invitation sent",
             "other": "%(count)s invitations sent"

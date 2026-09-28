@@ -36,12 +36,22 @@ const SUCCESS_TOAST_TIMEOUT_MS = 8000;
 interface IProgressProps {
     sent: number;
     total: number;
+    roomName: string;
+    queued: number;
 }
 
-const InviteProgress: React.FC<IProgressProps> = ({ sent, total }) => (
+/**
+ * Le salon est nommé, et les lots en attente annoncés : avec une file, « 12 sur
+ * 50 » ne dit pas de quel envoi il s'agit ni s'il en reste d'autres derrière.
+ */
+const InviteProgress: React.FC<IProgressProps> = ({ sent, total, roomName, queued }) => (
     <DraggableToast>
+        <div className="watcha_InviteProgressToast_room">{roomName}</div>
         <div className="mx_Toast_description">{_t("watcha|invite_progress", { sent, total })}</div>
         <ProgressBar value={sent} max={total} />
+        {queued > 0 && (
+            <div className="watcha_InviteProgressToast_queued">{_t("watcha|invite_queued", { count: queued })}</div>
+        )}
     </DraggableToast>
 );
 
@@ -64,11 +74,11 @@ const DraggableGenericToast: React.FC<React.ComponentProps<typeof GenericToast>>
  * Shows — or updates — the toast reporting how many invitations have been sent
  * so far. Non blocking: the user keeps using the application meanwhile.
  */
-export const showProgressToast = (sent: number, total: number): void => {
+export const showProgressToast = (sent: number, total: number, roomName: string, queued = 0): void => {
     ToastStore.sharedInstance().addOrReplaceToast({
         key: TOAST_KEY,
         title: _t("watcha|invite_progress_title"),
-        props: { sent, total },
+        props: { sent, total, roomName, queued },
         component: InviteProgress,
         priority: TOAST_PRIORITY,
     });
@@ -78,13 +88,21 @@ export const hideToast = (): void => {
     ToastStore.sharedInstance().dismissToast(TOAST_KEY);
 };
 
+/** Le bilan nomme lui aussi le salon : avec une file, il en arrive plusieurs. */
+const withRoom = (roomName: string, text: string): React.ReactNode => (
+    <>
+        <div className="watcha_InviteProgressToast_room">{roomName}</div>
+        {text}
+    </>
+);
+
 /** Reports that every invitation went through. Fades away on its own. */
-export const showSuccessToast = (sent: number): void => {
+export const showSuccessToast = (sent: number, roomName: string): void => {
     ToastStore.sharedInstance().addOrReplaceToast({
         key: TOAST_KEY,
         title: _t("watcha|invite_progress_title"),
         props: {
-            description: _t("watcha|invite_sent", { count: sent }),
+            description: withRoom(roomName, _t("watcha|invite_sent", { count: sent })),
             primaryLabel: _t("action|ok"),
             onPrimaryClick: hideToast,
         },
@@ -98,13 +116,20 @@ export const showSuccessToast = (sent: number): void => {
  * Reports that some invitations could not be sent. Stays until dismissed, and
  * gives access to the reason for each address.
  */
-export const showFailureToast = (sent: number, failures: { address: string; errorText: string }[]): void => {
+export const showFailureToast = (
+    sent: number,
+    failures: { address: string; errorText: string }[],
+    roomName: string,
+): void => {
     const showDetails = (): void => {
         hideToast();
         Modal.createDialog(ErrorDialog, {
             title: _t("watcha|invite_incomplete_title"),
             description: (
                 <div>
+                    <p>
+                        <strong>{roomName}</strong>
+                    </p>
                     <p>{_t("watcha|invite_sent", { count: sent })}</p>
                     <ul>
                         {failures.map(({ address, errorText }) => (
@@ -120,7 +145,7 @@ export const showFailureToast = (sent: number, failures: { address: string; erro
         key: TOAST_KEY,
         title: _t("watcha|invite_incomplete_title"),
         props: {
-            description: _t("watcha|invite_not_sent", { count: failures.length }),
+            description: withRoom(roomName, _t("watcha|invite_not_sent", { count: failures.length })),
             secondaryLabel: _t("action|dismiss"),
             onSecondaryClick: hideToast,
             primaryLabel: _t("action|view"),

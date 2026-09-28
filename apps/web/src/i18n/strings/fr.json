@@ -4056,7 +4056,6 @@
         "ignored_email_addresses": "Les adresses suivantes ne seront pas invitées :",
         "ignore_user_button_description": "Également visible sur les invitations entrantes",
         "invitation_list": "Liste d'invitations",
-        "invite_already_in_progress": "Un envoi d'invitations est déjà en cours. Attendez qu'il se termine avant d'en lancer un autre.",
         "invite_limit_reached": "Plafond de %(max)s invitations par envoi atteint. Retirez quelqu'un de la liste pour en ajouter un autre.",
         "invite_dialog": "Sélectionnez des utilisateurs<br/>Invitez-les<br/>Collaborez !",
         "invite_incomplete_title": "Invitations incomplètes",
@@ -4066,6 +4065,10 @@
         },
         "invite_progress": "%(sent)s invitations envoyées sur %(total)s",
         "invite_progress_title": "Envoi des invitations",
+        "invite_queued": {
+            "one": "%(count)s autre lot en attente",
+            "other": "%(count)s autres lots en attente"
+        },
         "invite_sent": {
             "one": "%(count)s invitation envoyée",
             "other": "%(count)s invitations envoyées"

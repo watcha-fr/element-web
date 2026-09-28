@@ -15,11 +15,11 @@ limitations under the License.
 */
 
 import { mocked } from "jest-mock";
-import { type MatrixClient, MatrixError } from "matrix-js-sdk/src/matrix";
+import { type MatrixClient, MatrixError, type Room } from "matrix-js-sdk/src/matrix";
 
 import { MatrixClientPeg } from "../../../src/MatrixClientPeg";
 import Modal from "../../../src/Modal";
-import { inviteInBackground, isInviteInProgress } from "../../../src/utils/watcha_backgroundInvite";
+import { inviteInBackground, queuedBatchCount } from "../../../src/utils/watcha_backgroundInvite";
 import * as InviteProgressToast from "../../../src/toasts/watcha_InviteProgressToast";
 import * as TestUtilsMatrix from "../../test-utils";
 
@@ -29,9 +29,12 @@ jest.mock("../../../src/Modal", () => ({
 }));
 
 const ROOM_ID = "!room:server";
+const OTHER_ROOM_ID = "!autre:server";
 const EMAIL1 = "joe@example.com";
 const EMAIL2 = "jane@example.com";
 const EMAIL3 = "bob@example.com";
+
+const roomName = (roomId: string): string => `Salon ${roomId}`;
 
 describe("inviteInBackground", () => {
     let client: jest.Mocked<MatrixClient>;
@@ -43,6 +46,13 @@ describe("inviteInBackground", () => {
         TestUtilsMatrix.stubClient();
         client = MatrixClientPeg.safeGet() as jest.Mocked<MatrixClient>;
         client.inviteByEmail = jest.fn().mockResolvedValue({});
+        // Le toast nomme le salon : le client doit savoir le résoudre. Un objet
+        // nu ne suffit pas — `MultiInviter` se sert du vrai `Room`.
+        const rooms: Record<string, Room> = {
+            [ROOM_ID]: TestUtilsMatrix.mkStubRoom(ROOM_ID, roomName(ROOM_ID), client),
+            [OTHER_ROOM_ID]: TestUtilsMatrix.mkStubRoom(OTHER_ROOM_ID, roomName(OTHER_ROOM_ID), client),
+        };
+        client.getRoom = jest.fn().mockImplementation((roomId: string) => rooms[roomId] ?? null);
     });
 
     it("reports its progress through a toast instead of a blocking dialog", async () => {
@@ -53,10 +63,10 @@ describe("inviteInBackground", () => {
 
         // A toast is shown before the first invitation, then after each one.
         expect(mocked(InviteProgressToast.showProgressToast).mock.calls).toEqual([
-            [0, 3],
-            [1, 3],
-            [2, 3],
-            [3, 3],
+            [0, 3, roomName(ROOM_ID), 0],
+            [1, 3, roomName(ROOM_ID), 0],
+            [2, 3, roomName(ROOM_ID), 0],
+            [3, 3, roomName(ROOM_ID), 0],
         ]);
         expect(client.inviteByEmail).toHaveBeenCalledTimes(3);
     });
@@ -64,7 +74,7 @@ describe("inviteInBackground", () => {
     it("reports a success once every invitation went through", async () => {
         await inviteInBackground(client, ROOM_ID, [EMAIL1, EMAIL2]);
 
-        expect(InviteProgressToast.showSuccessToast).toHaveBeenCalledWith(2);
+        expect(InviteProgressToast.showSuccessToast).toHaveBeenCalledWith(2, roomName(ROOM_ID));
         expect(InviteProgressToast.showFailureToast).not.toHaveBeenCalled();
     });
 
@@ -94,7 +104,7 @@ describe("inviteInBackground", () => {
         }
     };
 
-    it("refuses a second batch while the first one is still running", async () => {
+    it("met un second lot en file plutôt que de le refuser, et l'exécute ensuite", async () => {
         let unblock: () => void = () => {};
         client.inviteByEmail = jest
             .fn()
@@ -102,27 +112,34 @@ describe("inviteInBackground", () => {
 
         const first = inviteInBackground(client, ROOM_ID, [EMAIL1]);
         await until(() => client.inviteByEmail.mock.calls.length > 0);
-        expect(isInviteInProgress()).toBe(true);
 
-        await inviteInBackground(client, ROOM_ID, [EMAIL2, EMAIL3]);
+        const second = inviteInBackground(client, OTHER_ROOM_ID, [EMAIL2, EMAIL3]);
+        expect(queuedBatchCount()).toBe(1);
 
-        // Le second lot n'a envoyé aucune invitation, et n'a pas touché au toast
-        // de progression du premier.
+        // Tant que le premier tourne, le second n'a rien envoyé.
         expect(client.inviteByEmail).toHaveBeenCalledTimes(1);
-        expect(mocked(InviteProgressToast.showProgressToast).mock.calls).toEqual([[0, 1]]);
 
+        client.inviteByEmail = jest.fn().mockResolvedValue({});
         unblock();
         await first;
-        expect(isInviteInProgress()).toBe(false);
+        await second;
+
+        // Le toast a annoncé le lot en attente. Pas dès le premier affichage,
+        // posé avant que le second lot n'arrive, mais à la progression suivante.
+        expect(mocked(InviteProgressToast.showProgressToast).mock.calls).toContainEqual([1, 1, roomName(ROOM_ID), 1]);
+
+        // Le second lot est bien parti, dans son propre salon.
+        expect(client.inviteByEmail).toHaveBeenCalledTimes(2);
+        expect(InviteProgressToast.showSuccessToast).toHaveBeenLastCalledWith(2, roomName(OTHER_ROOM_ID));
+        expect(queuedBatchCount()).toBe(0);
     });
 
-    it("releases the lock once the batch is over, failures included", async () => {
+    it("libère la file même quand un lot échoue", async () => {
         client.inviteByEmail = jest.fn().mockRejectedValue(new MatrixError({ errcode: "M_BAD_STATE" }));
 
         await inviteInBackground(client, ROOM_ID, [EMAIL1]);
-
         expect(InviteProgressToast.showFailureToast).toHaveBeenCalled();
-        expect(isInviteInProgress()).toBe(false);
+        expect(queuedBatchCount()).toBe(0);
 
         // Et un envoi suivant repart normalement.
         client.inviteByEmail = jest.fn().mockResolvedValue({});
