@@ -4064,6 +4064,7 @@
             "other": "%(count)s adresses n'ont pas pu être invitées"
         },
         "invite_progress": "%(sent)s invitations envoyées sur %(total)s",
+        "invite_progress_pending": "En attente d'envoi de %(total)s invitations",
         "invite_progress_title": "Envoi des invitations",
         "invite_queued": {
             "one": "%(count)s autre lot en attente",

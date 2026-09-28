@@ -26,6 +26,10 @@ export interface RoomListItemContentProps {
     renderAvatar: (room: Room) => ReactNode;
     /** Whether the item is being dragged */
     isDragging?: boolean;
+    // watcha+
+    /** Function to render an extra line below the room name, if any */
+    renderBelowName?: (room: Room) => ReactNode;
+    // +watcha
 }
 
 /**
@@ -37,8 +41,10 @@ export const RoomListItemContent = memo(function RoomListItemContent({
     vm,
     renderAvatar,
     isDragging = false,
+    renderBelowName, // watcha+
 }: RoomListItemContentProps): JSX.Element {
     const item = useViewModel(vm);
+    const belowName = renderBelowName?.(item.room); // watcha+
 
     return (
         <Flex
@@ -55,11 +61,17 @@ export const RoomListItemContent = memo(function RoomListItemContent({
                     <div className={styles.roomName} title={item.name} data-testid="room-name">
                         {item.name}
                     </div>
-                    {item.messagePreview && (
-                        <Text as="div" size="sm" className={styles.ellipsis} title={item.messagePreview}>
-                            {item.messagePreview}
-                        </Text>
-                    )}
+                    {/* watcha!
+                        La ligne sous le nom est prise par la progression d'un
+                        envoi quand il y en a un : les éléments de la liste sont
+                        virtualisés à hauteur fixe, empiler les deux rognerait
+                        la ligne. L'aperçu revient dès l'envoi terminé. */}
+                    {belowName ||
+                        (item.messagePreview && (
+                            <Text as="div" size="sm" className={styles.ellipsis} title={item.messagePreview}>
+                                {item.messagePreview}
+                            </Text>
+                        ))}
                 </div>
                 {!isDragging && (item.showMoreOptionsMenu || item.showNotificationMenu) && (
                     <RoomListItemHoverMenu

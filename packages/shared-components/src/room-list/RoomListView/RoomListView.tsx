@@ -91,6 +91,10 @@ export interface RoomListViewProps {
     vm: RoomListViewModel;
     /** Render function for room avatar */
     renderAvatar: (room: Room) => ReactNode;
+    // watcha+
+    /** Render function for an extra line below the room name */
+    renderBelowName?: (room: Room) => ReactNode;
+    // +watcha
     /** Optional callback for keyboard events on the room list */
     onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
 }
@@ -98,7 +102,15 @@ export interface RoomListViewProps {
 /**
  * Room list view component that manages filters, loading states, empty states, and the room list.
  */
+/* watcha+
 export const RoomListView: React.FC<RoomListViewProps> = ({ vm, renderAvatar, onKeyDown }): JSX.Element => {
++watcha */
+export const RoomListView: React.FC<RoomListViewProps> = ({
+    vm,
+    renderAvatar,
+    renderBelowName,
+    onKeyDown,
+}): JSX.Element => {
     const snapshot = useViewModel(vm);
     let listBody: ReactNode;
 
@@ -107,7 +119,17 @@ export const RoomListView: React.FC<RoomListViewProps> = ({ vm, renderAvatar, on
     } else if (snapshot.isRoomListEmpty) {
         listBody = <RoomListEmptyStateView vm={vm} />;
     } else {
+        /* watcha+
         listBody = <VirtualizedRoomListView vm={vm} renderAvatar={renderAvatar} onKeyDown={onKeyDown} />;
+        +watcha */
+        listBody = (
+            <VirtualizedRoomListView
+                vm={vm}
+                renderAvatar={renderAvatar}
+                renderBelowName={renderBelowName}
+                onKeyDown={onKeyDown}
+            />
+        );
     }
 
     return (

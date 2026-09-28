@@ -19,7 +19,12 @@ import { type MatrixClient, MatrixError, type Room } from "matrix-js-sdk/src/mat
 
 import { MatrixClientPeg } from "../../../src/MatrixClientPeg";
 import Modal from "../../../src/Modal";
-import { inviteInBackground, queuedBatchCount } from "../../../src/utils/watcha_backgroundInvite";
+import {
+    getRoomInviteProgress,
+    inviteInBackground,
+    queuedBatchCount,
+    subscribeToInviteProgress,
+} from "../../../src/utils/watcha_backgroundInvite";
 import * as InviteProgressToast from "../../../src/toasts/watcha_InviteProgressToast";
 import * as TestUtilsMatrix from "../../test-utils";
 
@@ -145,6 +150,68 @@ describe("inviteInBackground", () => {
         client.inviteByEmail = jest.fn().mockResolvedValue({});
         await inviteInBackground(client, ROOM_ID, [EMAIL2]);
         expect(client.inviteByEmail).toHaveBeenCalledTimes(1);
+    });
+
+    it("expose l'état par salon, lot en cours comme lot en attente", async () => {
+        let unblock: () => void = () => {};
+        client.inviteByEmail = jest
+            .fn()
+            .mockImplementation(() => new Promise<void>((resolve) => (unblock = () => resolve())));
+
+        // Rien nulle part avant le premier envoi.
+        expect(getRoomInviteProgress(ROOM_ID)).toBeNull();
+
+        const first = inviteInBackground(client, ROOM_ID, [EMAIL1, EMAIL2]);
+        await until(() => client.inviteByEmail.mock.calls.length > 0);
+
+        // Le lot en cours est signalé comme commencé, et n'a encore rien envoyé.
+        expect(getRoomInviteProgress(ROOM_ID)).toEqual({ sent: 0, total: 2, started: true });
+        // Les autres salons ne sont pas concernés.
+        expect(getRoomInviteProgress(OTHER_ROOM_ID)).toBeNull();
+
+        const second = inviteInBackground(client, OTHER_ROOM_ID, [EMAIL3]);
+        // Celui qui attend son tour est visible, mais annoncé comme pas commencé.
+        expect(getRoomInviteProgress(OTHER_ROOM_ID)).toEqual({ sent: 0, total: 1, started: false });
+
+        client.inviteByEmail = jest.fn().mockResolvedValue({});
+        unblock();
+        await first;
+        await second;
+
+        // Plus rien une fois les deux lots terminés.
+        expect(getRoomInviteProgress(ROOM_ID)).toBeNull();
+        expect(getRoomInviteProgress(OTHER_ROOM_ID)).toBeNull();
+    });
+
+    it("agrège les lots d'un même salon, et prévient ses abonnés", async () => {
+        let unblock: () => void = () => {};
+        client.inviteByEmail = jest
+            .fn()
+            .mockImplementation(() => new Promise<void>((resolve) => (unblock = () => resolve())));
+
+        const listener = jest.fn();
+        const unsubscribe = subscribeToInviteProgress(listener);
+
+        const first = inviteInBackground(client, ROOM_ID, [EMAIL1]);
+        await until(() => client.inviteByEmail.mock.calls.length > 0);
+        expect(listener).toHaveBeenCalled();
+
+        // Deux lots pour le même salon : une seule barre, qui les additionne.
+        const second = inviteInBackground(client, ROOM_ID, [EMAIL2, EMAIL3]);
+        expect(getRoomInviteProgress(ROOM_ID)).toEqual({ sent: 0, total: 3, started: true });
+
+        // Une fois désabonné, plus aucun appel.
+        unsubscribe();
+        const callsBefore = listener.mock.calls.length;
+
+        client.inviteByEmail = jest.fn().mockResolvedValue({});
+        unblock();
+        await first;
+        await second;
+
+        expect(listener).toHaveBeenCalledTimes(callsBefore);
+        expect(getRoomInviteProgress(ROOM_ID)).toBeNull();
+        expect(queuedBatchCount()).toBe(0);
     });
 
     it("reports the addresses left aside when the invitations are given up on", async () => {

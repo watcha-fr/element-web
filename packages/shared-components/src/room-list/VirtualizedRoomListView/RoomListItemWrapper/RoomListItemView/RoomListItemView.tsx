@@ -150,6 +150,10 @@ export interface RoomListItemViewProps extends Omit<React.HTMLAttributes<HTMLBut
     isLastItem: boolean;
     /** Function to render the room avatar */
     renderAvatar: (room: Room) => ReactNode;
+    // watcha+
+    /** Function to render an extra line below the room name, if any */
+    renderBelowName?: (room: Room) => ReactNode;
+    // +watcha
     ref?: Ref<Element>;
 }
 
@@ -165,6 +169,7 @@ export const RoomListItemView = memo(function RoomListItemView({
     isFirstItem,
     isLastItem,
     renderAvatar,
+    renderBelowName, // watcha+
     ref,
     ...props
 }: RoomListItemViewProps): JSX.Element {
@@ -203,7 +208,8 @@ export const RoomListItemView = memo(function RoomListItemView({
                 aria-selected={props.role === "option" ? isSelected : undefined}
                 {...props}
             >
-                <RoomListItemContent vm={vm} renderAvatar={renderAvatar} />
+                {/* watcha! : renderBelowName ajouté */}
+                <RoomListItemContent vm={vm} renderAvatar={renderAvatar} renderBelowName={renderBelowName} />
             </Flex>
         </RoomListItemContextMenu>
     );

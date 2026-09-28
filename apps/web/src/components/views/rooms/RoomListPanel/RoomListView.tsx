@@ -19,6 +19,7 @@ import { getKeyBindingsManager } from "../../../../KeyBindingsManager";
 import { KeyBindingAction } from "../../../../accessibility/KeyboardShortcuts";
 import { Landmark, LandmarkNavigation } from "../../../../accessibility/LandmarkNavigation";
 import { RoomListViewModel } from "../../../../viewmodels/room-list/RoomListViewModel";
+import { WatchaRoomInviteProgress } from "./watcha_RoomInviteProgress"; // watcha+
 
 /**
  * RoomListView component using shared components with proper MVVM pattern.
@@ -34,6 +35,14 @@ export function RoomListView(): JSX.Element {
         return <RoomAvatarView room={room as Room} />;
     }, []);
 
+    // watcha+
+    // Progression d'un envoi d'invitations en cours pour ce salon, s'il y en a
+    // un. Le composant se charge lui-même de ne rien rendre le reste du temps.
+    const renderBelowName = useCallback((room: SharedRoom): ReactNode => {
+        return <WatchaRoomInviteProgress roomId={(room as Room).roomId} />;
+    }, []);
+    // +watcha
+
     // Handle keyboard navigation for landmarks
     const onKeyDown = useCallback((ev: React.KeyboardEvent) => {
         const navAction = getKeyBindingsManager().getNavigationAction(ev);
@@ -47,5 +56,15 @@ export function RoomListView(): JSX.Element {
         }
     }, []);
 
+    /* watcha+
     return <SharedRoomListView vm={vm} renderAvatar={renderAvatar} onKeyDown={onKeyDown} />;
+    +watcha */
+    return (
+        <SharedRoomListView
+            vm={vm}
+            renderAvatar={renderAvatar}
+            renderBelowName={renderBelowName}
+            onKeyDown={onKeyDown}
+        />
+    );
 }

@@ -60,6 +60,14 @@ export interface VirtualizedRoomListViewProps {
      */
     renderAvatar: (room: Room) => ReactNode;
 
+    // watcha+
+    /**
+     * Render function for an extra line below the room name
+     * @param room - The opaque Room object from the client
+     */
+    renderBelowName?: (room: Room) => ReactNode;
+    // +watcha
+
     /**
      * Optional callback for keyboard key down events
      */
@@ -111,7 +119,15 @@ const EXTENDED_VIEWPORT_HEIGHT = 25 * ROOM_LIST_ITEM_HEIGHT;
  * <VirtualizedRoomListView vm={roomListViewModel} renderAvatar={(room) => <Avatar room={room} />} />
  * ```
  */
+/* watcha+
 export function VirtualizedRoomListView({ vm, renderAvatar, onKeyDown }: VirtualizedRoomListViewProps): JSX.Element {
++watcha */
+export function VirtualizedRoomListView({
+    vm,
+    renderAvatar,
+    renderBelowName,
+    onKeyDown,
+}: VirtualizedRoomListViewProps): JSX.Element {
     const snapshot = useViewModel(vm);
     const { roomListState, sections, isFlatList } = snapshot;
     const activeRoomIndex = roomListState.activeRoomIndex;
@@ -188,6 +204,7 @@ export function VirtualizedRoomListView({ vm, renderAvatar, onKeyDown }: Virtual
                     key={roomId}
                     vm={roomItemVM}
                     renderAvatar={renderAvatar}
+                    renderBelowName={renderBelowName} // watcha+
                     isSelected={isSelected}
                     isFocused={isFocused}
                     onFocus={onFocus}
@@ -201,7 +218,10 @@ export function VirtualizedRoomListView({ vm, renderAvatar, onKeyDown }: Virtual
                 />
             );
         },
+        /* watcha+
         [renderAvatar],
+        +watcha */
+        [renderAvatar, renderBelowName],
     );
 
     /**

@@ -4060,6 +4060,7 @@
             "other": "%(count)s addresses could not be invited"
         },
         "invite_progress": "%(sent)s of %(total)s invitations sent",
+        "invite_progress_pending": "Waiting to send %(total)s invitations",
         "invite_progress_title": "Sending invitations",
         "invite_queued": {
             "one": "%(count)s other batch waiting",
