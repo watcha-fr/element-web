@@ -79,7 +79,7 @@ describe("inviteInBackground", () => {
     it("reports a success once every invitation went through", async () => {
         await inviteInBackground(client, ROOM_ID, [EMAIL1, EMAIL2]);
 
-        expect(InviteProgressToast.showSuccessToast).toHaveBeenCalledWith(2, roomName(ROOM_ID));
+        expect(InviteProgressToast.showSuccessToast).toHaveBeenCalledWith(2);
         expect(InviteProgressToast.showFailureToast).not.toHaveBeenCalled();
     });
 
@@ -100,6 +100,7 @@ describe("inviteInBackground", () => {
         expect(failures).toHaveLength(1);
         expect(failures[0].address).toBe(EMAIL2);
         expect(failures[0].errorText).toBeTruthy();
+        expect(failures[0].roomName).toBe(roomName(ROOM_ID));
     });
 
     /** Laisse tourner les micro-tâches jusqu'à ce que la condition soit vraie. */
@@ -131,11 +132,14 @@ describe("inviteInBackground", () => {
 
         // Le toast a annoncé le lot en attente. Pas dès le premier affichage,
         // posé avant que le second lot n'arrive, mais à la progression suivante.
-        expect(mocked(InviteProgressToast.showProgressToast).mock.calls).toContainEqual([1, 1, roomName(ROOM_ID), 1]);
+        // Et son total est celui de la file entière — 1 + 2 — pas celui du lot.
+        expect(mocked(InviteProgressToast.showProgressToast).mock.calls).toContainEqual([1, 3, roomName(ROOM_ID), 1]);
 
         // Le second lot est bien parti, dans son propre salon.
         expect(client.inviteByEmail).toHaveBeenCalledTimes(2);
-        expect(InviteProgressToast.showSuccessToast).toHaveBeenLastCalledWith(2, roomName(OTHER_ROOM_ID));
+        // Un seul bilan pour la file entière : 1 + 2 invitations.
+        expect(InviteProgressToast.showSuccessToast).toHaveBeenCalledTimes(1);
+        expect(InviteProgressToast.showSuccessToast).toHaveBeenLastCalledWith(3);
         expect(queuedBatchCount()).toBe(0);
     });
 
@@ -150,6 +154,52 @@ describe("inviteInBackground", () => {
         client.inviteByEmail = jest.fn().mockResolvedValue({});
         await inviteInBackground(client, ROOM_ID, [EMAIL2]);
         expect(client.inviteByEmail).toHaveBeenCalledTimes(1);
+    });
+
+    it("ne rend qu'un bilan pour toute la file, à la fin", async () => {
+        let unblock: () => void = () => {};
+        client.inviteByEmail = jest
+            .fn()
+            .mockImplementation(() => new Promise<void>((resolve) => (unblock = () => resolve())));
+
+        const first = inviteInBackground(client, ROOM_ID, [EMAIL1]);
+        await until(() => client.inviteByEmail.mock.calls.length > 0);
+        const second = inviteInBackground(client, OTHER_ROOM_ID, [EMAIL2, EMAIL3]);
+
+        client.inviteByEmail = jest.fn().mockResolvedValue({});
+        unblock();
+        await first;
+        await second;
+
+        // Un bilan par lot s'afficherait pour être aussitôt remplacé par la
+        // progression du suivant, et son minuteur éteindrait le toast d'après.
+        expect(InviteProgressToast.showSuccessToast).toHaveBeenCalledTimes(1);
+        expect(InviteProgressToast.showSuccessToast).toHaveBeenCalledWith(3);
+    });
+
+    it("compte les échecs de tous les salons dans un seul bilan", async () => {
+        client.inviteByEmail = jest.fn().mockImplementation(async (roomId: string, address: string) => {
+            if (address === EMAIL1 || address === EMAIL3) {
+                throw new MatrixError({ errcode: "M_BAD_STATE" });
+            }
+            return {};
+        });
+
+        const first = inviteInBackground(client, ROOM_ID, [EMAIL1]);
+        const second = inviteInBackground(client, OTHER_ROOM_ID, [EMAIL2, EMAIL3]);
+        await first;
+        await second;
+
+        expect(InviteProgressToast.showSuccessToast).not.toHaveBeenCalled();
+        expect(InviteProgressToast.showFailureToast).toHaveBeenCalledTimes(1);
+        const [sent, failures] = mocked(InviteProgressToast.showFailureToast).mock.calls[0];
+        expect(sent).toBe(1);
+        // Chaque échec dit dans quel salon il s'est produit : la file en traverse
+        // plusieurs, et une liste à plat ne le dirait pas.
+        expect(failures.map((failure) => [failure.address, failure.roomName])).toEqual([
+            [EMAIL1, roomName(ROOM_ID)],
+            [EMAIL3, roomName(OTHER_ROOM_ID)],
+        ]);
     });
 
     it("expose l'état par salon, lot en cours comme lot en attente", async () => {

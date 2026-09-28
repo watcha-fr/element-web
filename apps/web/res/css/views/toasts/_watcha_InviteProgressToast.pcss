@@ -14,8 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/* La barre mesure l'envoi entier, file comprise : elle prend toute la largeur
+   du toast, sinon les 60 px par défaut de `mx_ProgressBar` rendent illisible
+   une progression sur plusieurs dizaines d'invitations. */
+.watcha_InviteProgressToast {
+    .mx_ProgressBar {
+        width: 100%;
+        height: 8px;
+    }
+}
+
 /* Le nom du salon coiffe le toast : avec une file d'attente, « 12 sur 50 » ne
-   dit pas de quel envoi il s'agit. */
+   dit pas de quel envoi il s'agit. Il change au fil des lots. */
 .watcha_InviteProgressToast_room {
     font-weight: 600;
     margin-bottom: 0.15em;

@@ -49,6 +49,23 @@ let draining = false;
 /** Le lot en train de partir, s'il y en a un. */
 let running: { roomId: string; sent: number; total: number } | null = null;
 
+/**
+ * Cumul de la file entière, et non du seul lot en cours.
+ *
+ * Le toast mesure tout ce qu'il reste à envoyer, lots en attente compris : sa
+ * barre avance d'un bout à l'autre au lieu de repartir de zéro à chaque salon,
+ * et seul le nom affiché change quand un lot passe la main. Remis à zéro quand
+ * la file s'est entièrement vidée.
+ */
+let overall = { sent: 0, total: 0 };
+
+/**
+ * Les échecs de toute la file, gardés jusqu'au bilan final. Les rapporter salon
+ * par salon ferait clignoter un bilan par lot, aussitôt remplacé par la
+ * progression du suivant.
+ */
+const pendingFailures: { address: string; errorText: string; roomName: string }[] = [];
+
 /** Nombre de lots qui attendent leur tour, celui en cours non compris. */
 export const queuedBatchCount = (): number => queue.length;
 
@@ -131,6 +148,9 @@ export function inviteInBackground(client: MatrixClient, roomId: string, address
     const finished = new Promise<void>((resolve) => (done = resolve));
 
     queue.push({ client, roomId, addresses, done });
+    // Compté tout de suite : la barre du toast doit s'allonger dès qu'un lot
+    // rejoint la file, pas seulement quand il commence.
+    overall.total += addresses.length;
     notifyProgress();
     if (!draining) {
         void drainQueue();
@@ -159,6 +179,28 @@ async function drainQueue(): Promise<void> {
         // rendrait toute invitation ultérieure impossible jusqu'au
         // rechargement de la page.
         draining = false;
+        reportOutcome();
+    }
+}
+
+/**
+ * Le bilan, une fois la file vide — un seul, pour l'ensemble des salons.
+ *
+ * Tant qu'un lot attend derrière, rien n'est rapporté : un bilan par lot
+ * s'afficherait pour être aussitôt remplacé par la progression du suivant, et
+ * son minuteur de disparition éteindrait le toast du lot d'après.
+ */
+function reportOutcome(): void {
+    const { total } = overall;
+    const failures = pendingFailures.splice(0);
+    overall = { sent: 0, total: 0 };
+
+    if (failures.length) {
+        showFailureToast(total - failures.length, failures);
+    } else if (total) {
+        showSuccessToast(total);
+    } else {
+        hideToast();
     }
 }
 
@@ -168,7 +210,9 @@ async function runBatch({ client, roomId, addresses }: IPendingBatch): Promise<v
     let sent = 0;
 
     running = { roomId, sent, total };
-    showProgressToast(sent, total, roomName, queue.length);
+    // Les compteurs du toast sont ceux de la file entière ; seul le nom affiché
+    // est celui du lot en cours.
+    showProgressToast(overall.sent, overall.total, roomName, queue.length);
     notifyProgress();
 
     const inviter = new MultiInviter(client, roomId, {
@@ -176,8 +220,9 @@ async function runBatch({ client, roomId, addresses }: IPendingBatch): Promise<v
         inhibitProgressDialog: true,
         progressCallback: () => {
             sent++;
+            overall.sent++;
             running = { roomId, sent, total };
-            showProgressToast(sent, total, roomName, queue.length);
+            showProgressToast(overall.sent, overall.total, roomName, queue.length);
             notifyProgress();
         },
     });
@@ -187,28 +232,19 @@ async function runBatch({ client, roomId, addresses }: IPendingBatch): Promise<v
         states = await inviter.invite(addresses);
     } catch (error) {
         logger.error("Error whilst inviting users in the background: ", error);
-        showFailureToast(
-            sent,
-            addresses.slice(sent).map((address) => ({ address, errorText: _t("invite|error_invite") })),
-            roomName,
-        );
+        for (const address of addresses.slice(sent)) {
+            pendingFailures.push({ address, errorText: _t("invite|error_invite"), roomName });
+        }
         return;
     }
 
     // Anything not reported as invited has failed, including the addresses left
     // untouched when `MultiInviter` gives up early on a fatal error.
-    const failures = addresses
-        .filter((address) => states[address] !== InviteState.Invited)
-        .map((address) => ({
+    for (const address of addresses.filter((candidate) => states[candidate] !== InviteState.Invited)) {
+        pendingFailures.push({
             address,
             errorText: inviter.getErrorText(address) ?? _t("invite|error_invite"),
-        }));
-
-    if (failures.length) {
-        showFailureToast(total - failures.length, failures, roomName);
-    } else if (total) {
-        showSuccessToast(total, roomName);
-    } else {
-        hideToast();
+            roomName,
+        });
     }
 }

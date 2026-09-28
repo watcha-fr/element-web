@@ -33,6 +33,22 @@ const TOAST_PRIORITY = 80;
 // How long the "all invitations sent" toast stays before fading away on its own.
 const SUCCESS_TOAST_TIMEOUT_MS = 8000;
 
+/**
+ * Le minuteur du bilan, gardé pour être annulé.
+ *
+ * Sans ça, un envoi lancé dans les huit secondes qui suivent un bilan se faisait
+ * éteindre en cours de route par le minuteur du précédent : le toast
+ * disparaissait puis revenait à la progression suivante.
+ */
+let dismissTimeout: number | null = null;
+
+const cancelDismiss = (): void => {
+    if (dismissTimeout !== null) {
+        window.clearTimeout(dismissTimeout);
+        dismissTimeout = null;
+    }
+};
+
 interface IProgressProps {
     sent: number;
     total: number;
@@ -41,17 +57,22 @@ interface IProgressProps {
 }
 
 /**
- * Le salon est nommé, et les lots en attente annoncés : avec une file, « 12 sur
- * 50 » ne dit pas de quel envoi il s'agit ni s'il en reste d'autres derrière.
+ * Les compteurs couvrent la file entière : la barre avance d'un bout à l'autre
+ * de l'envoi au lieu de repartir de zéro à chaque salon. Seul le nom affiché
+ * change quand un lot passe la main, et les lots restants sont annoncés.
  */
 const InviteProgress: React.FC<IProgressProps> = ({ sent, total, roomName, queued }) => (
     <DraggableToast>
-        <div className="watcha_InviteProgressToast_room">{roomName}</div>
-        <div className="mx_Toast_description">{_t("watcha|invite_progress", { sent, total })}</div>
-        <ProgressBar value={sent} max={total} />
-        {queued > 0 && (
-            <div className="watcha_InviteProgressToast_queued">{_t("watcha|invite_queued", { count: queued })}</div>
-        )}
+        <div className="watcha_InviteProgressToast">
+            <div className="watcha_InviteProgressToast_room">{roomName}</div>
+            <div className="mx_Toast_description">{_t("watcha|invite_progress", { sent, total })}</div>
+            <ProgressBar value={sent} max={total} />
+            {queued > 0 && (
+                <div className="watcha_InviteProgressToast_queued">
+                    {_t("watcha|invite_queued", { count: queued })}
+                </div>
+            )}
+        </div>
     </DraggableToast>
 );
 
@@ -75,6 +96,7 @@ const DraggableGenericToast: React.FC<React.ComponentProps<typeof GenericToast>>
  * so far. Non blocking: the user keeps using the application meanwhile.
  */
 export const showProgressToast = (sent: number, total: number, roomName: string, queued = 0): void => {
+    cancelDismiss();
     ToastStore.sharedInstance().addOrReplaceToast({
         key: TOAST_KEY,
         title: _t("watcha|invite_progress_title"),
@@ -85,31 +107,28 @@ export const showProgressToast = (sent: number, total: number, roomName: string,
 };
 
 export const hideToast = (): void => {
+    cancelDismiss();
     ToastStore.sharedInstance().dismissToast(TOAST_KEY);
 };
 
-/** Le bilan nomme lui aussi le salon : avec une file, il en arrive plusieurs. */
-const withRoom = (roomName: string, text: string): React.ReactNode => (
-    <>
-        <div className="watcha_InviteProgressToast_room">{roomName}</div>
-        {text}
-    </>
-);
-
-/** Reports that every invitation went through. Fades away on its own. */
-export const showSuccessToast = (sent: number, roomName: string): void => {
+/**
+ * Reports that every invitation went through — celles de toute la file, quel
+ * que soit le nombre de salons traversés. Fades away on its own.
+ */
+export const showSuccessToast = (sent: number): void => {
+    cancelDismiss();
     ToastStore.sharedInstance().addOrReplaceToast({
         key: TOAST_KEY,
         title: _t("watcha|invite_progress_title"),
         props: {
-            description: withRoom(roomName, _t("watcha|invite_sent", { count: sent })),
+            description: _t("watcha|invite_sent", { count: sent }),
             primaryLabel: _t("action|ok"),
             onPrimaryClick: hideToast,
         },
         component: DraggableGenericToast,
         priority: TOAST_PRIORITY,
     });
-    window.setTimeout(hideToast, SUCCESS_TOAST_TIMEOUT_MS);
+    dismissTimeout = window.setTimeout(hideToast, SUCCESS_TOAST_TIMEOUT_MS);
 };
 
 /**
@@ -118,34 +137,47 @@ export const showSuccessToast = (sent: number, roomName: string): void => {
  */
 export const showFailureToast = (
     sent: number,
-    failures: { address: string; errorText: string }[],
-    roomName: string,
+    failures: { address: string; errorText: string; roomName: string }[],
 ): void => {
+    // Le détail est groupé par salon : la file en traverse plusieurs, et une
+    // liste à plat ne dirait pas où l'adresse a manqué.
+    const parRoom = new Map<string, { address: string; errorText: string }[]>();
+    for (const { address, errorText, roomName } of failures) {
+        const liste = parRoom.get(roomName) ?? [];
+        liste.push({ address, errorText });
+        parRoom.set(roomName, liste);
+    }
+
     const showDetails = (): void => {
         hideToast();
         Modal.createDialog(ErrorDialog, {
             title: _t("watcha|invite_incomplete_title"),
             description: (
                 <div>
-                    <p>
-                        <strong>{roomName}</strong>
-                    </p>
                     <p>{_t("watcha|invite_sent", { count: sent })}</p>
-                    <ul>
-                        {failures.map(({ address, errorText }) => (
-                            <li key={address}>{`${address} — ${errorText}`}</li>
-                        ))}
-                    </ul>
+                    {Array.from(parRoom.entries()).map(([roomName, liste]) => (
+                        <div key={roomName}>
+                            <p>
+                                <strong>{roomName}</strong>
+                            </p>
+                            <ul>
+                                {liste.map(({ address, errorText }) => (
+                                    <li key={address}>{`${address} — ${errorText}`}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
                 </div>
             ),
         });
     };
 
+    cancelDismiss();
     ToastStore.sharedInstance().addOrReplaceToast({
         key: TOAST_KEY,
         title: _t("watcha|invite_incomplete_title"),
         props: {
-            description: withRoom(roomName, _t("watcha|invite_not_sent", { count: failures.length })),
+            description: _t("watcha|invite_not_sent", { count: failures.length }),
             secondaryLabel: _t("action|dismiss"),
             onSecondaryClick: hideToast,
             primaryLabel: _t("action|view"),
