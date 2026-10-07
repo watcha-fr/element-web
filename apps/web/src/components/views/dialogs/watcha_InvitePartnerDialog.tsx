@@ -16,7 +16,6 @@ limitations under the License.
 
 import React, { createRef } from "react";
 import { Room } from "matrix-js-sdk/src/models/room";
-import { RoomMember } from "matrix-js-sdk/src/models/room-member";
 
 import { _t } from "../../../languageHandler";
 import { Key } from "../../../Keyboard";
@@ -29,12 +28,19 @@ import DialogButtons from "../elements/DialogButtons";
 import Field from "../elements/Field";
 import { IUser } from "./watcha_InviteDialog";
 
+/** Temps laissé à la frappe avant d'interroger l'annuaire sur les adresses saisies. */
+const LOOKUP_DELAY_MS = 400;
+/** Requêtes d'annuaire menées de front : un collage de 50 adresses ne doit pas en lancer 50 d'un coup. */
+const LOOKUP_CONCURRENCY = 5;
+
 interface IProps {
     room?: Room;
     originalList: IUser[];
     suggestedList: IUser[];
     selectedList: IUser[];
-    addEmailAddressesToSelectedList: (emailAddresses: string[]) => void;
+    // `knownUsers` : les comptes trouvés pour les adresses retenues, pour qu'ils
+    // soient invités par leur identifiant plutôt que par leur adresse.
+    addEmailAddressesToSelectedList: (emailAddresses: string[], knownUsers?: IUser[]) => void;
     onFinished(): void;
 }
 
@@ -43,6 +49,11 @@ interface IState {
     // The email addresses bound to the account of the current user. `null` until
     // they have been fetched from the homeserver.
     ownEmailAddresses: string[] | null;
+    // Résultat de la recherche dans l'annuaire, par adresse en minuscules : le
+    // compte trouvé, ou `null` si l'annuaire n'en connaît aucun.
+    lookedUp: Record<string, IUser | null>;
+    // Vrai tant que des adresses saisies n'ont pas encore été cherchées.
+    lookupPending: boolean;
 }
 
 interface IRejectedAddress {
@@ -61,18 +72,30 @@ interface IReview {
 
 export default class InvitePartnerDialog extends React.Component<IProps, IState> {
     private fieldRef: React.RefObject<Field | null> = createRef();
+    private lookupTimer?: number;
+    private unmounted = false;
 
     constructor(props: IProps) {
         super(props);
         this.state = {
             input: "",
             ownEmailAddresses: null,
+            lookedUp: {},
+            lookupPending: false,
         };
     }
 
     public componentDidMount() {
         this.fieldRef.current?.focus();
         this.fetchOwnEmailAddresses();
+        // Les membres d'un salon sont chargés à la demande : sans eux, un membre
+        // déjà présent ne serait pas reconnu comme tel.
+        void this.props.room?.loadMembersIfNeeded();
+    }
+
+    public componentWillUnmount() {
+        this.unmounted = true;
+        window.clearTimeout(this.lookupTimer);
     }
 
     private fetchOwnEmailAddresses = async () => {
@@ -90,15 +113,93 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
     };
 
     private onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        this.setState({ input: event.target.value });
+        const input = event.target.value;
+        this.setState({ input, lookupPending: this.addressesToLookUp(input).length > 0 });
+        window.clearTimeout(this.lookupTimer);
+        this.lookupTimer = window.setTimeout(() => void this.lookUpAddresses(), LOOKUP_DELAY_MS);
+    };
+
+    /** Les adresses saisies dont on ignore encore si elles correspondent à un compte. */
+    private addressesToLookUp = (input: string): string[] => {
+        const { lookedUp } = this.state;
+        return parseAddressList(input).addresses.filter(
+            (address) => !(address.toLowerCase() in lookedUp) && !this.getListedUser(address),
+        );
+    };
+
+    /**
+     * Cherche dans l'annuaire chaque adresse saisie. Les listes du dialogue
+     * d'invitation ne suffisent pas : elles ne portent que la première page de
+     * l'annuaire, si bien qu'un membre du salon pouvait passer pour une adresse
+     * inconnue, recevoir une invitation par e-mail, et la voir refusée par le
+     * serveur.
+     */
+    private lookUpAddresses = async (): Promise<void> => {
+        const pending = this.addressesToLookUp(this.state.input);
+        if (!pending.length) {
+            this.setState({ lookupPending: false });
+            return;
+        }
+
+        const client = MatrixClientPeg.get();
+        const found: Record<string, IUser | null> = {};
+        for (let start = 0; start < pending.length; start += LOOKUP_CONCURRENCY) {
+            await Promise.all(
+                pending.slice(start, start + LOOKUP_CONCURRENCY).map(async (address) => {
+                    found[address.toLowerCase()] = client ? await this.searchDirectory(address) : null;
+                }),
+            );
+        }
+        if (this.unmounted) {
+            return;
+        }
+
+        this.setState(({ lookedUp, input }) => {
+            const merged = { ...lookedUp, ...found };
+            const stillPending = parseAddressList(input).addresses.some(
+                (address) => !(address.toLowerCase() in merged) && !this.getListedUser(address),
+            );
+            return { lookedUp: merged, lookupPending: stillPending };
+        });
+    };
+
+    private searchDirectory = async (address: string): Promise<IUser | null> => {
+        const lower = address.toLowerCase();
+        try {
+            const { results } = await MatrixClientPeg.get()!.searchUserDirectory({ term: address, limit: 10 });
+            const match = results.find((result) => (result as { email?: string }).email?.toLowerCase() === lower);
+            if (!match) {
+                return null;
+            }
+            const email = (match as { email?: string }).email;
+            return {
+                address: match.user_id,
+                addressType: email ? "email" : "mx-user-id",
+                displayName: match.display_name || email || match.user_id,
+                avatarUrl: match.avatar_url,
+                email,
+                isKnown: true,
+            };
+        } catch (error) {
+            // Faute de réponse, l'adresse reste traitée comme inconnue : le
+            // serveur refusera de toute façon d'inviter un membre déjà présent.
+            console.error("Error whilst looking up an email address in the user directory: ", error);
+            return null;
+        }
     };
 
     private onOk = () => {
+        if (this.state.lookupPending) {
+            return;
+        }
         const { accepted } = this.review();
         if (!accepted.length) {
             return;
         }
-        this.props.addEmailAddressesToSelectedList(accepted);
+        const knownUsers = accepted
+            .map((address) => this.getUserFromEmailAddress(address))
+            .filter((user): user is IUser => !!user);
+        this.props.addEmailAddressesToSelectedList(accepted, knownUsers);
         this.props.onFinished();
     };
 
@@ -117,7 +218,7 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
      * the ones that must be discarded, along with the reason why.
      */
     private review = (): IReview => {
-        const { originalList, suggestedList, selectedList, room } = this.props;
+        const { selectedList, room } = this.props;
         const { ownEmailAddresses } = this.state;
         const { addresses, malformed } = parseAddressList(this.state.input);
 
@@ -135,6 +236,8 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
 
         for (const address of addresses) {
             const reject = (reason: string) => rejected.push({ address, reason });
+            const knownUser = this.getUserFromEmailAddress(address);
+            const membership = room && knownUser ? room.getMember(knownUser.address)?.membership : undefined;
 
             if (ownEmailAddresses?.includes(address)) {
                 reject(_t("watcha|email_already_bound"));
@@ -142,14 +245,13 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
                 reject(_t("watcha|email_already_add"));
             } else if (selectedList.some(user => user.email === address)) {
                 reject(_t("watcha|user_already_add"));
-            } else if (room && this.isMemberWithMembership(address, "join")) {
-                reject(_t("watcha|user_already_room_member"));
-            } else if (room && this.isMemberWithMembership(address, "invite")) {
-                reject(_t("watcha|user_already_inivte_room"));
+            } else if (knownUser && membership === "join") {
+                reject(_t("watcha|user_already_room_member", { name: knownUser.displayName }));
+            } else if (knownUser && membership === "invite") {
+                reject(_t("watcha|user_already_inivte_room", { name: knownUser.displayName }));
             } else if (
                 // A known user keeps being invitable whatever its email domain.
-                !suggestedList.some(user => user.email === address) &&
-                !originalList.some(user => user.email === address) &&
+                !knownUser &&
                 Email.hasForbiddenDomainForPartner(address)
             ) {
                 reject(_t("watcha|error_email_domain", { domain: address.split("@")[1] }));
@@ -165,29 +267,21 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
         return { accepted, rejected, overflow };
     };
 
-    private isMemberWithMembership = (emailAddress: string, membership: "join" | "invite"): boolean => {
-        const user = this.getUserFromEmailAddress(emailAddress);
-        if (!user) {
-            return false;
-        }
-        const { room } = this.props;
-        if (!room) throw new Error("Room ID given to InviteDialog does not look like a room");
-        const members = room.getMembersWithMembership(membership);
-        return members.some((member: RoomMember) => member.userId === user.address);
+    /** Le compte d'une adresse parmi ceux que le dialogue d'invitation a déjà affichés. */
+    private getListedUser = (emailAddress: string): IUser | undefined => {
+        const lower = emailAddress.toLowerCase();
+        const { suggestedList, originalList } = this.props;
+        return [...suggestedList, ...originalList].find((user) => user.email?.toLowerCase() === lower);
     };
 
-    private getUserFromEmailAddress = (emailAddress: string) => {
-        const { originalList } = this.props;
-        for (const user of originalList) {
-            if (user.email === emailAddress) {
-                return user;
-            }
-        }
+    /** Le compte d'une adresse, affiché par le dialogue ou trouvé dans l'annuaire. */
+    private getUserFromEmailAddress = (emailAddress: string): IUser | undefined => {
+        return this.getListedUser(emailAddress) ?? this.state.lookedUp[emailAddress.toLowerCase()] ?? undefined;
     };
 
     public render() {
         const { onFinished } = this.props;
-        const { input } = this.state;
+        const { input, lookupPending } = this.state;
         const { accepted, rejected, overflow } = this.review();
         // Ce que pèsera l'envoi : la liste d'invitation déjà constituée, plus ce
         // que la saisie courante y ajouterait.
@@ -226,6 +320,13 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
                             max: MAX_INVITATIONS_PER_BATCH,
                         }) }
                     </div>
+                    { /* Tant qu'une adresse n'a pas été cherchée, on ne sait pas
+                         si elle appartient à un membre du salon : l'ajout attend. */ }
+                    { lookupPending && (
+                        <div className="watcha_InvitePartnerDialog_checking">
+                            { _t("watcha|email_addresses_checking") }
+                        </div>
+                    ) }
                     { rejected.length > 0 && (
                         <div className="watcha_InvitePartnerDialog_rejected">
                             <span>{ _t("watcha|ignored_email_addresses") }</span>
@@ -254,7 +355,7 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
                             ? _t("watcha|add_email_addresses", { count: accepted.length })
                             : _t("action|add")
                     }
-                    primaryDisabled={!accepted.length}
+                    primaryDisabled={!accepted.length || lookupPending}
                     onPrimaryButtonClick={this.onOk}
                     onCancel={onFinished}
                 />

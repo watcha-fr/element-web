@@ -4026,6 +4026,7 @@
         "documents": "Documents",
         "email_already_add": "Vous avez déjà ajouté cette adresse email à la liste d'invitation",
         "email_addresses_budget": "%(used)s invitations sur %(max)s pour cet envoi",
+        "email_addresses_checking": "Vérification des adresses…",
         "email_addresses_field_label": "Adresses e-mail",
         "email_addresses_hint": "Une adresse par ligne, ou séparées par une virgule, un point-virgule ou une espace. Une colonne copiée depuis un tableur peut être collée telle quelle.",
         "email_addresses_over_limit": {
@@ -4108,8 +4109,8 @@
         "stop_sharing_title": "Êtes-vous sûr de vouloir mettre fin à ce partage ?",
         "tasks": "Liste de choses à faire",
         "user_already_add": "Cette adresse email appartient à un utilisateur que vous avez déjà ajouté à la liste d'invitation",
-        "user_already_inivte_room": "Cette adresse email appartient à un utilisateur déjà invité dans ce salon",
-        "user_already_room_member": "Cette adresse e-mail appartient à un utilisateur déjà membre du salon",
+        "user_already_inivte_room": "appartient à %(name)s, déjà invité dans ce salon",
+        "user_already_room_member": "appartient à %(name)s, déjà membre du salon",
         "user_profile": "Profil utilisateur",
         "videoconferencing": "Vidéoconférence",
         "videoconferencing_title": "Ouvrez la plateforme de visioconférence dans un nouvel onglet",

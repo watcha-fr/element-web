@@ -15,7 +15,8 @@ limitations under the License.
 */
 
 import React from "react";
-import { render, screen, fireEvent } from "jest-matrix-react";
+import { render, screen, fireEvent, waitFor } from "jest-matrix-react";
+import { type Room } from "matrix-js-sdk/src/matrix";
 
 import InvitePartnerDialog from "../../../../../src/components/views/dialogs/watcha_InvitePartnerDialog";
 import { MAX_INVITATIONS_PER_BATCH } from "../../../../../src/utils/watcha_inviteLimits";
@@ -49,11 +50,16 @@ describe("watcha_InvitePartnerDialog — plafond par envoi", () => {
         // cette promesse se résoudre avant de juger la saisie.
         await flushPromises();
         fireEvent.change(screen.getByRole("textbox"), { target: { value: addresses.join("\n") } });
+        // Puis chaque adresse est cherchée dans l'annuaire, après un délai de frappe.
+        await waitFor(() => expect(screen.queryByText("Checking addresses…")).not.toBeInTheDocument(), {
+            timeout: 3000,
+        });
     };
 
     beforeEach(() => {
         getMockClientWithEventEmitter({
             getThreePids: jest.fn().mockResolvedValue({ threepids: [] }),
+            searchUserDirectory: jest.fn().mockResolvedValue({ limited: false, results: [] }),
         });
     });
 
@@ -128,5 +134,78 @@ describe("watcha_InvitePartnerDialog — plafond par envoi", () => {
 
         expect(await screen.findByText(/pas-une-adresse/)).toBeInTheDocument();
         expect(screen.queryByText(/left out/)).not.toBeInTheDocument();
+    });
+});
+
+describe("watcha_InvitePartnerDialog — comptes déjà dans le salon", () => {
+    const DIRECTORY: Record<string, { user_id: string; display_name: string; email: string }> = {
+        "member@example.org": { user_id: "@member:server", display_name: "DLA 1007B", email: "member@example.org" },
+        "invited@example.org": { user_id: "@invited:server", display_name: "Invitée", email: "invited@example.org" },
+        "known@example.org": { user_id: "@known:server", display_name: "Connu", email: "known@example.org" },
+    };
+    const MEMBERSHIPS: Record<string, string> = { "@member:server": "join", "@invited:server": "invite" };
+
+    let addEmailAddressesToSelectedList: jest.Mock;
+
+    const room = {
+        loadMembersIfNeeded: jest.fn().mockResolvedValue(true),
+        getMember: (userId: string) => (MEMBERSHIPS[userId] ? { userId, membership: MEMBERSHIPS[userId] } : null),
+    } as unknown as Room;
+
+    const renderAndPaste = async (addresses: string[]): Promise<void> => {
+        addEmailAddressesToSelectedList = jest.fn();
+        render(
+            <InvitePartnerDialog
+                room={room}
+                originalList={[]}
+                suggestedList={[]}
+                selectedList={[]}
+                addEmailAddressesToSelectedList={addEmailAddressesToSelectedList}
+                onFinished={jest.fn()}
+            />,
+        );
+        await flushPromises();
+        fireEvent.change(screen.getByRole("textbox"), { target: { value: addresses.join("\n") } });
+        await waitFor(() => expect(screen.queryByText("Checking addresses…")).not.toBeInTheDocument(), {
+            timeout: 3000,
+        });
+    };
+
+    beforeEach(() => {
+        getMockClientWithEventEmitter({
+            getThreePids: jest.fn().mockResolvedValue({ threepids: [] }),
+            // L'annuaire Watcha cherche par sous-chaîne : il peut renvoyer
+            // d'autres comptes que celui de l'adresse exacte.
+            searchUserDirectory: jest.fn().mockImplementation(async ({ term }: { term: string }) => ({
+                limited: false,
+                results: Object.values(DIRECTORY).filter((user) => user.email.includes(term.toLowerCase())),
+            })),
+        });
+    });
+
+    it("écarte un membre du salon trouvé dans l'annuaire, avec son nom, sans le compter", async () => {
+        await renderAndPaste(["Member@example.org", "partner0@example.org"]);
+
+        expect(screen.getByText(/belongs to DLA 1007B, already a room member/)).toBeInTheDocument();
+        expect(screen.getByText(`1 of ${MAX_INVITATIONS_PER_BATCH} invitations in this batch`)).toBeInTheDocument();
+        expect(screen.getByText("Add 1 address")).toBeInTheDocument();
+    });
+
+    it("écarte un compte déjà invité dans le salon", async () => {
+        await renderAndPaste(["invited@example.org"]);
+
+        expect(screen.getByText(/belongs to Invitée, already invited to this room/)).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Add" })).toBeDisabled();
+    });
+
+    it("transmet le compte trouvé pour qu'il soit invité par son identifiant", async () => {
+        await renderAndPaste(["known@example.org"]);
+
+        fireEvent.click(screen.getByText("Add 1 address"));
+
+        expect(addEmailAddressesToSelectedList).toHaveBeenCalledWith(
+            ["known@example.org"],
+            [expect.objectContaining({ address: "@known:server", displayName: "Connu", isKnown: true })],
+        );
     });
 });

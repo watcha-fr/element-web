@@ -205,6 +205,37 @@ describe("MultiInviter", () => {
             expect(client.unban).toHaveBeenCalledWith(ROOMID, MXID1);
         });
 
+        // watcha+
+        it("reports an address already in the room as such, and keeps inviting the next ones", async () => {
+            // Une invitation par e-mail que Synapse résout vers un membre du salon.
+            client.inviteByEmail = jest.fn().mockRejectedValueOnce(
+                new MatrixError({
+                    errcode: "M_FORBIDDEN",
+                    error: "@member:server is already in the room.",
+                }),
+            );
+            mockPromptBeforeInviteUnknownUsers(false);
+
+            const result = await inviter.invite(["member@example.org", MXID1]);
+
+            expect(inviter.getErrorText("member@example.org")).toBe("User is already in the room");
+            expect(client.invite).toHaveBeenCalledWith(ROOMID, MXID1, { shareEncryptedHistory: true });
+            expect(result[MXID1]).toBe("invited");
+        });
+
+        it("still stops on a genuine lack of permission", async () => {
+            mocked(client.invite).mockRejectedValueOnce(
+                new MatrixError({ errcode: "M_FORBIDDEN", error: "You don't have permission to invite users" }),
+            );
+            mockPromptBeforeInviteUnknownUsers(false);
+
+            await inviter.invite([MXID1, MXID2]);
+
+            expect(inviter.getErrorText(MXID1)).toBe("You do not have permission to invite people to this room.");
+            expect(client.invite).toHaveBeenCalledTimes(1);
+        });
+        // +watcha
+
         it("should show sensible error when attempting to invite over federation with m.federate=false", async () => {
             mocked(client.invite).mockRejectedValueOnce(
                 new MatrixError({

@@ -4022,6 +4022,7 @@
         "documents": "Documents",
         "email_already_add": "You have already added this email address to the invitation list",
         "email_addresses_budget": "%(used)s of %(max)s invitations in this batch",
+        "email_addresses_checking": "Checking addresses…",
         "email_addresses_field_label": "Email addresses",
         "email_addresses_hint": "One address per line, or separated by a comma, a semicolon or a space. A column copied from a spreadsheet can be pasted as is.",
         "email_addresses_over_limit": {
@@ -4104,8 +4105,8 @@
         "stop_sharing_title": "Are you sure you want to end this sharing?",
         "tasks": "To-do list",
         "user_already_add": "This email address belongs to a user you have already added to the invitation list",
-        "user_already_inivte_room": "This email address belongs to a user already invited to this room",
-        "user_already_room_member": "This email address belongs to a user who is already a room member",
+        "user_already_inivte_room": "belongs to %(name)s, already invited to this room",
+        "user_already_room_member": "belongs to %(name)s, already a room member",
         "user_profile": "User profile",
         "videoconferencing": "Videoconferencing",
         "videoconferencing_title": "Open the videoconferencing platform in a new tab",

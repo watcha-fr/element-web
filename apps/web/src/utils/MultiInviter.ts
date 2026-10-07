@@ -41,6 +41,23 @@ const USER_ALREADY_JOINED = "IO.ELEMENT.ALREADY_JOINED";
 const USER_ALREADY_INVITED = "IO.ELEMENT.ALREADY_INVITED";
 const USER_BANNED = "IO.ELEMENT.BANNED";
 
+// watcha+
+/**
+ * Synapse refuse en 403 l'invitation d'une adresse qu'il résout vers un compte
+ * déjà membre du salon. Le client ne pouvait pas le savoir avant l'envoi : une
+ * invitation par e-mail ne passe pas par la vérification de `inviteToRoom`, et
+ * un partenaire n'est visible dans l'annuaire que de celui qui l'a invité. Ce
+ * n'est pas un défaut de droits : sans cette distinction, le 403 s'afficherait
+ * « Vous n'avez pas la permission… » et interromprait tout le lot.
+ */
+function isAlreadyInRoomError(err: unknown): boolean {
+    if (!(err instanceof MatrixError) || err.errcode !== "M_FORBIDDEN") {
+        return false;
+    }
+    return /is already in the room/i.test(err.data?.error ?? err.message);
+}
+// +watcha
+
 /** Options interface for {@link MultiInviter} */
 export interface MultiInviterOptions {
     /** Optional callback, fired after each invite */
@@ -267,7 +284,13 @@ export default class MultiInviter {
                     ];
 
                     let errorText: string | undefined;
+                    /* watcha!
                     switch (err.errcode) {
+                    !watcha */
+                    // watcha+
+                    const errcode = isAlreadyInRoomError(err) ? USER_ALREADY_JOINED : err.errcode;
+                    switch (errcode) {
+                    // +watcha
                         case "M_FORBIDDEN":
                             if (isSpace) {
                                 errorText =
@@ -340,7 +363,10 @@ export default class MultiInviter {
                     }
 
                     this.completionStates[address] = InviteState.Error;
+                    /* watcha!
                     this.errors[address] = { errorText, errcode: err.errcode };
+                    !watcha */
+                    this.errors[address] = { errorText, errcode }; // watcha+
 
                     resolve();
                 });

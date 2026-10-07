@@ -185,7 +185,7 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
         this.setState({ busy: false });
     };
 
-    addEmailAddressesToSelectedList = (emailAddresses: string[]) => {
+    addEmailAddressesToSelectedList = (emailAddresses: string[], knownUsers: IUser[] = []) => {
         const { originalList } = this.state;
         this.setState(({ suggestedList, selectedList }) => {
             const addedAddresses = new Set<string>();
@@ -194,9 +194,18 @@ export default class InviteDialog extends React.PureComponent<Props, IInviteDial
             for (const emailAddress of emailAddresses) {
                 // A user already listed in the directory is invited through its
                 // Matrix ID rather than through its email address.
+                /* watcha!
                 const knownUser =
                     suggestedList.find(user => user.email === emailAddress) ??
                     originalList.find(user => user.email === emailAddress);
+                !watcha */
+                // watcha+ : y compris un compte que le dialogue d'adresses a trouvé
+                // dans l'annuaire, hors des listes affichées ici.
+                const lower = emailAddress.toLowerCase();
+                const sameEmail = (user: IUser): boolean => user.email?.toLowerCase() === lower;
+                const knownUser =
+                    knownUsers.find(sameEmail) ?? suggestedList.find(sameEmail) ?? originalList.find(sameEmail);
+                // +watcha
                 const user =
                     knownUser ??
                     ({
