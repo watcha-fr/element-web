@@ -142,8 +142,18 @@ describe("watcha_InvitePartnerDialog — comptes déjà dans le salon", () => {
         "member@example.org": { user_id: "@member:server", display_name: "DLA 1007B", email: "member@example.org" },
         "invited@example.org": { user_id: "@invited:server", display_name: "Invitée", email: "invited@example.org" },
         "known@example.org": { user_id: "@known:server", display_name: "Connu", email: "known@example.org" },
+        // Jamais connecté : son nom affiché est son adresse.
+        "newcomer@example.org": {
+            user_id: "@newcomer:server",
+            display_name: "newcomer@example.org",
+            email: "newcomer@example.org",
+        },
     };
-    const MEMBERSHIPS: Record<string, string> = { "@member:server": "join", "@invited:server": "invite" };
+    const MEMBERSHIPS: Record<string, string> = {
+        "@member:server": "join",
+        "@invited:server": "invite",
+        "@newcomer:server": "invite",
+    };
 
     let addEmailAddressesToSelectedList: jest.Mock;
 
@@ -196,6 +206,13 @@ describe("watcha_InvitePartnerDialog — comptes déjà dans le salon", () => {
 
         expect(screen.getByText(/belongs to Invitée, already invited to this room/)).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Add" })).toBeDisabled();
+    });
+
+    it("ne répète pas l'adresse quand elle tient lieu de nom", async () => {
+        await renderAndPaste(["newcomer@example.org"]);
+
+        expect(screen.getByText(/belongs to an account already invited to this room/)).toBeInTheDocument();
+        expect(screen.queryByText(/belongs to newcomer@example.org/)).not.toBeInTheDocument();
     });
 
     it("transmet le compte trouvé pour qu'il soit invité par son identifiant", async () => {

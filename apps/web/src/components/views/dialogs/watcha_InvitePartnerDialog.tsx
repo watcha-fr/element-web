@@ -238,6 +238,12 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
             const reject = (reason: string) => rejected.push({ address, reason });
             const knownUser = this.getUserFromEmailAddress(address);
             const membership = room && knownUser ? room.getMember(knownUser.address)?.membership : undefined;
+            // Un compte qui ne s'est jamais connecté a son adresse pour nom : la
+            // citer répéterait l'adresse déjà affichée en tête de ligne.
+            const name =
+                knownUser && knownUser.displayName.toLowerCase() !== address.toLowerCase()
+                    ? knownUser.displayName
+                    : undefined;
 
             if (ownEmailAddresses?.includes(address)) {
                 reject(_t("watcha|email_already_bound"));
@@ -246,9 +252,17 @@ export default class InvitePartnerDialog extends React.Component<IProps, IState>
             } else if (selectedList.some(user => user.email === address)) {
                 reject(_t("watcha|user_already_add"));
             } else if (knownUser && membership === "join") {
-                reject(_t("watcha|user_already_room_member", { name: knownUser.displayName }));
+                reject(
+                    name
+                        ? _t("watcha|user_already_room_member", { name })
+                        : _t("watcha|user_already_room_member_unnamed"),
+                );
             } else if (knownUser && membership === "invite") {
-                reject(_t("watcha|user_already_inivte_room", { name: knownUser.displayName }));
+                reject(
+                    name
+                        ? _t("watcha|user_already_inivte_room", { name })
+                        : _t("watcha|user_already_invited_room_unnamed"),
+                );
             } else if (
                 // A known user keeps being invitable whatever its email domain.
                 !knownUser &&
