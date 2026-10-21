@@ -146,6 +146,7 @@ import { SSO_LANGUAGE_KEY } from "../../Login"; // watcha+
 // watcha+
 import {
     getNextcloudSessionPrimingUrl,
+    hasNextcloudSession,
     isNextcloudReachable,
     NEXTCLOUD_SESSION_PRIMED_KEY,
 } from "../../utils/watcha_nextcloudUtils";
@@ -506,6 +507,12 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
         // happened could not have.
         if (!(await isNextcloudReachable())) {
             logger.warn("Nextcloud does not answer, skipping session priming");
+            return false;
+        }
+
+        // Nothing to prime, and with `oidc_login` the round trip would end on Nextcloud's
+        // dashboard instead of coming back here.
+        if (await hasNextcloudSession()) {
             return false;
         }
 

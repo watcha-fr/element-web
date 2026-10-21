@@ -52,10 +52,13 @@ export function getNextcloudBaseUrl() {
 export const NEXTCLOUD_SESSION_PRIMED_KEY = "watcha_nextcloud_session_primed";
 
 /**
- * URL of the `user_oidc` route that opens a Nextcloud session, then comes back to Element.
+ * URL that opens a Nextcloud session, then comes back to Element.
  *
- * That route is a public page and requires no CSRF token, so a plain navigation is enough.
- * It also short-circuits itself: when a Nextcloud session already exists it redirects to
+ * Which route depends on the OIDC app Nextcloud logs its users in with, set by
+ * `watcha_nextcloud_oidc_app`: `user_oidc` (the default) or `oidc_login`.
+ *
+ * The `user_oidc` route is a public page and requires no CSRF token, so a plain navigation is
+ * enough. It also short-circuits itself: when a Nextcloud session already exists it redirects to
  * `redirectUrl` straight away, without any OIDC round trip — which makes priming cheap and
  * idempotent.
  *
@@ -66,19 +69,56 @@ export const NEXTCLOUD_SESSION_PRIMED_KEY = "watcha_nextcloud_session_primed";
  */
 export function getNextcloudSessionPrimingUrl(fragmentAfterLogin: string) {
     const url = getNextcloudBaseUrl();
-    const providerId = SdkConfig.get().watcha_nextcloud_oidc_provider_id ?? 1;
-    url.pathname += `apps/user_oidc/login/${providerId}`;
-    // `getFragmentAfterLogin()` returns a *path* — "" or "/home" — and never the leading "#",
+    // `getFragmentAfterLogin()` returns a *path* —"" or "/home" — and never the leading "#",
     // which has to be added here. Concatenating it raw yields "//home", which `user_oidc`
     // refuses through its `^/[^/]` open-redirect guard and answers with its own dashboard
     // instead: the user logs into Watcha and lands in Nextcloud. The bug only showed for
     // people who had a screen to restore, which is why it survived testing.
     const screen = fragmentAfterLogin.replace(/^#/, "") || "/home";
     const path = screen.startsWith("/") ? screen : `/${screen}`;
+
+    if (SdkConfig.get().watcha_nextcloud_oidc_app === "oidc_login") {
+        // `oidc_login` takes the target on Nextcloud's own login page, which with
+        // `oidc_login_auto_redirect` keeps it in session and goes straight to the provider. Its
+        // `login_redirect_url` parameter is of no use: the callback URL it hands the provider
+        // drops it. On return the target goes through `getAbsoluteURL()`, which prefixes the
+        // Nextcloud web root, so the path climbs back out of it to reach Element.
+        const webRootDepth = url.pathname.split("/").filter(Boolean).length;
+        const elementPath = "/..".repeat(webRootDepth) + window.location.pathname;
+        url.pathname += "login";
+        url.searchParams.set("redirect_url", `${elementPath}#${path}`);
+        return url.toString();
+    }
+
+    const providerId = SdkConfig.get().watcha_nextcloud_oidc_provider_id ?? 1;
+    url.pathname += `apps/user_oidc/login/${providerId}`;
     // `searchParams` percent-encodes the "#", without which the browser would keep the
     // fragment to itself and the server would never see the target screen.
     url.searchParams.set("redirectUrl", `/#${path}`);
     return url.toString();
+}
+
+/**
+ * Whether the browser already holds a Nextcloud session, asked on the OCS user endpoint.
+ *
+ * Unlike `user_oidc`, `oidc_login` does not short-circuit an existing session: Nextcloud's login
+ * page sends a logged-in user to its own dashboard and drops the target, so the user would log
+ * into Watcha and land in Nextcloud. Any failure answers false, which leaves priming as it was.
+ */
+export async function hasNextcloudSession(timeoutMs = 2000): Promise<boolean> {
+    const url = getNextcloudBaseUrl();
+    url.pathname += "ocs/v2.php/cloud/user";
+    url.searchParams.set("format", "json");
+    try {
+        const response = await fetch(url.toString(), {
+            cache: "no-store",
+            headers: { "OCS-APIREQUEST": "true" },
+            signal: AbortSignal.timeout(timeoutMs),
+        });
+        return response.ok;
+    } catch {
+        return false;
+    }
 }
 
 /**
