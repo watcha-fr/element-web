@@ -410,6 +410,11 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
         const firstScreen = this.screenAfterLogin ? this.screenAfterLogin.screen : null;
         const restoreSuccess = await this.loadSession();
         if (restoreSuccess) {
+            // watcha+
+            // The Matrix session outlives the browser, the Nextcloud one does not: without this,
+            // reopening the app would leave the document panel to authenticate from its iframe.
+            await this.maybePrimeNextcloudSession();
+            // +watcha
             return;
         }
 
@@ -452,7 +457,10 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
      */
     // watcha+
     /**
-     * Open a Nextcloud session at the top level, once per browser session, then come back here.
+     * Open a Nextcloud session at the top level, once per tab session, then come back here.
+     *
+     * Runs after an SSO login and after a stored session has been restored, i.e. each time the
+     * app is opened, and only navigates when Nextcloud holds no session yet.
      *
      * Returns true when the navigation has been started, in which case the caller must stop:
      * the page is on its way out.
