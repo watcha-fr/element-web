@@ -25,7 +25,7 @@ exports[`UserMenuViewModel should generate a menu options for a logged in client
 {
   "actions": {
     "createAccount": false,
-    "linkNewDevice": true,
+    "linkNewDevice": false,
     "openFeedback": false,
     "openHomePage": false,
     "openSecurity": true,

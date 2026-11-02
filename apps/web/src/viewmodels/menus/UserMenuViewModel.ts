@@ -99,7 +99,10 @@ export class UserMenuViewModel
                 createAccount: !isAuthenticated,
                 signIn: !isAuthenticated,
                 openHomePage: hasHomePage,
+                /* watcha!
                 linkNewDevice: isAuthenticated,
+                !watcha */
+                linkNewDevice: isAuthenticated && !SettingsStore.getValue(UIFeature.watcha_SitivFieldDisabled), // watcha+
                 openSecurity: isAuthenticated,
                 openFeedback: shouldShowFeedback(),
                 openSettings: true,
